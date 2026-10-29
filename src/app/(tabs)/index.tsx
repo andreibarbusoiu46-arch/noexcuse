@@ -95,7 +95,7 @@ export default function Home() {
 
           <Tap onPress={() => router.navigate('/arena')} accessibilityLabel="Open the Arena">
             <Card tone="accent" style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 }}>
-              <IconTile icon="Arena" bg={color.accent.primary} tint={color.icon.primary} />
+              <IconTile icon="Arena" bg={color.accent.primary} tint={color.text.onLight} />
               <View style={{ flex: 1, gap: 2 }}>
                 <T variant="bodyStrong">{d?.me ? `Arena · you’re #${d.me.rank} today` : 'Arena · not ranked yet today'}</T>
                 {d?.me ? (

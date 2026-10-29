@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 import { Switch, View } from 'react-native';
 import { haptics } from '@/lib/haptics';
-import { color, radius } from '@/theme/tokens';
+import { color, radius, palette } from '@/theme/tokens';
 import { Glass, GlassGroup } from './Glass';
 import { Icon, type IconName } from './Icon';
 import { Tap } from './Tap';
@@ -39,7 +39,7 @@ export function Avatar({ name, size = 40, me }: { name: string; size?: number; m
   const initials = me ? 'YOU' : name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join('') || '?';
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: me ? color.accent.primary : color.surface.control, borderColor: color.border.strong, borderWidth: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <T variant="caption" style={{ fontSize: Math.max(10, size * 0.32) }}>{initials}</T>
+      <T variant="caption" tone={me ? 'onLight' : 'primary'} style={{ fontSize: Math.max(10, size * 0.32) }}>{initials}</T>
     </View>
   );
 }
@@ -84,13 +84,16 @@ export function DayChips({ value, onChange }: { value: number[]; onChange: (v: n
           <Tap key={d.n} haptic="selection" accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={d.l}
             onPress={() => onChange(on ? value.filter((x) => x !== d.n) : [...value, d.n].sort())}
             style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? color.accent.primary : color.surface.glass, borderWidth: 1, borderColor: on ? color.border.strong : color.border.hairline }}>
-            <T variant="bodyStrong" tone={on ? 'primary' : 'tertiary'}>{d.s}</T>
+            <T variant="bodyStrong" tone={on ? 'onLight' : 'tertiary'}>{d.s}</T>
           </Tap>
         );
       })}
     </View>
   );
 }
+
+// React Native Web paints the "on" thumb teal unless told otherwise.
+const webSwitchColors = { activeThumbColor: color.text.onLight, activeTrackColor: palette.white } as object;
 
 export function ToggleRow({ title, subtitle, value, onChange, icon, disabled }: { title: string; subtitle?: string; value: boolean; onChange: (v: boolean) => void; icon?: ReactNode; disabled?: boolean }) {
   return (
@@ -102,7 +105,8 @@ export function ToggleRow({ title, subtitle, value, onChange, icon, disabled }: 
       </View>
       <Switch value={value} disabled={disabled} accessibilityLabel={title}
         onValueChange={(v) => { haptics.medium(); onChange(v); }}
-        trackColor={{ true: color.status.success, false: color.surface.control }} thumbColor="#FFFFFF" ios_backgroundColor={color.surface.control} />
+        trackColor={{ true: color.status.success, false: color.surface.control }} thumbColor={value ? color.text.onLight : palette.white} ios_backgroundColor={color.surface.control}
+          {...webSwitchColors} />
     </View>
   );
 }

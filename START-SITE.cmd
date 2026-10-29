@@ -24,6 +24,10 @@ if not exist "node_modules\.bin\expo.cmd" (
     exit /b 1
   )
 )
+if not exist "node_modules\@expo-google-fonts\bodoni-moda" (
+  echo Actualizez dependintele (o singura data)...
+  call npm install --no-audit --no-fund > setup-log.txt 2>&1
+)
 rem Valori publice ale proiectului Supabase "noexcuse" (sigure in aplicatie; secretele stau doar pe server).
 set EXPO_PUBLIC_DEMO=0
 set EXPO_PUBLIC_SUPABASE_URL=https://ibsrtuyrflvprmjuuoqb.supabase.co

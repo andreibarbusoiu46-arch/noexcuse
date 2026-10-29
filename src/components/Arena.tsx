@@ -46,7 +46,7 @@ export function LeaderboardRow({ row }: { row: ArenaRow }) {
 export function Podium({ rows }: { rows: ArenaRow[] }) {
   const order = [rows[1], rows[0], rows[2]].filter(Boolean) as ArenaRow[];
   const H: Record<number, number> = { 1: 140, 2: 104, 3: 88 };
-  const rankColor: Record<number, string> = { 1: '#FFFFFF', 2: palette.silver300, 3: palette.amber400 };
+  const rankColor: Record<number, string> = { 1: palette.obsidian950, 2: palette.silver300, 3: palette.silver400 };
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
       {order.map((r) => (
@@ -61,9 +61,9 @@ export function Podium({ rows }: { rows: ArenaRow[] }) {
             alignItems: 'center', paddingTop: 14, gap: 2, borderWidth: 1,
             backgroundColor: r.rank === 1 ? color.accent.primary : color.surface.raised,
             borderColor: r.rank === 3 ? color.status.warning : color.border.strong,
-            ...(r.rank === 1 ? { shadowColor: color.accent.glow, shadowOpacity: 0.55, shadowRadius: 17, shadowOffset: { width: 0, height: 10 } } : null) }}>
+            ...(r.rank === 1 ? { shadowColor: color.accent.glow, shadowOpacity: 0.2, shadowRadius: 17, shadowOffset: { width: 0, height: 10 } } : null) }}>
             <T variant={r.rank === 1 ? 'numberL' : 'h1'} style={{ color: rankColor[r.rank] }}>{r.rank}</T>
-            <T variant="caption" tone={r.rank === 1 ? 'primary' : 'secondary'}>{fmt(r.points)} pts</T>
+            <T variant="caption" tone={r.rank === 1 ? 'onLight' : 'secondary'}>{fmt(r.points)} pts</T>
           </View>
         </View>
       ))}

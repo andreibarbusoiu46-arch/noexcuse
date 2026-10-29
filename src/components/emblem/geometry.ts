@@ -28,4 +28,4 @@ export function summitGeometry(size = 2, z = 0.26): THREE.TubeGeometry {
   return new THREE.TubeGeometry(path, 120, 0.075, 12, false);
 }
 
-export const EMBLEM_COLORS = { tile: '#6243F0', tileEdge: '#9C85FF', stroke: '#FFFFFF', rim: '#6FD3FF' } as const;
+export const EMBLEM_COLORS = { tile: '#151517', tileEdge: '#FFFFFF', stroke: '#FFFFFF', rim: '#C9C9CE' } as const;

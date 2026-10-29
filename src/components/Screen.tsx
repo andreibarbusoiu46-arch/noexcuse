@@ -6,8 +6,9 @@ import { color, layout, palette } from '@/theme/tokens';
 
 type GlowTone = 'violet' | 'ice' | 'green' | 'red' | 'amber' | 'grey' | 'none';
 const GLOW: Record<Exclude<GlowTone, 'none'>, [string, number]> = {
-  violet: [palette.violet500, 0.42], ice: [palette.ice400, 0.25], green: [palette.green400, 0.3],
-  red: [palette.red400, 0.2], amber: [palette.amber400, 0.22], grey: ['#9A9AB0', 0.18],
+  // Monochrome: every tone is white light at a different strength.
+  violet: [palette.white, 0.16], ice: [palette.white, 0.12], green: [palette.white, 0.14],
+  red: [palette.white, 0.06], amber: [palette.white, 0.09], grey: [palette.white, 0.1],
 };
 
 /** Ambient radial light from the top of the screen (Figma "Glow"). Pure SVG gradient — cheap, no blur. */
@@ -33,12 +34,12 @@ export function Summit({ top = 150, height = 330 }: { top?: number; height?: num
     <Svg pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top }} width="100%" height={height} viewBox="0 0 390 330" preserveAspectRatio="xMidYMax slice">
       <Defs>
         <LinearGradient id="far" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#C9C9D6" stopOpacity={0.16} />
-          <Stop offset="0.3" stopColor="#1E1E28" stopOpacity={0.85} />
+          <Stop offset="0" stopColor="#D0D0D4" stopOpacity={0.16} />
+          <Stop offset="0.3" stopColor="#1F1F22" stopOpacity={0.85} />
           <Stop offset="1" stopColor={palette.obsidian950} />
         </LinearGradient>
         <LinearGradient id="near" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#3A3A48" stopOpacity={0.9} />
+          <Stop offset="0" stopColor="#3A3A3F" stopOpacity={0.9} />
           <Stop offset="0.5" stopColor={palette.obsidian900} />
           <Stop offset="1" stopColor={palette.obsidian950} />
         </LinearGradient>

@@ -22,11 +22,11 @@ export function EmblemScene({ useFrame, still }: { useFrame: UseFrame; still: bo
     <>
       <ambientLight intensity={0.35} />
       <directionalLight position={[3, 4, 5]} intensity={2.4} />
-      <pointLight position={[-3, -2, 2.5]} intensity={18} color={EMBLEM_COLORS.tileEdge} />
+      <pointLight position={[-3, -2, 2.5]} intensity={10} color={EMBLEM_COLORS.tileEdge} />
       <pointLight position={[2.5, 1.5, -2]} intensity={10} color={EMBLEM_COLORS.rim} />
       <group ref={group}>
         <mesh geometry={tile}>
-          <meshPhysicalMaterial color={EMBLEM_COLORS.tile} metalness={0.35} roughness={0.28} clearcoat={1} clearcoatRoughness={0.15} />
+          <meshPhysicalMaterial color={EMBLEM_COLORS.tile} metalness={0.6} roughness={0.22} clearcoat={1} clearcoatRoughness={0.08} />
         </mesh>
         <mesh geometry={summit}>
           <meshStandardMaterial color={EMBLEM_COLORS.stroke} emissive={EMBLEM_COLORS.stroke} emissiveIntensity={0.55} roughness={0.3} />

@@ -19,14 +19,14 @@ interface Props {
   accessibilityHint?: string;
 }
 
-/** Figma "Button". One primary per screen. Primary = prominent glass tinted violet; glass = clear glass. */
+/** Figma "Button". One primary per screen. Primary = solid white with a black label; glass = clear glass. */
 export function Button({ label, onPress, kind = 'primary', icon, loading, disabled, style, accessibilityHint }: Props) {
   const glassOn = useLiquidGlassEnabled();
-  const tone = kind === 'ghost' ? 'secondary' : kind === 'danger' ? 'danger' : 'primary';
+  const tone = kind === 'ghost' ? 'secondary' : kind === 'danger' ? 'danger' : kind === 'primary' ? 'onLight' : 'primary';
   const content = (
     <View style={styles.row}>
       {loading ? (
-        <ActivityIndicator color={color.text.primary} />
+        <ActivityIndicator color={kind === 'primary' ? color.text.onLight : color.text.primary} />
       ) : (
         <>
           {icon && <Icon name={icon} size={20} tint={color.text[tone]} />}
@@ -76,6 +76,6 @@ const styles = StyleSheet.create({
   base: { minHeight: 56, borderRadius: radius.full, paddingHorizontal: 24, justifyContent: 'center', overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   danger: { backgroundColor: color.status.dangerSoft, borderWidth: 1, borderColor: color.status.danger },
-  primaryShadow: { borderRadius: radius.full, shadowColor: color.accent.glow, shadowOpacity: 0.55, shadowRadius: 17, shadowOffset: { width: 0, height: 10 }, elevation: 8 },
+  primaryShadow: { borderRadius: radius.full, shadowColor: color.accent.glow, shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
   iconBtn: { width: 44, height: 44, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
 });

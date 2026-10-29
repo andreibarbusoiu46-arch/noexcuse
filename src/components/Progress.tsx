@@ -14,8 +14,8 @@ export function ProgressRing({ done, total, size = 132, caption = 'done today' }
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
         <Defs>
           <LinearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={palette.violet600} />
-            <Stop offset="1" stopColor={palette.violet300} />
+            <Stop offset="0" stopColor={palette.silver400} />
+            <Stop offset="1" stopColor={palette.white} />
           </LinearGradient>
         </Defs>
         <Circle cx={size / 2} cy={size / 2} r={r} stroke={color.surface.glassStrong} strokeWidth={stroke} fill="none" />
@@ -34,7 +34,7 @@ export function ProgressRing({ done, total, size = 132, caption = 'done today' }
 export function WindowBar({ fraction }: { fraction: number }) {
   return (
     <View style={{ height: 6, borderRadius: 3, backgroundColor: color.surface.glassStrong, overflow: 'hidden' }}>
-      <View style={{ width: `${Math.round(Math.max(0, Math.min(1, fraction)) * 100)}%`, height: 6, borderRadius: 3, backgroundColor: palette.violet400 }} />
+      <View style={{ width: `${Math.round(Math.max(0, Math.min(1, fraction)) * 100)}%`, height: 6, borderRadius: 3, backgroundColor: palette.white }} />
     </View>
   );
 }

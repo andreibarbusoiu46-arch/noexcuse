@@ -1,3 +1,5 @@
+import { BodoniModa_500Medium } from '@expo-google-fonts/bodoni-moda/500Medium';
+import { BodoniModa_600SemiBold } from '@expo-google-fonts/bodoni-moda/600SemiBold';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
@@ -19,7 +21,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 const theme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: color.bg.base, card: color.bg.base, primary: color.accent.glow, text: color.text.primary, border: color.border.hairline } };
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
+  const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, BodoniModa_500Medium, BodoniModa_600SemiBold });
   return (
     <SafeAreaProvider>
       <ThemeProvider value={theme}>

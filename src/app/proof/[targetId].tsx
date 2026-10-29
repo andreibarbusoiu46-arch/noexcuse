@@ -176,7 +176,7 @@ function Capture({ target, tz, onShot }: { target: Target | null; tz?: string; o
       </View>
       <View style={[styles.topBar, { top: insets.top + 8 }]}>
         <IconButton icon="Close" label="Close camera" onPress={() => router.back()} />
-        <Glass variant="clear" fallback="rgba(12,12,17,0.72)" style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22, alignItems: 'center', maxWidth: '62%', overflow: 'hidden' }}>
+        <Glass variant="clear" fallback="rgba(10,10,11,0.72)" style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22, alignItems: 'center', maxWidth: '62%', overflow: 'hidden' }}>
           <T variant="caption" numberOfLines={1}>{target?.habit.title ?? 'Proof'}</T>
           {closes && <T variant="caption" tone="accent">{countdown(closes - now)} left in window</T>}
         </Glass>
@@ -184,7 +184,7 @@ function Capture({ target, tz, onShot }: { target: Target | null; tz?: string; o
       </View>
       {target?.habit.proof_hint ? (
         <View style={[styles.hint, { bottom: insets.bottom + 150 }]} pointerEvents="none">
-          <Glass variant="clear" fallback="rgba(12,12,17,0.72)" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 22, overflow: 'hidden' }}>
+          <Glass variant="clear" fallback="rgba(10,10,11,0.72)" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 22, overflow: 'hidden' }}>
             <Icon name="Sparkle" size={16} tint={color.ai.accent} />
             <T variant="caption" numberOfLines={2} style={{ flexShrink: 1 }}>{target.habit.proof_hint}</T>
           </Glass>
@@ -192,7 +192,7 @@ function Capture({ target, tz, onShot }: { target: Target | null; tz?: string; o
       ) : null}
       <View style={[styles.dockWrap, { bottom: insets.bottom + 16 }]}>
         <GlassGroup spacing={16}>
-          <Glass variant="regular" fallback="rgba(17,17,24,0.86)" style={styles.dock}>
+          <Glass variant="regular" fallback="rgba(17,17,19,0.86)" style={styles.dock}>
             <View style={{ alignItems: 'center', gap: 4, width: 64 }} accessible accessibilityLabel="Gallery uploads are disabled">
               <View style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: color.surface.glass, borderWidth: 1, borderColor: color.border.hairline }}>
                 <Icon name="NoGallery" size={20} tint={color.icon.secondary} />
