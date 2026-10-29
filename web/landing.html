@@ -3,438 +3,440 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NoExcuse — prove your habits, live</title>
-<meta name="description" content="Set a target with a time on it. Prove it live with the in-app camera. An AI judge checks the photo: +50 when you show up, −100 when you don't.">
-<meta name="theme-color" content="#07070A">
-<meta property="og:title" content="NoExcuse — prove your habits, live">
-<meta property="og:description" content="Live camera proof, an AI judge and a score that can't be faked. +50 when you show up, −100 when you don't.">
+<title>NoExcuse — close every day</title>
+<meta name="description" content="Set a habit with a deadline. Bring live evidence from the in-app camera. An AI judge rules on it: +50 when you deliver, −100 when you don't.">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="NoExcuse — close every day">
+<meta property="og:description" content="Live evidence, an AI judge and a score nobody can doctor. +50 when you deliver, −100 when you don't.">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
 <style>
   :root {
-    --bg: #07070A;
-    --bg-2: #0C0C11;
-    --surface: #111118;
-    --surface-2: #16161E;
-    --inset: #1E1E28;
-    --line: rgba(255,255,255,.10);
-    --line-strong: rgba(255,255,255,.16);
-    --text: #FFFFFF;
-    --text-2: #C3C3D0;
-    --text-3: #A3A3B5;
-    --violet: #7C5CFF;
-    --violet-hi: #9C85FF;
-    --violet-deep: #6243F0;
-    --ice: #6FD3FF;
-    --win: #3DDC97;
-    --loss: #FF5C6C;
-    --display: "Archivo", "Inter", system-ui, sans-serif;
-    --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --gutter: clamp(16px, 5vw, 56px);
-    --max: 1180px;
+    --ink: #000000;
+    --paper: #FFFFFF;
+    --silver: #C9C9CE;
+    --graphite: #8C8C92;
+    --line: rgba(255,255,255,.12);
+    --line-strong: rgba(255,255,255,.22);
+    --glass: rgba(255,255,255,.055);
+    --glass-strong: rgba(255,255,255,.09);
+    --serif: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+    --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+    --gutter: clamp(16px, 5vw, 64px);
+    --max: 1200px;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 400 17px/1.6 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--ink); color: var(--paper); font: 400 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   a { color: inherit; }
-  :focus-visible { outline: 2px solid var(--violet-hi); outline-offset: 3px; border-radius: 6px; }
+  :focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; border-radius: 4px; }
   .wrap { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
-  .tnum { font-variant-numeric: tabular-nums; }
-
-  /* Type scale (perfect fourth from 17px) */
-  h1, h2, h3 { font-family: var(--display); margin: 0; font-weight: 850; letter-spacing: -0.02em; }
-  h1 { font-size: clamp(48px, 8.4vw, 104px); line-height: .92; font-stretch: 118%; letter-spacing: -0.035em; }
-  h2 { font-size: clamp(34px, 4.6vw, 56px); line-height: 1; font-stretch: 112%; }
-  h3 { font-size: 22px; line-height: 1.2; font-stretch: 108%; font-weight: 750; letter-spacing: -0.01em; }
+  .tnum { font-variant-numeric: tabular-nums lining-nums; }
   p { margin: 0; }
-  .lede { font-size: clamp(18px, 1.6vw, 20px); color: var(--text-2); max-width: 34em; }
-  .muted { color: var(--text-3); }
 
-  /* Buttons */
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 26px; border-radius: 999px; font: 600 16px/1 var(--body); text-decoration: none; transition: transform .15s ease, background-color .15s ease; }
+  /* Type: Bodoni for argument, Inter for evidence */
+  h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-optical-sizing: auto; }
+  h1 { font-size: clamp(64px, 11vw, 168px); line-height: .88; letter-spacing: -0.035em; font-weight: 500; }
+  h2 { font-size: clamp(40px, 5.6vw, 76px); line-height: .98; letter-spacing: -0.025em; }
+  h3 { font-family: var(--sans); font-size: 19px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; }
+  .lede { font-size: clamp(18px, 1.5vw, 20px); color: var(--silver); max-width: 31em; }
+
+  /* Buttons: press feedback on pointer-down, hover only where hover exists */
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 54px; padding: 0 28px; border-radius: 999px; font: 600 16px/1 var(--sans); letter-spacing: -0.005em; text-decoration: none; transition: transform 160ms var(--ease-out), background-color 200ms ease, color 200ms ease; -webkit-tap-highlight-color: transparent; }
   .btn:active { transform: scale(.97); }
-  .btn-primary { background: var(--violet-deep); color: #fff; box-shadow: 0 10px 34px -8px rgba(124,92,255,.65), inset 0 1px 0 rgba(255,255,255,.18); }
-  .btn-primary:hover { background: #6E52F5; }
-  .btn-ghost { color: var(--text); border: 1px solid var(--line-strong); background: rgba(255,255,255,.04); }
-  .btn-ghost:hover { background: rgba(255,255,255,.08); }
+  .btn-solid { background: var(--paper); color: var(--ink); }
+  .btn-glass { color: var(--paper); background: var(--glass); border: 1px solid var(--line-strong); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-solid:hover { background: #E6E6E9; }
+    .btn-glass:hover { background: var(--glass-strong); }
+  }
 
-  /* Nav */
-  .nav { position: sticky; top: 0; z-index: 10; background: rgba(7,7,10,.72); backdrop-filter: saturate(160%) blur(14px); -webkit-backdrop-filter: saturate(160%) blur(14px); border-bottom: 1px solid transparent; }
-  .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  /* Nav: a translucent layer, content scrolls underneath */
+  .nav { position: fixed; inset: 0 0 auto; z-index: 20; }
+  .nav::before { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.42); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); mask: linear-gradient(#000 60%, transparent); -webkit-mask: linear-gradient(#000 60%, transparent); }
+  .nav .wrap { position: relative; display: flex; align-items: center; justify-content: space-between; height: 76px; }
   .lockup { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-  .lockup span { font: 800 15px/1 var(--display); font-stretch: 125%; letter-spacing: .2em; }
-  .nav .btn { min-height: 42px; padding: 0 18px; font-size: 15px; }
-  .nav-links { display: flex; align-items: center; gap: 28px; }
-  .nav-links a:not(.btn) { color: var(--text-2); text-decoration: none; font-size: 15px; }
-  .nav-links a:not(.btn):hover { color: var(--text); }
+  .lockup span { font: 600 15px/1 var(--sans); letter-spacing: .24em; }
+  .nav-links { display: flex; align-items: center; gap: 30px; }
+  .nav-links a:not(.btn) { color: var(--silver); text-decoration: none; font-size: 15px; transition: color 200ms ease; }
+  .nav-links a:not(.btn):hover { color: var(--paper); }
+  .nav .btn { min-height: 42px; padding: 0 20px; font-size: 15px; }
 
   /* Hero */
-  .hero { position: relative; padding: clamp(40px, 7vw, 96px) 0 clamp(64px, 9vw, 120px); }
-  .hero::before { content: ""; position: absolute; inset: -120px 0 auto; height: 720px; background: radial-gradient(60% 55% at 72% 30%, rgba(98,67,240,.28), transparent 70%); pointer-events: none; }
-  .hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
-  .hero h1 .second { display: block; color: var(--violet-hi); }
-  .hero .lede { margin-top: 28px; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
-  .fine { margin-top: 18px; font-size: 14px; color: var(--text-3); }
+  .hero { position: relative; min-height: 100svh; display: flex; align-items: flex-end; padding: 120px 0 clamp(56px, 8vw, 104px); overflow: hidden; isolation: isolate; }
+  .stage { position: absolute; inset: 0; z-index: -1; }
+  .stage canvas { display: block; width: 100%; height: 100%; }
+  .stage-fallback { position: absolute; inset: 0; background:
+      radial-gradient(40% 50% at 72% 42%, rgba(255,255,255,.14), transparent 70%),
+      repeating-linear-gradient(90deg, transparent 0 46px, rgba(255,255,255,.06) 46px 47px), #000; }
+  .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background: linear-gradient(90deg, rgba(0,0,0,.86) 0%, rgba(0,0,0,.55) 38%, transparent 64%), linear-gradient(0deg, #000 0%, transparent 28%); }
+  .hero-copy { max-width: 720px; }
+  .hero h1 .line { display: block; overflow: hidden; padding-bottom: .14em; margin-bottom: -.08em; }
+  .hero h1 .line > span { display: block; }
+  .hero .lede { margin-top: 30px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
+  .fine { margin-top: 18px; font-size: 14px; color: var(--graphite); }
 
-  /* Proof card demo */
-  .proof { position: relative; background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line); border-radius: 28px; padding: 18px; box-shadow: 0 40px 80px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(124,92,255,.08); }
+  /* One orchestrated entrance: headline lines rise, then copy, then the glass */
+  .js .hero h1 .line > span { transform: translateY(105%); }
+  .js .hero .lede, .js .hero .cta-row, .js .hero .fine { opacity: 0; transform: translateY(12px); }
+  .js .stage { opacity: 0; transform: scale(1.04); }
+  .ready .hero h1 .line > span { transform: none; transition: transform 1100ms var(--ease-out); }
+  .ready .hero h1 .line:nth-child(2) > span { transition-delay: 90ms; }
+  .ready .hero .lede, .ready .hero .cta-row, .ready .hero .fine { opacity: 1; transform: none; transition: opacity 700ms ease, transform 900ms var(--ease-out); transition-delay: 380ms; }
+  .ready .hero .cta-row { transition-delay: 460ms; }
+  .ready .hero .fine { transition-delay: 540ms; }
+  .ready .stage { opacity: 1; transform: none; transition: opacity 1400ms ease 120ms, transform 1800ms var(--ease-out) 120ms; }
+
+  /* Sections */
+  section { padding: clamp(80px, 11vw, 144px) 0; }
+  .ruled { border-top: 1px solid var(--line); }
+  .head { max-width: 680px; margin-bottom: clamp(40px, 5vw, 72px); }
+  .head p { margin-top: 20px; color: var(--silver); font-size: 18px; max-width: 32em; }
+
+  /* Exhibit A: frosted glass over pinstripe and light */
+  .exhibit { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(36px, 6vw, 96px); align-items: center; }
+  .bench { position: relative; padding: clamp(28px, 4vw, 56px); border-radius: 36px; overflow: hidden; isolation: isolate;
+      background: radial-gradient(55% 60% at 30% 20%, rgba(255,255,255,.30), transparent 70%), radial-gradient(40% 45% at 85% 90%, rgba(255,255,255,.16), transparent 70%),
+      repeating-linear-gradient(90deg, #050505 0 22px, #1A1A1A 22px 23px); }
+  .proof { position: relative; border-radius: 28px; padding: 18px; background: rgba(20,20,22,.42); border: 1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 40px 80px -30px rgba(0,0,0,.9); }
   .proof-head { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 6px 14px; }
-  .proof-head b { font: 700 17px/1.2 var(--display); font-stretch: 110%; }
-  .proof-head small { color: var(--text-3); font-size: 14px; }
-  .viewfinder { position: relative; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; background: linear-gradient(180deg, #2A1D78 0%, #5B3FD9 38%, #F2A06B 74%, #FFD29A 100%); }
-  .viewfinder svg { position: absolute; inset: auto 0 0 0; width: 100%; height: 62%; }
-  .viewfinder .sun { position: absolute; left: 58%; top: 50%; width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle, #FFF3D6 0 40%, rgba(255,226,170,.0) 72%); }
+  .proof-head b { font: 600 17px/1.2 var(--sans); }
+  .proof-head small { color: var(--graphite); font-size: 14px; }
+  .viewfinder { position: relative; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; background: linear-gradient(180deg, #2B2B2E 0%, #6E6E73 46%, #D9D9DC 78%, #F2F2F2 100%); }
+  .viewfinder svg { position: absolute; inset: auto 0 0 0; width: 100%; height: 78%; }
   .corners { position: absolute; inset: 14px; pointer-events: none; }
-  .corners i { position: absolute; width: 22px; height: 22px; border: 2px solid rgba(255,255,255,.85); }
+  .corners i { position: absolute; width: 22px; height: 22px; border: 2px solid rgba(255,255,255,.9); }
   .corners i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
   .corners i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 8px; }
   .corners i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 8px; }
   .corners i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
-  .live { position: absolute; left: 16px; top: 16px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 999px; background: rgba(7,7,10,.55); font-size: 12px; font-weight: 600; backdrop-filter: blur(6px); }
-  .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--loss); }
+  .live { position: absolute; left: 16px; top: 16px; display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px 5px 9px; border-radius: 999px; background: rgba(0,0,0,.5); font-size: 12px; font-weight: 600; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.25); }
   .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
-
   .window { padding: 18px 6px 4px; }
-  .track { position: relative; height: 8px; border-radius: 4px; background: var(--inset); }
-  .band { position: absolute; left: 25%; right: 25%; top: 0; bottom: 0; border-radius: 4px; background: rgba(124,92,255,.45); box-shadow: inset 0 0 0 1px rgba(156,133,255,.5); }
-  .due { position: absolute; left: 50%; top: -4px; width: 2px; height: 16px; margin-left: -1px; background: var(--violet-hi); border-radius: 1px; }
-  .needle { position: absolute; top: 50%; left: 8%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,.14); }
-  .ticks { display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; color: var(--text-3); }
-  .ticks span:nth-child(2) { color: var(--text-2); }
-  .ticks span:first-child, .ticks span:last-child { visibility: hidden; }
-
-  .judge { margin: 14px 0 0; padding: 14px 16px; border-radius: 16px; background: rgba(111,211,255,.08); border: 1px solid rgba(111,211,255,.18); min-height: 98px; }
-  .judge-label { font-size: 13px; color: var(--ice); font-weight: 600; }
-  .judge-text { margin-top: 4px; font-size: 15px; color: var(--text-2); }
-  .judging .judge-text { background: linear-gradient(90deg, rgba(195,195,208,.35) 0%, rgba(111,211,255,.9) 50%, rgba(195,195,208,.35) 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 1.1s linear infinite; }
+  .track { position: relative; height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); }
+  .band { position: absolute; left: 25%; right: 25%; top: 0; bottom: 0; border-radius: 3px; background: rgba(255,255,255,.34); }
+  .due { position: absolute; left: 50%; top: -5px; width: 2px; height: 16px; margin-left: -1px; background: #fff; border-radius: 1px; }
+  .needle { position: absolute; top: 50%; left: 0; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgba(255,255,255,.14); }
+  .ticks { position: relative; height: 20px; margin-top: 10px; font-size: 13px; color: var(--graphite); }
+  .ticks span { position: absolute; transform: translateX(-50%); }
+  .judge { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); min-height: 98px; }
+  .judge-label { font-size: 13px; font-weight: 600; color: var(--paper); }
+  .judge-text { margin-top: 4px; font-size: 15px; color: var(--silver); transition: filter 200ms ease, opacity 200ms ease; }
+  .judge-text.swap { filter: blur(3px); opacity: .3; }
+  .judging .judge-text { background: linear-gradient(90deg, rgba(201,201,206,.35) 0%, #fff 50%, rgba(201,201,206,.35) 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 1.1s linear infinite; }
   @keyframes shimmer { to { background-position: -200% 0; } }
+  .verdict { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 6px 16px; padding: 18px 6px 6px; transition: opacity 500ms ease, transform 700ms var(--ease-out), filter 500ms ease; }
+  .pre .verdict { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  .verdict .state { display: inline-flex; align-items: center; gap: 8px; font: 600 18px/1 var(--sans); }
+  .verdict .delta { font: 500 64px/.85 var(--serif); letter-spacing: -0.03em; grid-row: span 2; }
+  .verdict .meta { font-size: 14px; color: var(--graphite); }
+  .verdict .meta b { color: var(--paper); font-weight: 600; }
+  .replay { margin-top: 16px; background: none; border: 0; padding: 8px 0; color: var(--graphite); font: 500 15px var(--sans); cursor: pointer; transition: color 200ms ease; }
+  .replay:hover { color: var(--paper); }
+  .replay[hidden] { display: block; visibility: hidden; }
 
-  .verdict { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 6px 16px; padding: 16px 6px 4px; }
-  .verdict .state { display: inline-flex; align-items: center; gap: 8px; font: 750 20px/1 var(--display); font-stretch: 110%; color: var(--win); }
-  .verdict .delta { font: 900 52px/.9 var(--display); font-stretch: 120%; color: var(--win); grid-row: span 2; letter-spacing: -0.03em; }
-  .verdict .meta { font-size: 14px; color: var(--text-3); }
-  .verdict .meta b { color: var(--text); font-weight: 600; }
-  .replay { position: absolute; right: 16px; bottom: -46px; background: none; border: 0; color: var(--text-3); font: 500 14px var(--body); cursor: pointer; padding: 8px; }
-  .replay:hover { color: var(--text); }
+  /* The process: a real sequence */
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 3.4vw, 48px); }
+  .steps li { padding-top: 26px; border-top: 1px solid var(--line-strong); }
+  .steps .n { font: 500 44px/1 var(--serif); color: var(--graphite); }
+  .steps h3 { margin-top: 22px; }
+  .steps p { margin-top: 10px; color: var(--silver); }
+  .steps .when { display: block; margin-top: 18px; font-size: 14px; color: var(--graphite); }
 
-  /* Before the sequence plays, the outcome is hidden */
-  .proof.pre .verdict { opacity: 0; transform: translateY(8px); }
-  .proof .verdict { transition: opacity .45s ease, transform .45s cubic-bezier(.2,.8,.2,1); }
-
-  /* Sections */
-  section { padding: clamp(72px, 10vw, 128px) 0; }
-  .section-head { max-width: 640px; margin-bottom: clamp(36px, 5vw, 64px); }
-  .section-head p { margin-top: 18px; color: var(--text-2); font-size: 18px; }
-  .rule-top { border-top: 1px solid var(--line); }
-
-  /* How it works: a real sequence on the clock */
-  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 40px); counter-reset: step; }
-  .steps li { position: relative; padding-top: 28px; border-top: 2px solid var(--line-strong); }
-  .steps li:nth-child(2) { border-top-color: var(--violet); }
-  .steps li:nth-child(3) { border-top-color: var(--ice); }
-  .steps .n { font: 850 15px/1 var(--display); font-stretch: 120%; color: var(--text-3); }
-  .steps h3 { margin-top: 14px; }
-  .steps p { margin-top: 10px; color: var(--text-2); }
-  .steps .when { display: inline-block; margin-top: 18px; font-size: 14px; color: var(--text-3); }
-
-  /* The ledger */
+  /* The terms: a ledger */
   .ledger { border-top: 1px solid var(--line-strong); }
-  .ledger-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: clamp(18px, 2.4vw, 28px) 0; border-bottom: 1px solid var(--line); }
-  .ledger-row h3 { font-size: clamp(20px, 2.2vw, 26px); }
-  .ledger-row p { margin-top: 6px; color: var(--text-3); font-size: 16px; }
-  .pts { font: 900 clamp(48px, 7vw, 92px)/.9 var(--display); font-stretch: 122%; letter-spacing: -0.04em; text-align: right; }
-  .pts.win { color: var(--win); }
-  .pts.loss { color: var(--loss); }
-  .ledger-note { margin-top: 24px; color: var(--text-3); font-size: 15px; max-width: 46em; }
+  .ledger-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: clamp(18px, 2.4vw, 30px) 0; border-bottom: 1px solid var(--line); }
+  .ledger-row h3 { font: 500 clamp(24px, 2.6vw, 34px)/1.1 var(--serif); letter-spacing: -0.015em; }
+  .ledger-row p { margin-top: 8px; color: var(--graphite); font-size: 16px; }
+  .pts { font: 500 clamp(60px, 9vw, 128px)/.85 var(--serif); letter-spacing: -0.04em; text-align: right; }
+  .pts.loss { color: transparent; -webkit-text-stroke: 1.5px var(--paper); }
+  .ledger-note { margin-top: 26px; color: var(--graphite); font-size: 15px; max-width: 46em; }
 
-  /* Integrity */
-  .integrity { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(28px, 5vw, 72px); }
-  .integrity div { padding: 26px 0; border-top: 1px solid var(--line); }
-  .integrity h3 { font-size: 20px; }
-  .integrity p { margin-top: 8px; color: var(--text-2); max-width: 30em; }
+  /* Airtight */
+  .airtight { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(28px, 5vw, 80px); }
+  .airtight div { padding: 28px 0; border-top: 1px solid var(--line); }
+  .airtight p { margin-top: 8px; color: var(--silver); max-width: 30em; }
 
   /* Arena */
-  .arena { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
-  .board { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 8px; }
-  .board-head { display: flex; justify-content: space-between; padding: 12px 14px 10px; font-size: 13px; color: var(--text-3); }
-  .board-row { display: grid; grid-template-columns: 34px 36px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; }
-  .board-row + .board-row { border-top: 1px solid rgba(255,255,255,.05); }
-  .board-row.me { background: rgba(124,92,255,.14); border-top-color: transparent; box-shadow: inset 0 0 0 1px rgba(124,92,255,.35); }
+  .arena { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(36px, 6vw, 96px); align-items: center; }
+  .board { border-radius: 28px; padding: 8px; background: rgba(255,255,255,.035); border: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+  .board-head { display: flex; justify-content: space-between; padding: 12px 16px 10px; font-size: 13px; color: var(--graphite); }
+  .board-row { display: grid; grid-template-columns: 30px 36px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 13px 16px; border-radius: 18px; }
+  .board-row + .board-row { border-top: 1px solid rgba(255,255,255,.06); }
+  .board-row.me { background: var(--paper); color: var(--ink); border-top-color: transparent; }
   .board-row.me + .board-row { border-top-color: transparent; }
-  .rk { font: 850 18px/1 var(--display); font-stretch: 115%; color: var(--text-3); }
-  .board-row:first-of-type .rk { color: var(--violet-hi); }
-  .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 700 14px/1 var(--body); background: var(--inset); color: var(--text-2); }
+  .board-row.me .st, .board-row.me .rk { color: #55555A; }
+  .rk { font: 500 22px/1 var(--serif); color: var(--graphite); }
+  .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 600 13px/1 var(--sans); background: rgba(255,255,255,.08); color: var(--silver); }
+  .board-row.me .av { background: var(--ink); color: var(--paper); }
   .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .st { font-size: 14px; color: var(--text-3); }
-  .pt { font: 800 18px/1 var(--display); font-stretch: 112%; min-width: 4ch; text-align: right; }
-  .board-foot { padding: 10px 14px 12px; font-size: 13px; color: var(--text-3); }
+  .st { font-size: 14px; color: var(--graphite); }
+  .pt { font: 500 22px/1 var(--serif); min-width: 3.5ch; text-align: right; }
+  .pt.neg { color: var(--graphite); }
+  .board-foot { padding: 10px 16px 12px; font-size: 13px; color: var(--graphite); }
 
-  /* Pricing */
-  .plan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); align-items: start; }
-  .price-card { position: relative; border-radius: 28px; padding: clamp(24px, 3vw, 36px); background: radial-gradient(120% 90% at 100% 0%, rgba(98,67,240,.35), transparent 60%), var(--surface); border: 1px solid rgba(124,92,255,.32); }
-  .price { display: flex; align-items: baseline; gap: 8px; }
-  .price strong { font: 900 clamp(56px, 7vw, 80px)/1 var(--display); font-stretch: 118%; letter-spacing: -0.04em; }
-  .price span { color: var(--text-2); }
-  .trial { display: inline-block; margin-top: 12px; padding: 6px 12px; border-radius: 999px; background: rgba(124,92,255,.16); color: var(--violet-hi); font-size: 14px; font-weight: 600; }
-  .benefits { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 14px; }
-  .benefits li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; color: var(--text-2); }
-  .benefits svg { margin-top: 3px; }
-  .price-card .btn { margin-top: 32px; width: 100%; }
+  /* Retainer */
+  .plan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(36px, 6vw, 96px); align-items: start; }
+  .timeline div { display: grid; grid-template-columns: 96px 1fr; gap: 16px; padding: 20px 0; border-top: 1px solid var(--line); }
+  .timeline b { font: 500 20px/1.3 var(--serif); }
+  .timeline p { color: var(--silver); }
+  .price-card { position: relative; border-radius: 32px; padding: clamp(26px, 3vw, 40px); overflow: hidden; isolation: isolate; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); }
+  .price-card::before { content: ""; position: absolute; z-index: -1; inset: -40% -20% auto auto; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.18), transparent 70%); }
+  .price { display: flex; align-items: baseline; gap: 10px; margin-top: 16px; }
+  .price strong { font: 500 clamp(64px, 8vw, 96px)/1 var(--serif); letter-spacing: -0.04em; }
+  .price span { color: var(--silver); }
+  .trial { display: inline-block; margin-top: 14px; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 14px; font-weight: 600; }
+  .benefits { list-style: none; margin: 30px 0 0; padding: 0; display: grid; gap: 14px; }
+  .benefits li { display: grid; grid-template-columns: 20px 1fr; gap: 12px; color: var(--silver); }
+  .benefits svg { margin-top: 4px; }
+  .price-card .btn { margin-top: 34px; width: 100%; }
   .price-card .fine { text-align: center; }
-  .timeline { margin-top: 8px; }
-  .timeline div { display: grid; grid-template-columns: 88px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
-  .timeline b { font: 750 16px/1.5 var(--display); font-stretch: 110%; color: var(--violet-hi); }
-  .timeline p { color: var(--text-2); }
 
-  /* FAQ */
-  .faq { max-width: 820px; }
+  /* Cross-examination */
+  .faq { max-width: 840px; }
   .faq details { border-top: 1px solid var(--line); }
   .faq details:last-child { border-bottom: 1px solid var(--line); }
-  .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 22px 0; font: 700 19px/1.3 var(--display); font-stretch: 106%; }
+  .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 24px 0; font: 500 clamp(21px, 2vw, 26px)/1.25 var(--serif); letter-spacing: -0.01em; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: ""; flex: none; width: 12px; height: 12px; border-right: 2px solid var(--text-3); border-bottom: 2px solid var(--text-3); transform: translateY(-3px) rotate(45deg); transition: transform .2s ease; }
-  .faq details[open] summary::after { transform: translateY(2px) rotate(225deg); }
-  .faq details p { padding: 0 0 22px; color: var(--text-2); max-width: 40em; }
+  .faq summary::after { content: ""; flex: none; width: 18px; height: 18px; background: linear-gradient(var(--paper), var(--paper)) center / 18px 1.5px no-repeat, linear-gradient(var(--paper), var(--paper)) center / 1.5px 18px no-repeat; transition: transform 250ms var(--ease-out); }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq details p { padding: 0 0 24px; color: var(--silver); max-width: 40em; }
 
-  /* Closing */
-  .closing { text-align: left; padding-bottom: clamp(88px, 12vw, 152px); }
-  .closing h2 { font-size: clamp(44px, 7.4vw, 96px); font-stretch: 120%; line-height: .94; letter-spacing: -0.035em; max-width: 12ch; }
-  .closing .cta-row { margin-top: 40px; }
-
-  footer { border-top: 1px solid var(--line); padding: 32px 0 44px; color: var(--text-3); font-size: 14px; }
-  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; }
-  footer nav { display: flex; gap: 22px; }
-  footer a { text-decoration: none; }
-  footer a:hover { color: var(--text); }
+  .closing h2 { font-size: clamp(56px, 10vw, 152px); line-height: .88; letter-spacing: -0.04em; max-width: 9ch; }
+  .closing .cta-row { margin-top: 44px; }
+  footer { border-top: 1px solid var(--line); padding: 32px 0 44px; color: var(--graphite); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; }
+  footer nav { display: flex; gap: 24px; }
+  footer a { text-decoration: none; transition: color 200ms ease; }
+  footer a:hover { color: var(--paper); }
 
   @media (max-width: 960px) {
-    .hero .wrap, .arena, .plan { grid-template-columns: 1fr; }
-    .proof { max-width: 480px; }
+    .exhibit, .arena, .plan { grid-template-columns: 1fr; }
     .steps { grid-template-columns: 1fr; }
     .nav-links a:not(.btn) { display: none; }
+    .hero { align-items: stretch; flex-direction: column; justify-content: flex-end; padding-top: 0; }
+    .stage { position: relative; inset: auto; height: 58svh; min-height: 340px; -webkit-mask: linear-gradient(#000 72%, transparent); mask: linear-gradient(#000 72%, transparent); }
+    .hero::after { background: linear-gradient(0deg, #000 0%, rgba(0,0,0,.0) 22%), linear-gradient(180deg, rgba(0,0,0,.5) 0%, transparent 18%); }
+    .hero .wrap { margin-top: -6svh; position: relative; }
   }
   @media (max-width: 640px) {
-    .integrity { grid-template-columns: 1fr; }
-    .board-row { grid-template-columns: 26px 32px minmax(0, 1fr) auto; }
+    .airtight { grid-template-columns: 1fr; }
+    .board-row { grid-template-columns: 24px 32px minmax(0, 1fr) auto; }
     .board-row .st { display: none; }
     .av { width: 32px; height: 32px; }
-    .ledger-row { gap: 12px; }
     .cta-row .btn { flex: 1 1 100%; }
     .timeline div { grid-template-columns: 1fr; gap: 4px; }
+    .bench { padding: 14px; border-radius: 28px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .proof .verdict { transition: none; }
-    .judging .judge-text { animation: none; color: var(--text-2); background: none; }
+    .js .hero h1 .line > span, .js .hero .lede, .js .hero .cta-row, .js .hero .fine, .js .stage { transform: none; }
+    .ready .hero .lede, .ready .hero .cta-row, .ready .hero .fine, .ready .stage, .ready .hero h1 .line > span { transition: opacity 400ms ease; }
+    .judging .judge-text { animation: none; color: var(--silver); background: none; }
+    .verdict { transition: opacity 300ms ease; }
+    .pre .verdict { transform: none; filter: none; }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .proof, .btn-glass, .nav::before { backdrop-filter: none; -webkit-backdrop-filter: none; background: #141416; }
   }
 </style>
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 
 <header class="nav">
   <div class="wrap">
     <a class="lockup" href="/" aria-label="NoExcuse home">
-      <svg width="34" height="34" viewBox="0 0 56 56" aria-hidden="true"><defs><linearGradient id="m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9C85FF"/><stop offset=".55" stop-color="#6243F0"/><stop offset="1" stop-color="#2A1A80"/></linearGradient></defs><rect x=".5" y=".5" width="55" height="55" rx="16" fill="url(#m)" stroke="rgba(255,255,255,.16)"/><path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <svg width="34" height="34" viewBox="0 0 56 56" aria-hidden="true"><rect x=".75" y=".75" width="54.5" height="54.5" rx="16" fill="#fff"/><path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       <span>NOEXCUSE</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="#how">How it works</a>
-      <a href="#rules">Scoring</a>
-      <a href="#pricing">Pricing</a>
-      <a class="btn btn-ghost" href="/onboarding">Open the app</a>
+      <a href="#process">How it works</a>
+      <a href="#terms">The terms</a>
+      <a href="#retainer">Pricing</a>
+      <a class="btn btn-glass" href="/onboarding">Open the app</a>
     </nav>
   </div>
 </header>
 
 <main>
   <section class="hero" aria-labelledby="hero-title">
+    <div class="stage" id="stage" aria-hidden="true"><div class="stage-fallback"></div></div>
     <div class="wrap">
-      <div>
-        <h1 id="hero-title">No excuses.<span class="second">Just execution.</span></h1>
-        <p class="lede">Set a habit with a time on it. When it’s due, prove it live with the in-app camera. An AI judge checks the photo and your score moves: +50 when you show up, −100 when you don’t.</p>
+      <div class="hero-copy">
+        <h1 id="hero-title"><span class="line"><span>Close</span></span><span class="line"><span>every day.</span></span></h1>
+        <p class="lede">Set a habit with a deadline. When it’s due, bring live evidence from the in‑app camera. An AI judge rules on the photo: +50 when you deliver, −100 when you don’t. No appeals.</p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="/onboarding">Try it on the web</a>
-          <a class="btn btn-ghost" href="#rules">See the scoring rules</a>
+          <a class="btn btn-solid" href="/onboarding">Try it on the web</a>
+          <a class="btn btn-glass" href="#terms">Read the terms</a>
         </div>
-        <p class="fine">iPhone app coming to the App Store. €9.99 a month after a 3-day free trial.</p>
+        <p class="fine">iPhone app coming to the App Store. €9.99 a month after a 3‑day free trial.</p>
       </div>
-
-      <figure class="proof pre" id="proof" aria-label="Example: a morning run proven live and verified by the AI judge" style="margin:0">
-        <div class="proof-head"><b>Morning run</b><small class="tnum">Due 06:30</small></div>
-        <div class="viewfinder" aria-hidden="true">
-          <div class="sun"></div>
-          <svg viewBox="0 0 400 180" preserveAspectRatio="none"><path d="M0 180V118l70-46 52 34 66-70 58 52 42-30 112 84v38Z" fill="#20155E" opacity=".9"/><path d="M0 180v-34l96-30 70 26 88-46 74 34 72-18v68Z" fill="#120C33"/><path d="M152 180c18-30 44-52 92-60" stroke="#FFD29A" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/></svg>
-          <div class="corners"><i></i><i></i><i></i><i></i></div>
-          <span class="live">Live camera</span>
-          <div class="flash" id="flash"></div>
-        </div>
-        <div class="window" aria-hidden="true">
-          <div class="track"><div class="band"></div><div class="due"></div><div class="needle" id="needle"></div></div>
-          <div class="ticks tnum"><span>06:00</span><span>06:15</span><span>06:30</span><span>06:45</span><span>07:00</span></div>
-        </div>
-        <div class="judge" id="judge">
-          <div class="judge-label">AI judge</div>
-          <p class="judge-text" id="judge-text">Waiting for the window to open</p>
-        </div>
-        <div class="verdict" id="verdict">
-          <span class="state"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span>
-          <span class="delta tnum" id="delta">+50</span>
-          <span class="meta tnum">Streak <b id="streak">12</b> days &nbsp;&nbsp; Total <b id="total">1,290</b></span>
-        </div>
-        <button class="replay" id="replay" type="button" hidden>Replay</button>
-      </figure>
     </div>
   </section>
 
-  <section id="how" class="rule-top" aria-labelledby="how-title">
+  <section class="ruled" aria-labelledby="exhibit-title">
+    <div class="wrap exhibit">
+      <div class="head" style="margin-bottom:0">
+        <h2 id="exhibit-title">Exhibit A: the 6:30 run.</h2>
+        <p>One verified morning, start to finish. The window opens, the evidence goes in, the judge rules. It takes seconds and leaves no room for a story.</p>
+        <button class="replay" id="replay" type="button" hidden>Replay the evidence</button>
+      </div>
+      <div class="bench">
+        <figure class="proof pre" id="proof" aria-label="Example: a morning run proven live and verified by the AI judge" style="margin:0">
+          <div class="proof-head"><b>Morning run</b><small class="tnum">Due 06:30</small></div>
+          <div class="viewfinder" aria-hidden="true">
+            <svg viewBox="0 0 400 230" preserveAspectRatio="none">
+              <path d="M0 230V120h22V86h18v34h14V60h26v60h12V96h16V40h8V24h6v16h8v80h14V74h22v46h10V100h18V52h30v68h12V88h20v32h16V66h24v54h10V92h14v138Z" fill="#1C1C1E"/>
+              <path d="M0 230v-62h40v-18h30v18h26v-30h34v30h22v-12h40v12h28v-24h36v24h30v-16h34v16h28v-8h52v70Z" fill="#0A0A0B"/>
+              <path d="M150 230c22-38 56-58 110-64" stroke="#E9E9EC" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>
+            </svg>
+            <div class="corners"><i></i><i></i><i></i><i></i></div>
+            <span class="live">Live camera</span>
+            <div class="flash" id="flash"></div>
+          </div>
+          <div class="window" aria-hidden="true">
+            <div class="track"><div class="band"></div><div class="due"></div><div class="needle" id="needle"></div></div>
+            <div class="ticks tnum"><span style="left:25%">06:15</span><span style="left:50%;color:#fff">06:30</span><span style="left:75%">06:45</span></div>
+          </div>
+          <div class="judge" id="judge">
+            <div class="judge-label">AI judge</div>
+            <p class="judge-text" id="judge-text">Running shoes, empty avenue, first light behind you. That’s a run. Verified.</p>
+          </div>
+          <div class="verdict">
+            <span class="state"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span>
+            <span class="delta tnum" id="delta">+50</span>
+            <span class="meta tnum">Streak <b id="streak">12</b> days &nbsp;&nbsp; Total <b id="total">1,290</b></span>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="process" class="ruled" aria-labelledby="process-title">
     <div class="wrap">
-      <div class="section-head">
-        <h2 id="how-title">Three steps, every time.</h2>
-        <p>No check-boxes you can tick from bed. Every habit ends in a photo taken at the moment, judged on the server.</p>
+      <div class="head">
+        <h2 id="process-title">Every day is argued the same way.</h2>
+        <p>No boxes to tick from bed. Every habit ends in evidence taken at the moment and judged on the server.</p>
       </div>
       <ol class="steps">
-        <li>
-          <span class="n">1</span>
-          <h3>Set a hard target</h3>
-          <p>Pick the habit, the time and the days. Proof is due inside a 30-minute window: 15 minutes either side of the time you chose.</p>
-          <span class="when">Once, when you create the habit</span>
-        </li>
-        <li>
-          <span class="n">2</span>
-          <h3>Prove it live</h3>
-          <p>When the window opens, take the photo with the in-app camera. Uploads from your gallery are blocked, so the proof is from that moment.</p>
-          <span class="when">Inside the window</span>
-        </li>
-        <li>
-          <span class="n">3</span>
-          <h3>Get the verdict</h3>
-          <p>The AI judge checks the photo against your habit and tells you why in one line. Your points and streak update on the spot.</p>
-          <span class="when">Seconds after you send it</span>
-        </li>
+        <li><span class="n">1</span><h3>Set your terms</h3><p>Pick the habit, the time and the days. Evidence is due inside a 30‑minute window: 15 minutes either side of the time you chose.</p><span class="when">Once, when you create the habit</span></li>
+        <li><span class="n">2</span><h3>Bring live evidence</h3><p>When the window opens, take the photo with the in‑app camera. Your gallery is off limits, so the evidence is from that moment.</p><span class="when">Inside the window</span></li>
+        <li><span class="n">3</span><h3>Hear the verdict</h3><p>The AI judge checks the photo against your habit and gives its reasoning in one line. Points and streak update on the spot.</p><span class="when">Seconds after you submit</span></li>
       </ol>
     </div>
   </section>
 
-  <section id="rules" class="rule-top" aria-labelledby="rules-title">
+  <section id="terms" class="ruled" aria-labelledby="terms-title">
     <div class="wrap">
-      <div class="section-head">
-        <h2 id="rules-title">The rules don’t bend.</h2>
-        <p>Showing up is worth something. Not showing up costs twice as much.</p>
+      <div class="head">
+        <h2 id="terms-title">The terms are non‑negotiable.</h2>
+        <p>Delivery pays. Absence costs double.</p>
       </div>
       <div class="ledger">
-        <div class="ledger-row">
-          <div><h3>Verified inside the window</h3><p>Your streak grows by one day.</p></div>
-          <div class="pts win tnum" aria-label="plus 50 points">+50</div>
-        </div>
-        <div class="ledger-row">
-          <div><h3>Missed or late</h3><p>No proof before the window closes. Your streak resets.</p></div>
-          <div class="pts loss tnum" aria-label="minus 100 points">−100</div>
-        </div>
-        <div class="ledger-row">
-          <div><h3>Rejected by the AI judge</h3><p>The photo doesn’t show the habit. Your streak resets.</p></div>
-          <div class="pts loss tnum" aria-label="minus 100 points">−100</div>
-        </div>
+        <div class="ledger-row"><div><h3>Verified inside the window</h3><p>Your streak grows by one day.</p></div><div class="pts tnum" aria-label="plus 50 points">+50</div></div>
+        <div class="ledger-row"><div><h3>Missed or late</h3><p>No evidence before the window closes. Your streak resets.</p></div><div class="pts loss tnum" aria-label="minus 100 points">−100</div></div>
+        <div class="ledger-row"><div><h3>Rejected by the judge</h3><p>The photo doesn’t show the habit. Your streak resets.</p></div><div class="pts loss tnum" aria-label="minus 100 points">−100</div></div>
       </div>
-      <p class="ledger-note">Every target is scored exactly once. If verification is delayed on our side, your proof is saved and checked automatically, with no penalty.</p>
+      <p class="ledger-note">Every target gets exactly one ruling. If verification is delayed on our side, your evidence is kept and judged automatically, with no penalty.</p>
     </div>
   </section>
 
-  <section class="rule-top" aria-labelledby="fair-title">
+  <section class="ruled" aria-labelledby="airtight-title">
     <div class="wrap">
-      <div class="section-head">
-        <h2 id="fair-title">Built so it can’t be faked.</h2>
-        <p>A score only means something if nobody can game it. Not even you, half asleep.</p>
+      <div class="head">
+        <h2 id="airtight-title">Airtight.</h2>
+        <p>A score is only worth something if nobody can doctor it. Including you, half asleep.</p>
       </div>
-      <div class="integrity">
-        <div><h3>Our clock, not yours</h3><p>The window is checked against server time. Changing the time on your phone does nothing.</p></div>
-        <div><h3>Live camera only</h3><p>Each photo is tied to a capture that expires after three minutes. Old photos and screenshots can’t be sent.</p></div>
-        <div><h3>One target, one score</h3><p>Points are written once per target on the server. Double rewards and double penalties are impossible.</p></div>
-        <div><h3>Your photos stay private</h3><p>Proof photos are stored in a private folder only your account can open. The Arena shows names and points, never photos.</p></div>
+      <div class="airtight">
+        <div><h3>The clock is ours</h3><p>The window is checked against server time. Changing the time on your phone changes nothing.</p></div>
+        <div><h3>Live evidence only</h3><p>Each photo is tied to a capture that expires after three minutes. Old photos and screenshots are inadmissible.</p></div>
+        <div><h3>One ruling per target</h3><p>Points are written once per target, on the server. Double rewards and double penalties can’t happen.</p></div>
+        <div><h3>Sealed records</h3><p>Evidence photos are stored in a private folder only your account can open. The Arena shows names and points, never photos.</p></div>
       </div>
     </div>
   </section>
 
-  <section class="rule-top" aria-labelledby="arena-title">
+  <section class="ruled" aria-labelledby="arena-title">
     <div class="wrap arena">
-      <div class="section-head" style="margin-bottom:0">
-        <h2 id="arena-title">The Arena resets every day.</h2>
-        <p>Everyone starts at zero each morning. Rank is today’s points, with ties going to the longer streak. Yesterday’s winner has to earn it again.</p>
+      <div class="head" style="margin-bottom:0">
+        <h2 id="arena-title">The board has a short memory.</h2>
+        <p>Every morning everyone starts at zero. Rank is today’s points, and ties go to the longer streak. Yesterday’s win buys you nothing today.</p>
       </div>
       <div class="board" role="table" aria-label="Example Arena ranking">
         <div class="board-head" role="row"><span role="columnheader">Today’s Arena</span><span role="columnheader">Points</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">1</span><span class="av" role="cell" aria-hidden="true">MR</span><span class="nm" role="cell">Maria R.</span><span class="st tnum" role="cell">31-day streak</span><span class="pt tnum" role="cell">150</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">2</span><span class="av" role="cell" aria-hidden="true">DT</span><span class="nm" role="cell">Dan T.</span><span class="st tnum" role="cell">18-day streak</span><span class="pt tnum" role="cell">150</span></div>
-        <div class="board-row me" role="row"><span class="rk" role="cell">3</span><span class="av" role="cell" aria-hidden="true" style="background:#6243F0;color:#fff">You</span><span class="nm" role="cell">You</span><span class="st tnum" role="cell">12-day streak</span><span class="pt tnum" role="cell">100</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">4</span><span class="av" role="cell" aria-hidden="true">IC</span><span class="nm" role="cell">Ioana C.</span><span class="st tnum" role="cell">4-day streak</span><span class="pt tnum" role="cell">50</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">5</span><span class="av" role="cell" aria-hidden="true">AL</span><span class="nm" role="cell">Alex L.</span><span class="st tnum" role="cell">No streak</span><span class="pt tnum" role="cell" style="color:var(--loss)">−50</span></div>
+        <div class="board-row" role="row"><span class="rk" role="cell">1</span><span class="av" role="cell" aria-hidden="true">MR</span><span class="nm" role="cell">Maria R.</span><span class="st tnum" role="cell">31‑day streak</span><span class="pt tnum" role="cell">150</span></div>
+        <div class="board-row" role="row"><span class="rk" role="cell">2</span><span class="av" role="cell" aria-hidden="true">DT</span><span class="nm" role="cell">Dan T.</span><span class="st tnum" role="cell">18‑day streak</span><span class="pt tnum" role="cell">150</span></div>
+        <div class="board-row me" role="row"><span class="rk" role="cell">3</span><span class="av" role="cell" aria-hidden="true">You</span><span class="nm" role="cell">You</span><span class="st tnum" role="cell">12‑day streak</span><span class="pt tnum" role="cell">100</span></div>
+        <div class="board-row" role="row"><span class="rk" role="cell">4</span><span class="av" role="cell" aria-hidden="true">IC</span><span class="nm" role="cell">Ioana C.</span><span class="st tnum" role="cell">4‑day streak</span><span class="pt tnum" role="cell">50</span></div>
+        <div class="board-row" role="row"><span class="rk" role="cell">5</span><span class="av" role="cell" aria-hidden="true">AL</span><span class="nm" role="cell">Alex L.</span><span class="st tnum" role="cell">No streak</span><span class="pt neg tnum" role="cell">−50</span></div>
         <p class="board-foot">Example ranking</p>
       </div>
     </div>
   </section>
 
-  <section id="pricing" class="rule-top" aria-labelledby="pricing-title">
+  <section id="retainer" class="ruled" aria-labelledby="retainer-title">
     <div class="wrap plan">
       <div>
-        <div class="section-head" style="margin-bottom:28px">
-          <h2 id="pricing-title">One plan. Everything in it.</h2>
-          <p>Try every feature for three days. Cancel before day four and you pay nothing.</p>
+        <div class="head" style="margin-bottom:30px">
+          <h2 id="retainer-title">The retainer.</h2>
+          <p>€9.99 a month. The first three days are on us. Cancel before day four and you owe nothing.</p>
         </div>
         <div class="timeline">
           <div><b>Today</b><p>Full access to every feature. Nothing is charged.</p></div>
           <div><b>Day 4</b><p>€9.99 a month begins, billed through your Apple ID, unless you cancel first.</p></div>
-          <div><b>Any time</b><p>Cancel in Settings on your iPhone. Your access runs to the end of the paid month.</p></div>
+          <div><b>Any time</b><p>Cancel in Settings on your iPhone. Access runs to the end of the paid month.</p></div>
         </div>
       </div>
       <div class="price-card">
         <h3>NoExcuse Premium</h3>
-        <div class="price" style="margin-top:14px"><strong class="tnum">€9.99</strong><span>a month</span></div>
+        <div class="price"><strong class="tnum">€9.99</strong><span>a month</span></div>
         <span class="trial">3 days free</span>
         <ul class="benefits">
-          <li><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#9C85FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Live proof camera and AI verification</li>
-          <li><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#9C85FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Points, streaks and the daily Arena</li>
-          <li><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#9C85FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited habits and reminders before every window</li>
-          <li><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#9C85FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>A comeback plan after a missed target</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Live evidence camera and AI verification</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Points, streaks and the daily Arena</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited habits and a reminder before every window</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>A comeback plan after a missed target</li>
         </ul>
-        <a class="btn btn-primary" href="/onboarding">Try it on the web</a>
+        <a class="btn btn-solid" href="/onboarding">Try it on the web</a>
         <p class="fine">Subscriptions start in the iPhone app.</p>
       </div>
     </div>
   </section>
 
-  <section class="rule-top" aria-labelledby="faq-title">
+  <section class="ruled" aria-labelledby="faq-title">
     <div class="wrap">
-      <div class="section-head"><h2 id="faq-title">Questions</h2></div>
+      <div class="head"><h2 id="faq-title">Cross‑examination.</h2></div>
       <div class="faq">
-        <details>
-          <summary>What counts as proof?</summary>
-          <p>A photo taken with the in-app camera during the window that clearly shows the habit: you in running gear outside, the open book on page 40, the gym floor. The AI judge explains every decision in one sentence.</p>
-        </details>
-        <details>
-          <summary>Why can’t I upload a photo I already have?</summary>
-          <p>Because then the proof could be from any day. NoExcuse only accepts photos taken live, inside the window, so a verified habit means you actually did it.</p>
-        </details>
-        <details>
-          <summary>What happens if I miss a day?</summary>
-          <p>You lose 100 points and your streak resets. The app then gives you a comeback plan so the next target is the one that counts.</p>
-        </details>
-        <details>
-          <summary>Can I use it on Android or a computer?</summary>
-          <p>NoExcuse is built for iPhone first. You can sign in and manage your habits on the web today; live proof is designed for your phone’s camera.</p>
-        </details>
+        <details><summary>What counts as evidence?</summary><p>A photo taken with the in‑app camera during the window that clearly shows the habit: you in running gear outside, the open book on page 40, the gym floor. The judge explains every ruling in one sentence.</p></details>
+        <details><summary>Why can’t I upload a photo I already have?</summary><p>Because then it could be from any day. NoExcuse only admits photos taken live, inside the window, so a verified habit means you actually did it.</p></details>
+        <details><summary>What happens if I miss a day?</summary><p>You lose 100 points and your streak resets. The app then hands you a comeback plan, so the next target is the one that counts.</p></details>
+        <details><summary>Can I use it on Android or a computer?</summary><p>NoExcuse is built for iPhone first. You can sign in and manage your habits on the web today; live evidence is designed for your phone’s camera.</p></details>
       </div>
     </div>
   </section>
 
-  <section class="closing rule-top" aria-labelledby="close-title">
+  <section class="closing ruled" aria-labelledby="close-title">
     <div class="wrap">
-      <h2 id="close-title">Your next target is already on the clock.</h2>
+      <h2 id="close-title">The clock is already running.</h2>
       <div class="cta-row">
-        <a class="btn btn-primary" href="/onboarding">Try it on the web</a>
-        <a class="btn btn-ghost" href="/sign-in">Sign in</a>
+        <a class="btn btn-solid" href="/onboarding">Try it on the web</a>
+        <a class="btn btn-glass" href="/sign-in">Sign in</a>
       </div>
     </div>
   </section>
@@ -450,6 +452,7 @@
   </div>
 </footer>
 
+<!-- Exhibit A: the evidence sequence -->
 <script>
 (function () {
   var card = document.getElementById('proof');
@@ -461,58 +464,170 @@
   var streak = document.getElementById('streak');
   var total = document.getElementById('total');
   var replay = document.getElementById('replay');
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var CRITIQUE = 'Running shoes, open road, sunrise behind you. That’s a run. Counts.';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var RULING = 'Running shoes, empty avenue, first light behind you. That’s a run. Verified.';
   var timers = [];
-
   function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
-  function finalState() {
-    card.classList.remove('pre');
-    judge.classList.remove('judging');
-    needle.style.left = '46%';
-    text.textContent = CRITIQUE;
-    delta.textContent = '+50'; streak.textContent = '12'; total.textContent = '1,290';
-  }
+  function say(s) { text.classList.add('swap'); at(180, function () { text.textContent = s; text.classList.remove('swap'); }); }
   function count(el, from, to, ms, fmt) {
     var t0 = performance.now();
-    (function step(t) {
-      var k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
-      el.textContent = fmt(Math.round(from + (to - from) * e));
-      if (k < 1) requestAnimationFrame(step);
-    })(t0);
+    (function step(t) { var k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); })(t0);
+  }
+  function setNeedle(pct, ms) {
+    var w = needle.parentElement.clientWidth;
+    needle.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.77,0,.175,1)' : 'none';
+    needle.style.transform = 'translateX(' + (w * pct / 100) + 'px)';
   }
   function play() {
     timers.forEach(clearTimeout); timers = [];
     replay.hidden = true;
-    card.classList.add('pre');
-    judge.classList.remove('judging');
-    text.textContent = 'Waiting for the window to open';
-    needle.style.transition = 'none'; needle.style.left = '8%';
+    card.classList.add('pre'); judge.classList.remove('judging');
+    text.textContent = 'Waiting for the window to open.';
     streak.textContent = '11'; total.textContent = '1,240'; delta.textContent = '+0';
-    void needle.offsetWidth;
-    needle.style.transition = 'left 1.5s cubic-bezier(.45,0,.2,1)';
-    at(250, function () { needle.style.left = '46%'; text.textContent = 'Window open. Take the photo.'; });
-    at(1900, function () {
-      flash.animate([{ opacity: .85 }, { opacity: 0 }], { duration: 380, easing: 'ease-out' });
-      judge.classList.add('judging'); text.textContent = 'Checking the photo against “Morning run”…';
+    setNeedle(8, 0);
+    at(300, function () { setNeedle(46, 1600); });
+    at(1100, function () { say('Window open. Take the photo.'); });
+    at(2200, function () {
+      flash.animate([{ opacity: .9 }, { opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.23,1,.32,1)' });
+      judge.classList.add('judging'); text.textContent = 'Reviewing the evidence for “Morning run”…';
     });
-    at(3500, function () {
-      judge.classList.remove('judging'); text.textContent = CRITIQUE;
+    at(3900, function () {
+      judge.classList.remove('judging'); say(RULING);
       card.classList.remove('pre');
-      count(delta, 0, 50, 700, function (n) { return '+' + n; });
-      count(total, 1240, 1290, 900, function (n) { return n.toLocaleString('en-US'); });
-      at(350, function () { streak.textContent = '12'; });
+      count(delta, 0, 50, 800, function (n) { return '+' + n; });
+      count(total, 1240, 1290, 1000, function (n) { return n.toLocaleString('en-US'); });
+      at(400, function () { streak.textContent = '12'; });
     });
-    at(4600, function () { replay.hidden = false; });
+    at(5000, function () { replay.hidden = false; });
+  }
+  function finalState() { card.classList.remove('pre'); setNeedle(46, 0); replay.hidden = false; }
+  replay.addEventListener('click', play);
+  addEventListener('resize', function () { if (!card.classList.contains('pre')) setNeedle(46, 0); });
+  if (reduce || !('IntersectionObserver' in window)) { finalState(); return; }
+  setNeedle(8, 0);
+  new IntersectionObserver(function (e, o) { if (e[0].isIntersecting) { o.disconnect(); play(); } }, { threshold: 0.45 }).observe(card);
+})();
+</script>
+
+<!-- Hero: a glass summit refracting a pinstripe wall and a clock dial -->
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const root = document.documentElement;
+const stage = document.getElementById('stage');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reveal = () => requestAnimationFrame(() => root.classList.add('ready'));
+
+function wallTexture(r) {
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 1280;
+  const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0, 0, c.width, c.height);
+  for (let x = 0; x < c.width; x += 26) { g.fillStyle = x % 130 === 0 ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.07)'; g.fillRect(x, 0, 2, c.height); }
+  const cx = c.width / 2, cy = c.height * 0.46;
+  g.save(); g.translate(cx, cy);
+  g.fillStyle = 'rgba(0,0,0,.9)'; g.beginPath(); g.arc(0, 0, r + 40, 0, Math.PI * 2); g.fill();
+  const glow = g.createRadialGradient(0, 0, 0, 0, 0, r * 0.95);
+  glow.addColorStop(0, 'rgba(255,255,255,.55)'); glow.addColorStop(.45, 'rgba(255,255,255,.16)'); glow.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = glow; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
+  for (let i = 0; i < 60; i++) {
+    const big = i % 5 === 0; g.save(); g.rotate(i * Math.PI / 30);
+    g.fillStyle = big ? '#fff' : 'rgba(255,255,255,.55)';
+    g.fillRect(-(big ? 5 : 2), -r, big ? 10 : 4, (big ? 70 : 34) * r / 430); g.restore();
+  }
+  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, r + 22, 0, Math.PI * 2); g.stroke();
+  g.restore();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+
+function summitGeometry() {
+  // Same outline as the app icon's summit, filled and centred
+  const pts = [[11, 39], [23.5, 18], [30.5, 29.5], [34.5, 24], [45, 39]];
+  const s = new THREE.Shape();
+  pts.forEach(([x, y], i) => { const px = (x - 28) / 10, py = -(y - 30) / 10; if (i) s.lineTo(px, py); else s.moveTo(px, py); });
+  s.closePath();
+  const geo = new THREE.ExtrudeGeometry(s, { depth: 0.55, bevelEnabled: true, bevelThickness: 0.22, bevelSize: 0.16, bevelSegments: 10, curveSegments: 4 });
+  geo.center(); geo.computeVertexNormals(); return geo;
+}
+
+try {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.setClearColor(0x000000, 1);
+  stage.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+  camera.position.set(0, 0, 11);
+
+  let layoutWide = stage.clientWidth > 960;
+  const wallMat = new THREE.MeshBasicMaterial({ map: wallTexture(layoutWide ? 250 : 430), toneMapped: false });
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(26, 16.25), wallMat);
+  wall.position.z = -4; scene.add(wall);
+
+  const glass = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.9, ior: 1.45,
+    clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.8, specularIntensity: 1, attenuationColor: 0xffffff, attenuationDistance: 4,
+  });
+  const summit = new THREE.Mesh(summitGeometry(), glass);
+  const rig = new THREE.Group(); rig.add(summit); scene.add(rig);
+
+  const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 4, 6); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffffff, 3); rim.position.set(-4, 2, -3); scene.add(rim);
+
+  function layout() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    const halfW = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
+    const isWide = w > 960;
+    rig.position.x = isWide ? halfW * 0.44 : 0;
+    rig.scale.setScalar(isWide ? 1.05 : Math.min(0.95, halfW / 3.6));
+    if (isWide !== layoutWide) { layoutWide = isWide; wallMat.map.dispose(); wallMat.map = wallTexture(isWide ? 250 : 430); wallMat.needsUpdate = true; }
+    // keep the dial directly behind the glass from the camera's point of view
+    wall.position.x = rig.position.x * (camera.position.z - wall.position.z) / camera.position.z;
+    wall.scale.setScalar(isWide ? 1 : 0.45);
+    if (reduce) frame(0);
   }
 
-  replay.addEventListener('click', play);
-  if (reduce || !('IntersectionObserver' in window)) { finalState(); replay.hidden = !reduce ? false : true; return; }
-  var seen = false;
-  new IntersectionObserver(function (entries, obs) {
-    if (!seen && entries[0].isIntersecting) { seen = true; obs.disconnect(); play(); }
-  }, { threshold: 0.5 }).observe(card);
-})();
+  // Pointer → critically damped springs (independent X and Y)
+  const target = { x: 0, y: 0 }, cur = { x: 0, y: 0 }, vel = { x: 0, y: 0 };
+  addEventListener('pointermove', (e) => { target.x = e.clientX / innerWidth - 0.5; target.y = e.clientY / innerHeight - 0.5; }, { passive: true });
+  const omega = 2 * Math.PI / 0.9; // response ≈ 0.9s, damping ratio 1.0
+  function spring(k, dt) { const a = omega * omega * (target[k] - cur[k]) - 2 * omega * vel[k]; vel[k] += a * dt; cur[k] += vel[k] * dt; }
+
+  let visible = true, running = false, last = performance.now(), t = 0;
+  let samples = 0, slow = 0;
+  function frame(dt) {
+    t += dt;
+    spring('x', dt); spring('y', dt);
+    const scroll = Math.min(1, scrollY / innerHeight);
+    rig.rotation.y = -0.45 + t * 0.12 + cur.x * 0.6 + scroll * 0.8;
+    rig.rotation.x = 0.12 + cur.y * 0.35 - scroll * 0.25;
+    rig.position.y = (layoutWide ? 0.25 : 0.1) + Math.sin(t * 0.7) * 0.06 + scroll * 0.8;
+    renderer.render(scene, camera);
+  }
+  function loop() {
+    if (!visible || reduce) { running = false; return; }
+    const now = performance.now(); const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    frame(dt); requestAnimationFrame(loop);
+    // Slow GPU: drop to 1x pixel ratio once, after a short sample
+    if (++samples <= 90) { slow += dt; if (samples === 90 && slow / 90 > 1 / 30 && renderer.getPixelRatio() > 1) { renderer.setPixelRatio(1); layout(); } }
+  }
+  function start() { if (!running && !reduce) { running = true; last = performance.now(); requestAnimationFrame(loop); } }
+
+  layout(); new ResizeObserver(layout).observe(stage);
+  new IntersectionObserver((e) => { visible = e[0].isIntersecting; if (visible) start(); }).observe(stage);
+  stage.querySelector('.stage-fallback').remove();
+  frame(0); start();
+  reveal();
+} catch (err) {
+  reveal(); // WebGL unavailable: keep the CSS pinstripe fallback
+}
+setTimeout(() => root.classList.add('ready'), 2500); // never leave the hero hidden
 </script>
 </body>
 </html>
