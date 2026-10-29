@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "npm install --no-audit --no-fund",
-  "buildCommand": "EXPO_PUBLIC_DEMO=0 EXPO_PUBLIC_SUPABASE_URL=https://ibsrtuyrflvprmjuuoqb.supabase.co EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlic3J0dXlyZmx2cHJtanV1b3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNzc3OTYsImV4cCI6MjEwODc1Mzc5Nn0.W-qQ0pGJXTsaM0DZhYkaU_tT6nBEzI894lqW8XYZwdo npx expo export -p web",
+  "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
   "rewrites": [
     {
