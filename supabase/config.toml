@@ -1,0 +1,35 @@
+# Supabase project config for NoExcuse (used by `supabase start` / `supabase functions deploy`).
+project_id = "noexcuse"
+
+[auth]
+site_url = "noexcuse://"
+additional_redirect_urls = ["noexcuse://"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+# 6-digit code instead of a magic link (the app's email flow expects a code).
+otp_length = 6
+otp_expiry = 900
+
+[auth.external.apple]
+enabled = true
+# Native Sign in with Apple: put the iOS bundle id here (Dashboard › Auth › Providers › Apple › Client IDs).
+client_id = "app.noexcuse.ios"
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+
+# User-facing functions verify the Supabase JWT at the gateway and again in code.
+[functions.start-proof]
+verify_jwt = true
+[functions.verify-proof]
+verify_jwt = true
+[functions.refresh-entitlement]
+verify_jwt = true
+[functions.delete-account]
+verify_jwt = true
+
+# Called by RevenueCat and pg_cron, authenticated by their own shared secrets instead.
+[functions.revenuecat-webhook]
+verify_jwt = false
+[functions.cron-tick]
+verify_jwt = false
