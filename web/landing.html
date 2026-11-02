@@ -3,400 +3,364 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NoExcuse — close every day</title>
-<meta name="description" content="Set a habit with a deadline. Bring live evidence from the in-app camera. An AI judge rules on it: +50 when you deliver, −100 when you don't.">
+<title>NoExcuse — stop making promises, start keeping them</title>
+<meta name="description" content="Your goals deserve more than a checkbox. Prove your progress with the in-app camera, let an AI judge verify it, and build discipline you can measure.">
 <meta name="theme-color" content="#000000">
-<meta property="og:title" content="NoExcuse — close every day">
-<meta property="og:description" content="Live evidence, an AI judge and a score nobody can doctor. +50 when you deliver, −100 when you don't.">
+<meta property="og:title" content="NoExcuse — stop making promises, start keeping them">
+<meta property="og:description" content="Live photo evidence, an AI judge and a score that can't be faked. +50 when you deliver, −100 when you don't.">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/l/landing.css">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
 } }
 </script>
-<style>
-  :root {
-    --ink: #000000;
-    --paper: #FFFFFF;
-    --silver: #C9C9CE;
-    --graphite: #8C8C92;
-    --line: rgba(255,255,255,.12);
-    --line-strong: rgba(255,255,255,.22);
-    --glass: rgba(255,255,255,.055);
-    --glass-strong: rgba(255,255,255,.09);
-    --serif: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
-    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --ease-out: cubic-bezier(.23, 1, .32, 1);
-    --ease-in-out: cubic-bezier(.77, 0, .175, 1);
-    --gutter: clamp(16px, 5vw, 64px);
-    --max: 1200px;
-  }
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--ink); color: var(--paper); font: 400 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-  a { color: inherit; }
-  :focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; border-radius: 4px; }
-  .wrap { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
-  .tnum { font-variant-numeric: tabular-nums lining-nums; }
-  p { margin: 0; }
-
-  /* Type: Bodoni for argument, Inter for evidence */
-  h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-optical-sizing: auto; }
-  h1 { font-size: clamp(64px, 11vw, 168px); line-height: .88; letter-spacing: -0.035em; font-weight: 500; }
-  h2 { font-size: clamp(40px, 5.6vw, 76px); line-height: .98; letter-spacing: -0.025em; }
-  h3 { font-family: var(--sans); font-size: 19px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; }
-  .lede { font-size: clamp(18px, 1.5vw, 20px); color: var(--silver); max-width: 31em; }
-
-  /* Buttons: press feedback on pointer-down, hover only where hover exists */
-  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 54px; padding: 0 28px; border-radius: 999px; font: 600 16px/1 var(--sans); letter-spacing: -0.005em; text-decoration: none; transition: transform 160ms var(--ease-out), background-color 200ms ease, color 200ms ease; -webkit-tap-highlight-color: transparent; }
-  .btn:active { transform: scale(.97); }
-  .btn-solid { background: var(--paper); color: var(--ink); }
-  .btn-glass { color: var(--paper); background: var(--glass); border: 1px solid var(--line-strong); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
-  @media (hover: hover) and (pointer: fine) {
-    .btn-solid:hover { background: #E6E6E9; }
-    .btn-glass:hover { background: var(--glass-strong); }
-  }
-
-  /* Nav: a translucent layer, content scrolls underneath */
-  .nav { position: fixed; inset: 0 0 auto; z-index: 20; }
-  .nav::before { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.42); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); mask: linear-gradient(#000 60%, transparent); -webkit-mask: linear-gradient(#000 60%, transparent); }
-  .nav .wrap { position: relative; display: flex; align-items: center; justify-content: space-between; height: 76px; }
-  .lockup { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-  .lockup span { font: 600 15px/1 var(--sans); letter-spacing: .24em; }
-  .nav-links { display: flex; align-items: center; gap: 30px; }
-  .nav-links a:not(.btn) { color: var(--silver); text-decoration: none; font-size: 15px; transition: color 200ms ease; }
-  .nav-links a:not(.btn):hover { color: var(--paper); }
-  .nav .btn { min-height: 42px; padding: 0 20px; font-size: 15px; }
-
-  /* Hero */
-  .hero { position: relative; min-height: 100svh; display: flex; align-items: flex-end; padding: 120px 0 clamp(56px, 8vw, 104px); overflow: hidden; isolation: isolate; }
-  .stage { position: absolute; inset: 0; z-index: -1; }
-  .stage canvas { display: block; width: 100%; height: 100%; }
-  .stage-fallback { position: absolute; inset: 0; background:
-      radial-gradient(40% 50% at 72% 42%, rgba(255,255,255,.14), transparent 70%),
-      repeating-linear-gradient(90deg, transparent 0 46px, rgba(255,255,255,.06) 46px 47px), #000; }
-  .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-      background: linear-gradient(90deg, rgba(0,0,0,.86) 0%, rgba(0,0,0,.55) 38%, transparent 64%), linear-gradient(0deg, #000 0%, transparent 28%); }
-  .hero-copy { max-width: 720px; }
-  .hero h1 .line { display: block; overflow: hidden; padding-bottom: .14em; margin-bottom: -.08em; }
-  .hero h1 .line > span { display: block; }
-  .hero .lede { margin-top: 30px; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
-  .fine { margin-top: 18px; font-size: 14px; color: var(--graphite); }
-
-  /* One orchestrated entrance: headline lines rise, then copy, then the glass */
-  .js .hero h1 .line > span { transform: translateY(105%); }
-  .js .hero .lede, .js .hero .cta-row, .js .hero .fine { opacity: 0; transform: translateY(12px); }
-  .js .stage { opacity: 0; transform: scale(1.04); }
-  .ready .hero h1 .line > span { transform: none; transition: transform 1100ms var(--ease-out); }
-  .ready .hero h1 .line:nth-child(2) > span { transition-delay: 90ms; }
-  .ready .hero .lede, .ready .hero .cta-row, .ready .hero .fine { opacity: 1; transform: none; transition: opacity 700ms ease, transform 900ms var(--ease-out); transition-delay: 380ms; }
-  .ready .hero .cta-row { transition-delay: 460ms; }
-  .ready .hero .fine { transition-delay: 540ms; }
-  .ready .stage { opacity: 1; transform: none; transition: opacity 1400ms ease 120ms, transform 1800ms var(--ease-out) 120ms; }
-
-  /* Sections */
-  section { padding: clamp(80px, 11vw, 144px) 0; }
-  .ruled { border-top: 1px solid var(--line); }
-  .head { max-width: 680px; margin-bottom: clamp(40px, 5vw, 72px); }
-  .head p { margin-top: 20px; color: var(--silver); font-size: 18px; max-width: 32em; }
-
-  /* Exhibit A: frosted glass over pinstripe and light */
-  .exhibit { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(36px, 6vw, 96px); align-items: center; }
-  .bench { position: relative; padding: clamp(28px, 4vw, 56px); border-radius: 36px; overflow: hidden; isolation: isolate;
-      background: radial-gradient(55% 60% at 30% 20%, rgba(255,255,255,.30), transparent 70%), radial-gradient(40% 45% at 85% 90%, rgba(255,255,255,.16), transparent 70%),
-      repeating-linear-gradient(90deg, #050505 0 22px, #1A1A1A 22px 23px); }
-  .proof { position: relative; border-radius: 28px; padding: 18px; background: rgba(20,20,22,.42); border: 1px solid rgba(255,255,255,.16);
-      backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 40px 80px -30px rgba(0,0,0,.9); }
-  .proof-head { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 6px 14px; }
-  .proof-head b { font: 600 17px/1.2 var(--sans); }
-  .proof-head small { color: var(--graphite); font-size: 14px; }
-  .viewfinder { position: relative; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; background: linear-gradient(180deg, #2B2B2E 0%, #6E6E73 46%, #D9D9DC 78%, #F2F2F2 100%); }
-  .viewfinder svg { position: absolute; inset: auto 0 0 0; width: 100%; height: 78%; }
-  .corners { position: absolute; inset: 14px; pointer-events: none; }
-  .corners i { position: absolute; width: 22px; height: 22px; border: 2px solid rgba(255,255,255,.9); }
-  .corners i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
-  .corners i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 8px; }
-  .corners i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 8px; }
-  .corners i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
-  .live { position: absolute; left: 16px; top: 16px; display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px 5px 9px; border-radius: 999px; background: rgba(0,0,0,.5); font-size: 12px; font-weight: 600; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-  .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.25); }
-  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
-  .window { padding: 18px 6px 4px; }
-  .track { position: relative; height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); }
-  .band { position: absolute; left: 25%; right: 25%; top: 0; bottom: 0; border-radius: 3px; background: rgba(255,255,255,.34); }
-  .due { position: absolute; left: 50%; top: -5px; width: 2px; height: 16px; margin-left: -1px; background: #fff; border-radius: 1px; }
-  .needle { position: absolute; top: 50%; left: 0; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgba(255,255,255,.14); }
-  .ticks { position: relative; height: 20px; margin-top: 10px; font-size: 13px; color: var(--graphite); }
-  .ticks span { position: absolute; transform: translateX(-50%); }
-  .judge { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); min-height: 98px; }
-  .judge-label { font-size: 13px; font-weight: 600; color: var(--paper); }
-  .judge-text { margin-top: 4px; font-size: 15px; color: var(--silver); transition: filter 200ms ease, opacity 200ms ease; }
-  .judge-text.swap { filter: blur(3px); opacity: .3; }
-  .judging .judge-text { background: linear-gradient(90deg, rgba(201,201,206,.35) 0%, #fff 50%, rgba(201,201,206,.35) 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 1.1s linear infinite; }
-  @keyframes shimmer { to { background-position: -200% 0; } }
-  .verdict { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 6px 16px; padding: 18px 6px 6px; transition: opacity 500ms ease, transform 700ms var(--ease-out), filter 500ms ease; }
-  .pre .verdict { opacity: 0; transform: translateY(10px); filter: blur(6px); }
-  .verdict .state { display: inline-flex; align-items: center; gap: 8px; font: 600 18px/1 var(--sans); }
-  .verdict .delta { font: 500 64px/.85 var(--serif); letter-spacing: -0.03em; grid-row: span 2; }
-  .verdict .meta { font-size: 14px; color: var(--graphite); }
-  .verdict .meta b { color: var(--paper); font-weight: 600; }
-  .replay { margin-top: 16px; background: none; border: 0; padding: 8px 0; color: var(--graphite); font: 500 15px var(--sans); cursor: pointer; transition: color 200ms ease; }
-  .replay:hover { color: var(--paper); }
-  .replay[hidden] { display: block; visibility: hidden; }
-
-  /* The process: a real sequence */
-  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 3.4vw, 48px); }
-  .steps li { padding-top: 26px; border-top: 1px solid var(--line-strong); }
-  .steps .n { font: 500 44px/1 var(--serif); color: var(--graphite); }
-  .steps h3 { margin-top: 22px; }
-  .steps p { margin-top: 10px; color: var(--silver); }
-  .steps .when { display: block; margin-top: 18px; font-size: 14px; color: var(--graphite); }
-
-  /* The terms: a ledger */
-  .ledger { border-top: 1px solid var(--line-strong); }
-  .ledger-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: clamp(18px, 2.4vw, 30px) 0; border-bottom: 1px solid var(--line); }
-  .ledger-row h3 { font: 500 clamp(24px, 2.6vw, 34px)/1.1 var(--serif); letter-spacing: -0.015em; }
-  .ledger-row p { margin-top: 8px; color: var(--graphite); font-size: 16px; }
-  .pts { font: 500 clamp(60px, 9vw, 128px)/.85 var(--serif); letter-spacing: -0.04em; text-align: right; }
-  .pts.loss { color: transparent; -webkit-text-stroke: 1.5px var(--paper); }
-  .ledger-note { margin-top: 26px; color: var(--graphite); font-size: 15px; max-width: 46em; }
-
-  /* Airtight */
-  .airtight { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(28px, 5vw, 80px); }
-  .airtight div { padding: 28px 0; border-top: 1px solid var(--line); }
-  .airtight p { margin-top: 8px; color: var(--silver); max-width: 30em; }
-
-  /* Arena */
-  .arena { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(36px, 6vw, 96px); align-items: center; }
-  .board { border-radius: 28px; padding: 8px; background: rgba(255,255,255,.035); border: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
-  .board-head { display: flex; justify-content: space-between; padding: 12px 16px 10px; font-size: 13px; color: var(--graphite); }
-  .board-row { display: grid; grid-template-columns: 30px 36px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 13px 16px; border-radius: 18px; }
-  .board-row + .board-row { border-top: 1px solid rgba(255,255,255,.06); }
-  .board-row.me { background: var(--paper); color: var(--ink); border-top-color: transparent; }
-  .board-row.me + .board-row { border-top-color: transparent; }
-  .board-row.me .st, .board-row.me .rk { color: #55555A; }
-  .rk { font: 500 22px/1 var(--serif); color: var(--graphite); }
-  .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 600 13px/1 var(--sans); background: rgba(255,255,255,.08); color: var(--silver); }
-  .board-row.me .av { background: var(--ink); color: var(--paper); }
-  .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .st { font-size: 14px; color: var(--graphite); }
-  .pt { font: 500 22px/1 var(--serif); min-width: 3.5ch; text-align: right; }
-  .pt.neg { color: var(--graphite); }
-  .board-foot { padding: 10px 16px 12px; font-size: 13px; color: var(--graphite); }
-
-  /* Retainer */
-  .plan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(36px, 6vw, 96px); align-items: start; }
-  .timeline div { display: grid; grid-template-columns: 96px 1fr; gap: 16px; padding: 20px 0; border-top: 1px solid var(--line); }
-  .timeline b { font: 500 20px/1.3 var(--serif); }
-  .timeline p { color: var(--silver); }
-  .price-card { position: relative; border-radius: 32px; padding: clamp(26px, 3vw, 40px); overflow: hidden; isolation: isolate; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); }
-  .price-card::before { content: ""; position: absolute; z-index: -1; inset: -40% -20% auto auto; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.18), transparent 70%); }
-  .price { display: flex; align-items: baseline; gap: 10px; margin-top: 16px; }
-  .price strong { font: 500 clamp(64px, 8vw, 96px)/1 var(--serif); letter-spacing: -0.04em; }
-  .price span { color: var(--silver); }
-  .trial { display: inline-block; margin-top: 14px; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 14px; font-weight: 600; }
-  .benefits { list-style: none; margin: 30px 0 0; padding: 0; display: grid; gap: 14px; }
-  .benefits li { display: grid; grid-template-columns: 20px 1fr; gap: 12px; color: var(--silver); }
-  .benefits svg { margin-top: 4px; }
-  .price-card .btn { margin-top: 34px; width: 100%; }
-  .price-card .fine { text-align: center; }
-
-  /* Cross-examination */
-  .faq { max-width: 840px; }
-  .faq details { border-top: 1px solid var(--line); }
-  .faq details:last-child { border-bottom: 1px solid var(--line); }
-  .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 24px 0; font: 500 clamp(21px, 2vw, 26px)/1.25 var(--serif); letter-spacing: -0.01em; }
-  .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: ""; flex: none; width: 18px; height: 18px; background: linear-gradient(var(--paper), var(--paper)) center / 18px 1.5px no-repeat, linear-gradient(var(--paper), var(--paper)) center / 1.5px 18px no-repeat; transition: transform 250ms var(--ease-out); }
-  .faq details[open] summary::after { transform: rotate(45deg); }
-  .faq details p { padding: 0 0 24px; color: var(--silver); max-width: 40em; }
-
-  .closing h2 { font-size: clamp(56px, 10vw, 152px); line-height: .88; letter-spacing: -0.04em; max-width: 9ch; }
-  .closing .cta-row { margin-top: 44px; }
-  footer { border-top: 1px solid var(--line); padding: 32px 0 44px; color: var(--graphite); font-size: 14px; }
-  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; }
-  footer nav { display: flex; gap: 24px; }
-  footer a { text-decoration: none; transition: color 200ms ease; }
-  footer a:hover { color: var(--paper); }
-
-  @media (max-width: 960px) {
-    .exhibit, .arena, .plan { grid-template-columns: 1fr; }
-    .steps { grid-template-columns: 1fr; }
-    .nav-links a:not(.btn) { display: none; }
-    .hero { align-items: stretch; flex-direction: column; justify-content: flex-end; padding-top: 0; }
-    .stage { position: relative; inset: auto; height: 58svh; min-height: 340px; -webkit-mask: linear-gradient(#000 72%, transparent); mask: linear-gradient(#000 72%, transparent); }
-    .hero::after { background: linear-gradient(0deg, #000 0%, rgba(0,0,0,.0) 22%), linear-gradient(180deg, rgba(0,0,0,.5) 0%, transparent 18%); }
-    .hero .wrap { margin-top: -6svh; position: relative; }
-  }
-  @media (max-width: 640px) {
-    .airtight { grid-template-columns: 1fr; }
-    .board-row { grid-template-columns: 24px 32px minmax(0, 1fr) auto; }
-    .board-row .st { display: none; }
-    .av { width: 32px; height: 32px; }
-    .cta-row .btn { flex: 1 1 100%; }
-    .timeline div { grid-template-columns: 1fr; gap: 4px; }
-    .bench { padding: 14px; border-radius: 28px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .js .hero h1 .line > span, .js .hero .lede, .js .hero .cta-row, .js .hero .fine, .js .stage { transform: none; }
-    .ready .hero .lede, .ready .hero .cta-row, .ready .hero .fine, .ready .stage, .ready .hero h1 .line > span { transition: opacity 400ms ease; }
-    .judging .judge-text { animation: none; color: var(--silver); background: none; }
-    .verdict { transition: opacity 300ms ease; }
-    .pre .verdict { transform: none; filter: none; }
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .proof, .btn-glass, .nav::before { backdrop-filter: none; -webkit-backdrop-filter: none; background: #141416; }
-  }
-</style>
 <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 
-<header class="nav">
-  <div class="wrap">
+<!-- Reusable illustration: a gym at first light (used by the demo camera and the verification shot) -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
+  <defs>
+    <linearGradient id="gym-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B1B1D"/><stop offset=".55" stop-color="#4A4A4F"/><stop offset="1" stop-color="#9A9AA0"/></linearGradient>
+    <linearGradient id="gym-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2A2D"/><stop offset="1" stop-color="#0B0B0C"/></linearGradient>
+    <symbol id="gym" viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice">
+      <rect width="300" height="400" fill="url(#gym-sky)"/>
+      <path d="M40 40h90v150H40zM170 40h90v150h-90z" fill="#D8D8DC" opacity=".22"/>
+      <path d="M40 112h90M85 40v150M170 112h90M215 40v150" stroke="#111" stroke-width="3" opacity=".5"/>
+      <rect y="250" width="300" height="150" fill="url(#gym-floor)"/>
+      <path d="M0 250h300" stroke="#7A7A80" stroke-width="1.5" opacity=".6"/>
+      <g fill="#0C0C0D">
+        <rect x="24" y="214" width="252" height="10" rx="4"/>
+        <rect x="34" y="224" width="8" height="40"/><rect x="258" y="224" width="8" height="40"/>
+        <circle cx="62" cy="206" r="12"/><circle cx="96" cy="204" r="14"/><circle cx="134" cy="202" r="16"/><circle cx="174" cy="202" r="16"/><circle cx="212" cy="204" r="14"/><circle cx="244" cy="206" r="12"/>
+      </g>
+      <rect x="118" y="252" width="64" height="40" rx="4" fill="#1A1A1C"/>
+      <rect x="110" y="246" width="80" height="8" rx="3" fill="#2E2E31"/>
+      <g transform="rotate(-8 150 350)">
+        <rect x="70" y="342" width="160" height="16" rx="8" fill="#3A3A3E"/>
+        <rect x="42" y="304" width="40" height="92" rx="12" fill="#0A0A0B"/><rect x="50" y="304" width="6" height="92" rx="3" fill="#2A2A2D"/>
+        <rect x="218" y="304" width="40" height="92" rx="12" fill="#0A0A0B"/><rect x="226" y="304" width="6" height="92" rx="3" fill="#2A2A2D"/>
+        <path d="M118 400c4-22 12-38 32-40s30 16 34 40z" fill="#C9C9CE" opacity=".55"/>
+      </g>
+      <path d="M0 400L120 250h60L300 400z" fill="#fff" opacity=".035"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="nav-bar">
     <a class="lockup" href="/" aria-label="NoExcuse home">
-      <svg width="34" height="34" viewBox="0 0 56 56" aria-hidden="true"><rect x=".75" y=".75" width="54.5" height="54.5" rx="16" fill="#fff"/><path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <svg width="30" height="30" viewBox="0 0 56 56" aria-hidden="true"><rect x=".75" y=".75" width="54.5" height="54.5" rx="16" fill="#fff"/><path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       <span>NOEXCUSE</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="#process">How it works</a>
-      <a href="#terms">The terms</a>
-      <a href="#retainer">Pricing</a>
-      <a class="btn btn-glass" href="/onboarding">Open the app</a>
+      <a href="#demo">Demo</a>
+      <a href="#system">How it works</a>
+      <a href="#app">The app</a>
+      <a href="#pricing">Pricing</a>
     </nav>
+    <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
   </div>
 </header>
 
 <main>
+  <!-- 1. Hero -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="stage" id="stage" aria-hidden="true"><div class="stage-fallback"></div></div>
-    <div class="wrap">
-      <div class="hero-copy">
-        <h1 id="hero-title"><span class="line"><span>Close</span></span><span class="line"><span>every day.</span></span></h1>
-        <p class="lede">Set a habit with a deadline. When it’s due, bring live evidence from the in‑app camera. An AI judge rules on the photo: +50 when you deliver, −100 when you don’t. No appeals.</p>
-        <div class="cta-row">
-          <a class="btn btn-solid" href="/onboarding">Try it on the web</a>
-          <a class="btn btn-glass" href="#terms">Read the terms</a>
+    <div class="wrap hero-copy">
+      <h1 class="display" id="hero-title"><span class="line"><span>Stop making promises.</span></span><span class="line"><span class="metal">Start keeping them.</span></span></h1>
+      <p class="lede">Your goals deserve more than a checkbox. Prove your progress, let AI verify your actions and build a discipline you can actually measure.</p>
+      <div class="cta-row">
+        <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
+        <a class="btn btn-ghost" href="#demo">Explore the system</a>
+      </div>
+      <p class="fine">iPhone app with a 3‑day free trial, then €9.99 a month. Try it on the web today.</p>
+    </div>
+  </section>
+
+  <!-- 2. The problem -->
+  <section class="sheet" aria-labelledby="problem-title">
+    <div class="wrap sec">
+      <p class="kicker">The problem</p>
+      <h2 class="h2 reveal" id="problem-title">You’ve made these promises before.</h2>
+      <ul class="promises" id="promises">
+        <li class="promise"><q>“I’ll start on Monday.”</q><small>Every Sunday</small></li>
+        <li class="promise"><q>“Gym at seven, every day.”</q><small>Every January</small></li>
+        <li class="promise"><q>“Twenty pages before bed.”</q><small>Every night, in theory</small></li>
+        <li class="promise"><q>“No phone until nine.”</q><small>Every morning, briefly</small></li>
+      </ul>
+      <div class="problem-close">
+        <h3 class="h3 reveal">A checkbox can’t tell whether you did it.</h3>
+        <p class="lede reveal">Ticking a box costs nothing, so it proves nothing. NoExcuse asks for something harder to fake: a photo taken live, on the clock, and judged before it counts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Interactive demo -->
+  <section id="demo" aria-labelledby="demo-title">
+    <div class="wrap sec">
+      <div class="demo-head">
+        <div>
+          <p class="kicker">Try it here</p>
+          <h2 class="h2 reveal" id="demo-title">The whole loop, in four taps.</h2>
         </div>
-        <p class="fine">iPhone app coming to the App Store. €9.99 a month after a 3‑day free trial.</p>
+        <p class="sim"><i aria-hidden="true"></i>Simulated demo. No photo is taken and nothing is sent to an AI.</p>
       </div>
-    </div>
-  </section>
 
-  <section class="ruled" aria-labelledby="exhibit-title">
-    <div class="wrap exhibit">
-      <div class="head" style="margin-bottom:0">
-        <h2 id="exhibit-title">Exhibit A: the 6:30 run.</h2>
-        <p>One verified morning, start to finish. The window opens, the evidence goes in, the judge rules. It takes seconds and leaves no room for a story.</p>
-        <button class="replay" id="replay" type="button" hidden>Replay the evidence</button>
+      <div class="step-tabs" role="group" aria-label="Demo steps">
+        <button type="button" data-go="0" aria-current="step">Commit</button>
+        <button type="button" data-go="1">Prove</button>
+        <button type="button" data-go="2">Verify</button>
+        <button type="button" data-go="3">Results</button>
       </div>
-      <div class="bench">
-        <figure class="proof pre" id="proof" aria-label="Example: a morning run proven live and verified by the AI judge" style="margin:0">
-          <div class="proof-head"><b>Morning run</b><small class="tnum">Due 06:30</small></div>
-          <div class="viewfinder" aria-hidden="true">
-            <svg viewBox="0 0 400 230" preserveAspectRatio="none">
-              <path d="M0 230V120h22V86h18v34h14V60h26v60h12V96h16V40h8V24h6v16h8v80h14V74h22v46h10V100h18V52h30v68h12V88h20v32h16V66h24v54h10V92h14v138Z" fill="#1C1C1E"/>
-              <path d="M0 230v-62h40v-18h30v18h26v-30h34v30h22v-12h40v12h28v-24h36v24h30v-16h34v16h28v-8h52v70Z" fill="#0A0A0B"/>
-              <path d="M150 230c22-38 56-58 110-64" stroke="#E9E9EC" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>
-            </svg>
-            <div class="corners"><i></i><i></i><i></i><i></i></div>
-            <span class="live">Live camera</span>
-            <div class="flash" id="flash"></div>
+
+      <div class="demo">
+        <div>
+          <ol class="steps-nav" aria-label="Demo steps">
+            <span class="rail" id="rail" aria-hidden="true"></span>
+            <li><button class="step-btn" type="button" data-go="0" aria-current="step"><span class="dot">1</span><span><b>Create a commitment</b><span class="t">Name the habit, pick the deadline and how often. The evidence window is 15 minutes either side.</span></span></button></li>
+            <li><button class="step-btn" type="button" data-go="1"><span class="dot">2</span><span><b>Submit evidence</b><span class="t">The in‑app camera opens inside the window. The gallery is locked, so the photo is from right now.</span></span></button></li>
+            <li><button class="step-btn" type="button" data-go="2"><span class="dot">3</span><span><b>AI verification</b><span class="t">The judge checks the photo against your habit and the clock, then rules with a one‑line reason.</span></span></button></li>
+            <li><button class="step-btn" type="button" data-go="3"><span class="dot">4</span><span><b>See the consequences</b><span class="t">Deliver and earn 50 points. Miss and lose 100. Compare both outcomes.</span></span></button></li>
+          </ol>
+          <div class="demo-cta"><a class="btn btn-solid" href="/onboarding">Start your challenge</a></div>
+        </div>
+
+        <div class="demo-phone-wrap">
+          <div class="phone" id="demo-phone">
+            <div class="screen">
+              <span class="island" aria-hidden="true"></span>
+
+              <!-- Step 1 · Commit -->
+              <div class="view on" data-view="0">
+                <form class="app" id="commit-form" autocomplete="off">
+                  <span class="over">New commitment</span>
+                  <h3 class="ttl">What will you prove?</h3>
+                  <label class="lbl" for="habit-name">Habit</label>
+                  <input type="text" id="habit-name" value="Morning workout" maxlength="28">
+                  <span class="lbl" id="dl-lbl">Deadline</span>
+                  <div class="chips" role="group" aria-labelledby="dl-lbl" data-chips="deadline">
+                    <button type="button" class="chip" aria-pressed="false" data-v="07:00">07:00</button>
+                    <button type="button" class="chip" aria-pressed="false" data-v="07:30">07:30</button>
+                    <button type="button" class="chip" aria-pressed="true" data-v="08:00">08:00</button>
+                  </div>
+                  <span class="lbl" id="fr-lbl">Frequency</span>
+                  <div class="chips" role="group" aria-labelledby="fr-lbl" data-chips="freq">
+                    <button type="button" class="chip" aria-pressed="true" data-v="Daily">Daily</button>
+                    <button type="button" class="chip" aria-pressed="false" data-v="Weekdays">Weekdays</button>
+                  </div>
+                  <p class="window-line">Evidence window <b class="tnum" id="win-text">07:45 – 08:15</b></p>
+                  <div class="status-card" id="status-card" aria-live="polite">
+                    <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <span><b>Active</b><span id="status-text">Morning workout, due 08:00, daily</span></span>
+                  </div>
+                  <span class="grow"></span>
+                  <button type="submit" class="app-btn" id="commit-btn">Commit</button>
+                </form>
+              </div>
+
+              <!-- Step 2 · Prove -->
+              <div class="view" data-view="1">
+                <div class="cam">
+                  <div class="scene"><svg aria-hidden="true"><use href="#gym"/></svg></div>
+                  <div class="top"><span class="pill-live">Live camera</span><span class="pill-live tnum" id="cam-clock">07:52 · window open</span></div>
+                  <div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                  <div class="dock">
+                    <span class="gal" aria-label="Gallery locked" role="img"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="m4 17 5-5 4 4 3-3 4 4" stroke="currentColor" stroke-width="2" fill="none"/></svg></span>
+                    <button type="button" class="shutter" id="shutter" aria-label="Take the photo"><span></span></button>
+                    <span class="hint">Gallery locked.<br>Photos are taken live.</span>
+                  </div>
+                  <div class="captured" id="captured">
+                    <p class="meta tnum" id="cap-meta">Captured 07:52:14 · in‑app camera</p>
+                    <button type="button" class="app-btn" id="submit-btn">Submit evidence</button>
+                    <button type="button" class="app-btn ghost" id="retake-btn" style="margin-top:2.4cqw">Retake</button>
+                  </div>
+                  <div class="flash" id="flash"></div>
+                </div>
+              </div>
+
+              <!-- Step 3 · Verify -->
+              <div class="view" data-view="2">
+                <div class="verify" id="verify">
+                  <span class="over">AI verification</span>
+                  <h3 class="ttl" id="verify-title" style="margin-bottom:4cqw">Reviewing evidence…</h3>
+                  <div class="shot"><svg aria-hidden="true"><use href="#gym"/></svg><span class="scan"></span></div>
+                  <ul class="checks" id="checks" aria-live="polite">
+                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Evidence received<small class="tnum">07:52:14</small></li>
+                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Taken with the live camera<small>no upload</small></li>
+                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Inside the window<small class="tnum" id="chk-win">07:45–08:15</small></li>
+                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Photo shows the habit<small id="chk-habit">workout</small></li>
+                  </ul>
+                  <div class="ruling" id="ruling">
+                    <div class="row"><span class="v"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span><span class="pts tnum" id="v-pts">+50</span></div>
+                    <p id="v-critique">Dumbbells, gym floor, morning light. That’s a workout. Counts.</p>
+                    <p class="calc tnum">1,240 + 50 = <b id="v-total">1,290</b> points</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4 · Consequences -->
+              <div class="view" data-view="3">
+                <div class="app">
+                  <span class="over">Consequences</span>
+                  <h3 class="ttl">Same habit. Two outcomes.</h3>
+                  <div class="seg" id="seg" role="group" aria-label="Outcome" style="margin-top:5cqw">
+                    <button type="button" aria-pressed="true" data-o="win">Delivered</button>
+                    <button type="button" aria-pressed="false" data-o="loss">Missed</button>
+                  </div>
+                  <div class="big-delta tnum" id="big-delta" aria-live="polite">+50</div>
+                  <div class="conseq">
+                    <div><span>Streak</span><b class="tnum" id="c-streak">12 → 13 days</b></div>
+                    <div><span>Points</span><b class="tnum" id="c-points">1,240 → 1,290</b></div>
+                  </div>
+                  <div class="bars" id="bars" aria-hidden="true"><i style="--h:40%"></i><i style="--h:55%"></i><i style="--h:48%"></i><i style="--h:62%"></i><i style="--h:70%"></i><i style="--h:76%"></i><i class="last" style="--h:86%"></i></div>
+                  <div class="bars-cap"><span>Last 7 days</span><span id="bars-cap">today: +50</span></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="window" aria-hidden="true">
-            <div class="track"><div class="band"></div><div class="due"></div><div class="needle" id="needle"></div></div>
-            <div class="ticks tnum"><span style="left:25%">06:15</span><span style="left:50%;color:#fff">06:30</span><span style="left:75%">06:45</span></div>
+          <p class="step-caption" id="step-caption">Name the habit, pick the deadline and how often. The evidence window is 15 minutes either side.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Discipline, engineered -->
+  <section id="system" class="eng" aria-labelledby="eng-title">
+    <div class="wrap sec">
+      <p class="kicker">How it works</p>
+      <h2 class="h2 reveal" id="eng-title">Discipline, engineered.</h2>
+      <div class="eng-grid" style="margin-top:clamp(24px,4vw,48px)">
+        <div>
+          <div class="eng-track" id="eng-track">
+            <article class="eng-stage active" data-stage="0">
+              <span class="num">01</span>
+              <h3>Commit</h3>
+              <p>Set the habit, the deadline and the days. The deadline becomes a window: fifteen minutes before, fifteen after. Outside it, nothing counts.</p>
+              <ul><li>Times follow your own time zone</li><li>A reminder arrives before every window</li></ul>
+              <div class="m-visual"><svg class="dial" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="100" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/><path d="M120 20 A100 100 0 0 1 145.9 23.4" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" transform="rotate(232.5 120 120)"/><text x="120" y="126" text-anchor="middle" style="font:500 30px var(--serif);fill:#fff">08:00</text></svg></div>
+            </article>
+            <article class="eng-stage" data-stage="1">
+              <span class="num">02</span>
+              <h3>Prove</h3>
+              <p>When the window opens, the in‑app camera takes the photo. Each capture expires after three minutes, and the gallery stays locked.</p>
+              <ul><li>Checked against server time, not your phone’s</li><li>Old photos and screenshots can’t be sent</li></ul>
+              <div class="m-visual"><div class="ring-wrap" style="width:60%"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/><circle cx="60" cy="60" r="52" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="98"/></svg><div class="rt"><b class="tnum">2:06</b><span>to capture</span></div></div></div>
+            </article>
+            <article class="eng-stage" data-stage="2">
+              <span class="num">03</span>
+              <h3>Deliver</h3>
+              <p>The AI judge evaluates the photo and rules. Your points and streak update on the server, once per target, so a result can’t be counted twice.</p>
+              <ul><li>Verified: +50 and the streak grows</li><li>Missed or rejected: −100 and the streak resets</li></ul>
+              <div class="m-visual"><div class="ledger-mini"><div class="lr on"><span>Verified</span><b>+50</b></div><div class="lr on"><span>Missed</span><b class="loss">−100</b></div></div></div>
+            </article>
           </div>
-          <div class="judge" id="judge">
-            <div class="judge-label">AI judge</div>
-            <p class="judge-text" id="judge-text">Running shoes, empty avenue, first light behind you. That’s a run. Verified.</p>
+          <div class="eng-dots" id="eng-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+        </div>
+
+        <div class="eng-visual" aria-live="polite">
+          <!-- 01: the window on the clock (interactive) -->
+          <div class="panel on" data-panel="0">
+            <div class="glass-card">
+              <svg class="dial" id="dial" viewBox="0 0 240 240" role="img" aria-label="Clock face showing the evidence window">
+                <circle cx="120" cy="120" r="100" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12"/>
+                <g id="dial-ticks"></g>
+                <path id="dial-win" class="win" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+                <line id="dial-hand" x1="120" y1="120" x2="120" y2="34" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="120" cy="120" r="5" fill="#fff"/>
+              </svg>
+              <div class="dial-out"><b class="tnum" id="dial-time">08:00</b><span class="tnum" id="dial-win-text">Window 07:45 – 08:15</span></div>
+              <label class="sr" for="dial-range">Deadline</label>
+              <input class="range" id="dial-range" type="range" min="20" max="88" step="1" value="32">
+            </div>
           </div>
-          <div class="verdict">
-            <span class="state"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span>
-            <span class="delta tnum" id="delta">+50</span>
-            <span class="meta tnum">Streak <b id="streak">12</b> days &nbsp;&nbsp; Total <b id="total">1,290</b></span>
+          <!-- 02: the capture clock -->
+          <div class="panel" data-panel="1">
+            <div class="glass-card">
+              <div class="ring-wrap">
+                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/><circle id="cap-ring" cx="60" cy="60" r="52" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
+                <div class="rt"><b class="tnum" id="cap-time">3:00</b><span>to capture</span></div>
+              </div>
+              <div class="facts">
+                <div><b>Live only</b>Gallery locked</div>
+                <div><b>Server time</b>Your clock is ignored</div>
+                <div><b>One capture</b>Expires in 3 min</div>
+                <div><b>Private</b>Only you see the photo</div>
+              </div>
+            </div>
           </div>
-        </figure>
+          <!-- 03: the ledger (interactive) -->
+          <div class="panel" data-panel="2">
+            <div class="glass-card">
+              <div class="ledger-mini" id="ledger">
+                <div class="lr" data-k="v"><span>Verified inside the window</span><b>+50</b></div>
+                <div class="lr" data-k="m"><span>Missed or late</span><b class="loss">−100</b></div>
+                <div class="lr" data-k="r"><span>Rejected by the judge</span><b class="loss">−100</b></div>
+              </div>
+              <div class="ledger-total"><span>Your points</span><b class="tnum" id="ledger-total">1,240</b></div>
+              <div class="ledger-btns">
+                <button type="button" class="mini-btn" data-apply="v">Deliver</button>
+                <button type="button" class="mini-btn" data-apply="m">Miss</button>
+                <button type="button" class="mini-btn" data-apply="r">Get rejected</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="process" class="ruled" aria-labelledby="process-title">
-    <div class="wrap">
-      <div class="head">
-        <h2 id="process-title">Every day is argued the same way.</h2>
-        <p>No boxes to tick from bed. Every habit ends in evidence taken at the moment and judged on the server.</p>
-      </div>
-      <ol class="steps">
-        <li><span class="n">1</span><h3>Set your terms</h3><p>Pick the habit, the time and the days. Evidence is due inside a 30‑minute window: 15 minutes either side of the time you chose.</p><span class="when">Once, when you create the habit</span></li>
-        <li><span class="n">2</span><h3>Bring live evidence</h3><p>When the window opens, take the photo with the in‑app camera. Your gallery is off limits, so the evidence is from that moment.</p><span class="when">Inside the window</span></li>
-        <li><span class="n">3</span><h3>Hear the verdict</h3><p>The AI judge checks the photo against your habit and gives its reasoning in one line. Points and streak update on the spot.</p><span class="when">Seconds after you submit</span></li>
-      </ol>
-    </div>
-  </section>
-
-  <section id="terms" class="ruled" aria-labelledby="terms-title">
-    <div class="wrap">
-      <div class="head">
-        <h2 id="terms-title">The terms are non‑negotiable.</h2>
-        <p>Delivery pays. Absence costs double.</p>
-      </div>
-      <div class="ledger">
-        <div class="ledger-row"><div><h3>Verified inside the window</h3><p>Your streak grows by one day.</p></div><div class="pts tnum" aria-label="plus 50 points">+50</div></div>
-        <div class="ledger-row"><div><h3>Missed or late</h3><p>No evidence before the window closes. Your streak resets.</p></div><div class="pts loss tnum" aria-label="minus 100 points">−100</div></div>
-        <div class="ledger-row"><div><h3>Rejected by the judge</h3><p>The photo doesn’t show the habit. Your streak resets.</p></div><div class="pts loss tnum" aria-label="minus 100 points">−100</div></div>
-      </div>
-      <p class="ledger-note">Every target gets exactly one ruling. If verification is delayed on our side, your evidence is kept and judged automatically, with no penalty.</p>
-    </div>
-  </section>
-
-  <section class="ruled" aria-labelledby="airtight-title">
-    <div class="wrap">
-      <div class="head">
-        <h2 id="airtight-title">Airtight.</h2>
-        <p>A score is only worth something if nobody can doctor it. Including you, half asleep.</p>
-      </div>
-      <div class="airtight">
-        <div><h3>The clock is ours</h3><p>The window is checked against server time. Changing the time on your phone changes nothing.</p></div>
-        <div><h3>Live evidence only</h3><p>Each photo is tied to a capture that expires after three minutes. Old photos and screenshots are inadmissible.</p></div>
-        <div><h3>One ruling per target</h3><p>Points are written once per target, on the server. Double rewards and double penalties can’t happen.</p></div>
-        <div><h3>Sealed records</h3><p>Evidence photos are stored in a private folder only your account can open. The Arena shows names and points, never photos.</p></div>
+  <!-- 5. Differentiation -->
+  <section class="sheet" aria-labelledby="pillars-title">
+    <div class="wrap sec">
+      <h2 class="fade-statement" id="pillars-title"><span class="fades" id="fades">Motivation fades.</span><span class="stays">Accountability doesn’t.</span></h2>
+      <div class="pillars">
+        <div class="pillar">
+          <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="5" y="11" width="34" height="25" rx="7" stroke="#000" stroke-width="2" fill="none"/><circle cx="22" cy="23.5" r="7" stroke="#000" stroke-width="2" fill="none"/><path d="M15 11l3-5h8l3 5" stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
+          <h3>Real evidence</h3>
+          <p>Your progress must be demonstrated, not simply checked off. Every target ends in a photo taken live, inside its window.</p>
+        </div>
+        <div class="pillar">
+          <svg viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5v34M8 13h28M8 13l-5 12a6 6 0 0 0 10 0zM36 13l-5 12a6 6 0 0 0 10 0zM14 39h16" stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          <h3>AI accountability</h3>
+          <p>An AI judge evaluates your submitted evidence against the habit you committed to, and tells you why in one line.</p>
+        </div>
+        <div class="pillar">
+          <svg viewBox="0 0 44 44" aria-hidden="true"><path d="M6 32 16 20l8 7 14-16" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 11h8v8" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3>Real consequences</h3>
+          <p>Every commitment matters. Deliver and earn 50 points. Fail and lose 100. Your streak and your rank in the daily Arena follow.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="ruled" aria-labelledby="arena-title">
-    <div class="wrap arena">
-      <div class="head" style="margin-bottom:0">
-        <h2 id="arena-title">The board has a short memory.</h2>
-        <p>Every morning everyone starts at zero. Rank is today’s points, and ties go to the longer streak. Yesterday’s win buys you nothing today.</p>
+  <!-- 6. Product showcase -->
+  <section id="app" aria-labelledby="app-title">
+    <div class="wrap sec">
+      <div class="show-head">
+        <p class="kicker">The app</p>
+        <h2 class="h2 reveal" id="app-title">Exactly what you get.</h2>
+        <p class="lede">These are real screens from NoExcuse, filled with sample data. Nothing here is a concept.</p>
       </div>
-      <div class="board" role="table" aria-label="Example Arena ranking">
-        <div class="board-head" role="row"><span role="columnheader">Today’s Arena</span><span role="columnheader">Points</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">1</span><span class="av" role="cell" aria-hidden="true">MR</span><span class="nm" role="cell">Maria R.</span><span class="st tnum" role="cell">31‑day streak</span><span class="pt tnum" role="cell">150</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">2</span><span class="av" role="cell" aria-hidden="true">DT</span><span class="nm" role="cell">Dan T.</span><span class="st tnum" role="cell">18‑day streak</span><span class="pt tnum" role="cell">150</span></div>
-        <div class="board-row me" role="row"><span class="rk" role="cell">3</span><span class="av" role="cell" aria-hidden="true">You</span><span class="nm" role="cell">You</span><span class="st tnum" role="cell">12‑day streak</span><span class="pt tnum" role="cell">100</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">4</span><span class="av" role="cell" aria-hidden="true">IC</span><span class="nm" role="cell">Ioana C.</span><span class="st tnum" role="cell">4‑day streak</span><span class="pt tnum" role="cell">50</span></div>
-        <div class="board-row" role="row"><span class="rk" role="cell">5</span><span class="av" role="cell" aria-hidden="true">AL</span><span class="nm" role="cell">Alex L.</span><span class="st tnum" role="cell">No streak</span><span class="pt neg tnum" role="cell">−50</span></div>
-        <p class="board-foot">Example ranking</p>
-      </div>
+      <div class="carousel" id="carousel"></div>
+      <div class="show-tabs" id="show-tabs" role="tablist" aria-label="App screens"></div>
+      <p class="show-cap" id="show-cap" aria-live="polite"></p>
+      <p class="show-note"><span class="note">Sample data. Your screens fill with your own habits.</span></p>
     </div>
   </section>
 
-  <section id="retainer" class="ruled" aria-labelledby="retainer-title">
-    <div class="wrap plan">
+  <!-- 7. Pricing -->
+  <section id="pricing" class="eng" aria-labelledby="price-title">
+    <div class="wrap sec price-grid">
       <div>
-        <div class="head" style="margin-bottom:30px">
-          <h2 id="retainer-title">The retainer.</h2>
-          <p>€9.99 a month. The first three days are on us. Cancel before day four and you owe nothing.</p>
-        </div>
+        <p class="kicker">Pricing</p>
+        <h2 class="h2 reveal" id="price-title">One plan. No tiers to negotiate.</h2>
         <div class="timeline">
           <div><b>Today</b><p>Full access to every feature. Nothing is charged.</p></div>
           <div><b>Day 4</b><p>€9.99 a month begins, billed through your Apple ID, unless you cancel first.</p></div>
@@ -404,39 +368,42 @@
         </div>
       </div>
       <div class="price-card">
-        <h3>NoExcuse Premium</h3>
+        <h3 class="h3">NoExcuse Premium</h3>
         <div class="price"><strong class="tnum">€9.99</strong><span>a month</span></div>
         <span class="trial">3 days free</span>
         <ul class="benefits">
-          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Live evidence camera and AI verification</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Points, streaks and the daily Arena</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited habits and a reminder before every window</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>A comeback plan after a missed target</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Live evidence camera and AI verification</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Points, streaks and the daily Arena</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited habits, with a reminder before every window</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>A comeback plan after a missed target</li>
         </ul>
-        <a class="btn btn-solid" href="/onboarding">Try it on the web</a>
+        <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
         <p class="fine">Subscriptions start in the iPhone app.</p>
       </div>
     </div>
   </section>
 
-  <section class="ruled" aria-labelledby="faq-title">
-    <div class="wrap">
-      <div class="head"><h2 id="faq-title">Cross‑examination.</h2></div>
+  <!-- 8. FAQ -->
+  <section aria-labelledby="faq-title">
+    <div class="wrap sec" style="padding-bottom:0">
+      <h2 class="h2 reveal" id="faq-title">Questions, answered.</h2>
       <div class="faq">
-        <details><summary>What counts as evidence?</summary><p>A photo taken with the in‑app camera during the window that clearly shows the habit: you in running gear outside, the open book on page 40, the gym floor. The judge explains every ruling in one sentence.</p></details>
-        <details><summary>Why can’t I upload a photo I already have?</summary><p>Because then it could be from any day. NoExcuse only admits photos taken live, inside the window, so a verified habit means you actually did it.</p></details>
-        <details><summary>What happens if I miss a day?</summary><p>You lose 100 points and your streak resets. The app then hands you a comeback plan, so the next target is the one that counts.</p></details>
+        <details><summary>What counts as evidence?</summary><p>A photo taken with the in‑app camera during the window that clearly shows the habit: you in gym clothes at the rack, the open book on today’s page, the running track. You can write what counts as proof for each habit, and the judge explains every ruling in one sentence.</p></details>
+        <details><summary>Why can’t I upload a photo I already have?</summary><p>Because then it could be from any day. NoExcuse only accepts photos taken live, inside the window, so a verified habit means you actually did it.</p></details>
+        <details><summary>What happens when I miss?</summary><p>You lose 100 points and your streak resets. The app then offers a comeback plan, such as an earlier reminder or a clearer definition of what counts as proof, so the next window goes better.</p></details>
+        <details><summary>What if the verification is delayed?</summary><p>Your evidence is saved with the time it arrived, and the target isn’t marked as missed while it waits for a ruling. A delay on our side never costs you points.</p></details>
         <details><summary>Can I use it on Android or a computer?</summary><p>NoExcuse is built for iPhone first. You can sign in and manage your habits on the web today; live evidence is designed for your phone’s camera.</p></details>
       </div>
     </div>
   </section>
 
-  <section class="closing ruled" aria-labelledby="close-title">
-    <div class="wrap">
-      <h2 id="close-title">The clock is already running.</h2>
+  <!-- 9. Final -->
+  <section class="final" aria-labelledby="final-title">
+    <div class="wrap sec">
+      <h2 class="display reveal" id="final-title">Become someone who follows through.</h2>
       <div class="cta-row">
-        <a class="btn btn-solid" href="/onboarding">Try it on the web</a>
-        <a class="btn btn-glass" href="/sign-in">Sign in</a>
+        <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
+        <a class="btn btn-ghost" href="/sign-in">Sign in</a>
       </div>
     </div>
   </section>
@@ -445,189 +412,15 @@
 <footer>
   <div class="wrap">
     <span>© 2026 NoExcuse</span>
-    <nav aria-label="Legal">
+    <nav aria-label="Footer">
+      <a href="#demo">Demo</a>
       <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" rel="noopener">Terms of Use</a>
       <a href="/sign-in">Sign in</a>
     </nav>
   </div>
 </footer>
 
-<!-- Exhibit A: the evidence sequence -->
-<script>
-(function () {
-  var card = document.getElementById('proof');
-  var needle = document.getElementById('needle');
-  var flash = document.getElementById('flash');
-  var judge = document.getElementById('judge');
-  var text = document.getElementById('judge-text');
-  var delta = document.getElementById('delta');
-  var streak = document.getElementById('streak');
-  var total = document.getElementById('total');
-  var replay = document.getElementById('replay');
-  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var RULING = 'Running shoes, empty avenue, first light behind you. That’s a run. Verified.';
-  var timers = [];
-  function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
-  function say(s) { text.classList.add('swap'); at(180, function () { text.textContent = s; text.classList.remove('swap'); }); }
-  function count(el, from, to, ms, fmt) {
-    var t0 = performance.now();
-    (function step(t) { var k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); })(t0);
-  }
-  function setNeedle(pct, ms) {
-    var w = needle.parentElement.clientWidth;
-    needle.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.77,0,.175,1)' : 'none';
-    needle.style.transform = 'translateX(' + (w * pct / 100) + 'px)';
-  }
-  function play() {
-    timers.forEach(clearTimeout); timers = [];
-    replay.hidden = true;
-    card.classList.add('pre'); judge.classList.remove('judging');
-    text.textContent = 'Waiting for the window to open.';
-    streak.textContent = '11'; total.textContent = '1,240'; delta.textContent = '+0';
-    setNeedle(8, 0);
-    at(300, function () { setNeedle(46, 1600); });
-    at(1100, function () { say('Window open. Take the photo.'); });
-    at(2200, function () {
-      flash.animate([{ opacity: .9 }, { opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.23,1,.32,1)' });
-      judge.classList.add('judging'); text.textContent = 'Reviewing the evidence for “Morning run”…';
-    });
-    at(3900, function () {
-      judge.classList.remove('judging'); say(RULING);
-      card.classList.remove('pre');
-      count(delta, 0, 50, 800, function (n) { return '+' + n; });
-      count(total, 1240, 1290, 1000, function (n) { return n.toLocaleString('en-US'); });
-      at(400, function () { streak.textContent = '12'; });
-    });
-    at(5000, function () { replay.hidden = false; });
-  }
-  function finalState() { card.classList.remove('pre'); setNeedle(46, 0); replay.hidden = false; }
-  replay.addEventListener('click', play);
-  addEventListener('resize', function () { if (!card.classList.contains('pre')) setNeedle(46, 0); });
-  if (reduce || !('IntersectionObserver' in window)) { finalState(); return; }
-  setNeedle(8, 0);
-  new IntersectionObserver(function (e, o) { if (e[0].isIntersecting) { o.disconnect(); play(); } }, { threshold: 0.45 }).observe(card);
-})();
-</script>
-
-<!-- Hero: a glass summit refracting a pinstripe wall and a clock dial -->
-<script type="module">
-import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
-const root = document.documentElement;
-const stage = document.getElementById('stage');
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const reveal = () => requestAnimationFrame(() => root.classList.add('ready'));
-
-function wallTexture(r) {
-  const c = document.createElement('canvas'); c.width = 2048; c.height = 1280;
-  const g = c.getContext('2d');
-  g.fillStyle = '#000'; g.fillRect(0, 0, c.width, c.height);
-  for (let x = 0; x < c.width; x += 26) { g.fillStyle = x % 130 === 0 ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.07)'; g.fillRect(x, 0, 2, c.height); }
-  const cx = c.width / 2, cy = c.height * 0.46;
-  g.save(); g.translate(cx, cy);
-  g.fillStyle = 'rgba(0,0,0,.9)'; g.beginPath(); g.arc(0, 0, r + 40, 0, Math.PI * 2); g.fill();
-  const glow = g.createRadialGradient(0, 0, 0, 0, 0, r * 0.95);
-  glow.addColorStop(0, 'rgba(255,255,255,.55)'); glow.addColorStop(.45, 'rgba(255,255,255,.16)'); glow.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = glow; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
-  for (let i = 0; i < 60; i++) {
-    const big = i % 5 === 0; g.save(); g.rotate(i * Math.PI / 30);
-    g.fillStyle = big ? '#fff' : 'rgba(255,255,255,.55)';
-    g.fillRect(-(big ? 5 : 2), -r, big ? 10 : 4, (big ? 70 : 34) * r / 430); g.restore();
-  }
-  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, r + 22, 0, Math.PI * 2); g.stroke();
-  g.restore();
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
-}
-
-function summitGeometry() {
-  // Same outline as the app icon's summit, filled and centred
-  const pts = [[11, 39], [23.5, 18], [30.5, 29.5], [34.5, 24], [45, 39]];
-  const s = new THREE.Shape();
-  pts.forEach(([x, y], i) => { const px = (x - 28) / 10, py = -(y - 30) / 10; if (i) s.lineTo(px, py); else s.moveTo(px, py); });
-  s.closePath();
-  const geo = new THREE.ExtrudeGeometry(s, { depth: 0.55, bevelEnabled: true, bevelThickness: 0.22, bevelSize: 0.16, bevelSegments: 10, curveSegments: 4 });
-  geo.center(); geo.computeVertexNormals(); return geo;
-}
-
-try {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-  renderer.setClearColor(0x000000, 1);
-  stage.appendChild(renderer.domElement);
-
-  const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-  camera.position.set(0, 0, 11);
-
-  let layoutWide = stage.clientWidth > 960;
-  const wallMat = new THREE.MeshBasicMaterial({ map: wallTexture(layoutWide ? 250 : 430), toneMapped: false });
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(26, 16.25), wallMat);
-  wall.position.z = -4; scene.add(wall);
-
-  const glass = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.9, ior: 1.45,
-    clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.8, specularIntensity: 1, attenuationColor: 0xffffff, attenuationDistance: 4,
-  });
-  const summit = new THREE.Mesh(summitGeometry(), glass);
-  const rig = new THREE.Group(); rig.add(summit); scene.add(rig);
-
-  const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 4, 6); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xffffff, 3); rim.position.set(-4, 2, -3); scene.add(rim);
-
-  function layout() {
-    const w = stage.clientWidth, h = stage.clientHeight;
-    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-    const halfW = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
-    const isWide = w > 960;
-    rig.position.x = isWide ? halfW * 0.44 : 0;
-    rig.scale.setScalar(isWide ? 1.05 : Math.min(0.95, halfW / 3.6));
-    if (isWide !== layoutWide) { layoutWide = isWide; wallMat.map.dispose(); wallMat.map = wallTexture(isWide ? 250 : 430); wallMat.needsUpdate = true; }
-    // keep the dial directly behind the glass from the camera's point of view
-    wall.position.x = rig.position.x * (camera.position.z - wall.position.z) / camera.position.z;
-    wall.scale.setScalar(isWide ? 1 : 0.45);
-    if (reduce) frame(0);
-  }
-
-  // Pointer → critically damped springs (independent X and Y)
-  const target = { x: 0, y: 0 }, cur = { x: 0, y: 0 }, vel = { x: 0, y: 0 };
-  addEventListener('pointermove', (e) => { target.x = e.clientX / innerWidth - 0.5; target.y = e.clientY / innerHeight - 0.5; }, { passive: true });
-  const omega = 2 * Math.PI / 0.9; // response ≈ 0.9s, damping ratio 1.0
-  function spring(k, dt) { const a = omega * omega * (target[k] - cur[k]) - 2 * omega * vel[k]; vel[k] += a * dt; cur[k] += vel[k] * dt; }
-
-  let visible = true, running = false, last = performance.now(), t = 0;
-  let samples = 0, slow = 0;
-  function frame(dt) {
-    t += dt;
-    spring('x', dt); spring('y', dt);
-    const scroll = Math.min(1, scrollY / innerHeight);
-    rig.rotation.y = -0.45 + t * 0.12 + cur.x * 0.6 + scroll * 0.8;
-    rig.rotation.x = 0.12 + cur.y * 0.35 - scroll * 0.25;
-    rig.position.y = (layoutWide ? 0.25 : 0.1) + Math.sin(t * 0.7) * 0.06 + scroll * 0.8;
-    renderer.render(scene, camera);
-  }
-  function loop() {
-    if (!visible || reduce) { running = false; return; }
-    const now = performance.now(); const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    frame(dt); requestAnimationFrame(loop);
-    // Slow GPU: drop to 1x pixel ratio once, after a short sample
-    if (++samples <= 90) { slow += dt; if (samples === 90 && slow / 90 > 1 / 30 && renderer.getPixelRatio() > 1) { renderer.setPixelRatio(1); layout(); } }
-  }
-  function start() { if (!running && !reduce) { running = true; last = performance.now(); requestAnimationFrame(loop); } }
-
-  layout(); new ResizeObserver(layout).observe(stage);
-  new IntersectionObserver((e) => { visible = e[0].isIntersecting; if (visible) start(); }).observe(stage);
-  stage.querySelector('.stage-fallback').remove();
-  frame(0); start();
-  reveal();
-} catch (err) {
-  reveal(); // WebGL unavailable: keep the CSS pinstripe fallback
-}
-setTimeout(() => root.classList.add('ready'), 2500); // never leave the hero hidden
-</script>
+<script src="/l/landing.js" defer></script>
+<script type="module" src="/l/hero3d.js"></script>
 </body>
 </html>
