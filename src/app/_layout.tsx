@@ -9,7 +9,7 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useNotificationRouting } from '@/lib/notificationRouting';
@@ -18,16 +18,28 @@ import { color } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+const WEB_FONT_GRACE_MS = 1200;
+
 const theme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: color.bg.base, card: color.bg.base, primary: color.accent.glow, text: color.text.primary, border: color.border.hairline } };
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, BodoniModa_500Medium, BodoniModa_600SemiBold });
+  // Web: Safari/WebKit can leave `document.fonts.load()` pending even after the face has loaded, so
+  // expo-font only gives up after its 12 s timeout and the app stays black until then on iPhone.
+  // Never block the first render on fonts for more than a moment; the @font-face rules are already
+  // injected, so text switches to the brand fonts as soon as the files arrive.
+  const [fontGrace, setFontGrace] = useState(false);
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const t = setTimeout(() => setFontGrace(true), WEB_FONT_GRACE_MS);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <SafeAreaProvider>
       <ThemeProvider value={theme}>
         <AppProvider>
           <StatusBar style="light" />
-          <Navigator fontsReady={fontsLoaded || !!fontError} />
+          <Navigator fontsReady={fontsLoaded || !!fontError || fontGrace} />
         </AppProvider>
       </ThemeProvider>
     </SafeAreaProvider>
