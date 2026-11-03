@@ -68,6 +68,9 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="proof/[targetId]" options={{ presentation: 'fullScreenModal', gestureEnabled: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="missed/[targetId]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="comeback/[habitId]" />
+        <Stack.Screen name="discipline" />
+        <Stack.Screen name="challenge/[id]" />
+        <Stack.Screen name="challenge/start" />
       </Stack.Protected>
       <Stack.Protected guard={signedIn && !premium}>
         <Stack.Screen name="paywall" />

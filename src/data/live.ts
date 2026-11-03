@@ -1,8 +1,8 @@
 import { callFunction, supabase } from '@/lib/supabase';
-import type { Api, ArenaRow, CaptureSession, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, VerdictResult } from './types';
+import type { Api, ArenaRow, CaptureSession, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, VerdictResult, WarRoom } from './types';
 
 const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, proof_hint, current_streak, is_active)';
-const HABIT_SELECT = 'id, title, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
+const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
 
 async function uid(): Promise<string> {
   const { data } = await supabase.auth.getSession();
@@ -99,5 +99,32 @@ export const liveApi: Api = {
   async deleteAccount() {
     await callFunction('delete-account', {});
     await supabase.auth.signOut();
+  },
+  async getWarRoom() {
+    return must(await supabase.rpc('get_war_room')) as WarRoom;
+  },
+  async getDiscipline() {
+    return must(await supabase.rpc('get_discipline')) as Discipline;
+  },
+  async getChallenges() {
+    return must(await supabase.rpc('get_challenges')) as Challenges;
+  },
+  async startChallenge(habitId, template) {
+    const args = typeof template === 'string'
+      ? { p_habit_id: habitId, p_template_id: template }
+      : { p_habit_id: habitId, p_template_id: null, p_title: template.title, p_days: template.days, p_allowed_misses: template.allowedMisses };
+    return must(await supabase.rpc('start_challenge', args)) as string;
+  },
+  async abandonChallenge(id) {
+    return must(await supabase.rpc('abandon_challenge', { p_id: id })) as boolean;
+  },
+  async archiveHabit(id) {
+    must(await supabase.from('habits').update({ archived_at: new Date().toISOString() }).eq('id', id));
+  },
+  async getHabitHistory(id, limit) {
+    return must(
+      await supabase.from('targets').select(TARGET_SELECT).eq('habit_id', id).lte('due_at', new Date(Date.now() + 2 * 86_400_000).toISOString())
+        .order('due_at', { ascending: false }).limit(limit),
+    ) as unknown as Target[];
   },
 };

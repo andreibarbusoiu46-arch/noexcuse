@@ -1,22 +1,22 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { Badge } from '@/components/Badge';
-import { IconTile, SectionHeader, StatTile } from '@/components/Blocks';
+import { IconTile, SectionHeader } from '@/components/Blocks';
 import { Button, IconButton } from '@/components/Button';
 import { Card, Divider } from '@/components/Card';
 import { Delta } from '@/components/Arena';
 import { Glass } from '@/components/Glass';
-import { HabitCard } from '@/components/HabitCard';
 import { Icon } from '@/components/Icon';
-import { ProgressRing, WindowBar } from '@/components/Progress';
+import { WindowBar } from '@/components/Progress';
+import { ChallengeRow, CommitmentRow, MiniStat, ScoreCard } from '@/components/WarRoom';
 import { Screen } from '@/components/Screen';
 import { LoadingPanel, MessagePanel } from '@/components/StatePanel';
 import { Tap } from '@/components/Tap';
 import { T } from '@/components/Text';
 import { api, type Target } from '@/data';
+import { categoryLabel } from '@/lib/categories';
 import { useLoad, useNow } from '@/lib/hooks';
-import { targetCard } from '@/lib/status';
-import { countdown, dayLabel, formatTime, localDay, nextActionable, phaseOf, windowOf } from '@/lib/time';
+import { countdown, dayLabel, formatTime, nextActionable, phaseOf, windowOf } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color, radius } from '@/theme/tokens';
 
@@ -31,65 +31,108 @@ export default function Home() {
   const now = useNow(1000);
   const q = useLoad(async () => {
     const start = new Date(); start.setHours(0, 0, 0, 0);
-    const [targets, stats, events, arena] = await Promise.all([
+    const [room, targets, arena] = await Promise.all([
+      api.getWarRoom(),
       api.getTargets(new Date(start.getTime() - 3600_000).toISOString(), new Date(Date.now() + 36 * 3600_000).toISOString()),
-      api.getStats(),
-      api.getRecentEvents(4),
       api.getArena().catch(() => []),
     ]);
-    return { targets, stats, events, me: arena.find((r) => r.is_me) ?? null, leader: arena[0] ?? null };
+    return { room, targets, me: arena.find((r) => r.is_me) ?? null, leader: arena[0] ?? null };
   });
 
   const d = q.data;
-  const today = localDay(now, tz);
-  const todays = (d?.targets ?? []).filter((t) => localDay(t.due_at, tz) === today && t.status !== 'excused');
-  const done = todays.filter((t) => t.status === 'verified').length;
+  const room = d?.room;
   const next = nextActionable(d?.targets ?? [], now);
-  const rest = todays.filter((t) => t.id !== next?.id);
+  const list = room?.commitments ?? [];
+  const done = list.filter((c) => c.state === 'verified').length;
+  const failed = list.filter((c) => c.state === 'failed').length;
+  const open = list.filter((c) => !['verified', 'failed', 'excused'].includes(c.state)).length;
   const firstName = profile?.display_name?.split(' ')[0] ?? '';
 
   return (
     <Screen tabBar refreshing={q.refreshing} onRefresh={() => q.reload()}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <T variant="overline" tone="tertiary">{new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'short', timeZone: tz }).format(new Date(now))}</T>
+          <T variant="overline" tone="tertiary">War Room · {new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'short', timeZone: tz }).format(new Date(now))}</T>
           <T variant="h2" accessibilityRole="header">{greeting(now, tz)} <T variant="h2" tone="accent">{firstName}.</T></T>
         </View>
         <IconButton icon="Bell" label="Notification settings" onPress={() => router.navigate('/profile')} />
       </View>
 
       {q.loading && !d ? (
-        <LoadingPanel label="Loading today…" />
+        <LoadingPanel label="Loading your War Room…" />
       ) : q.error && !d ? (
-        <MessagePanel kind="error" icon="Alert" title="Couldn’t load today." body="Check your connection. Your score is safe on the server." action="Try again" onAction={() => q.reload()} />
+        <MessagePanel kind="error" icon="Alert" title="Couldn’t load the War Room." body="Check your connection. Your score is safe on the server." action="Try again" onAction={() => q.reload()} />
       ) : (
         <>
           <NextTarget target={next} now={now} tz={tz} anyHabits={(d?.targets.length ?? 0) > 0} />
 
-          <View style={{ flexDirection: 'row', gap: 16 }}>
-            <Card style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16, gap: 10 }}>
-              <T variant="overline" tone="tertiary">Today</T>
-              <ProgressRing done={done} total={todays.length} />
-              <T variant="caption" tone="secondary">{todays.length - done > 0 ? `${todays.length - done} target${todays.length - done === 1 ? '' : 's'} left` : todays.length ? 'All done today' : 'Nothing scheduled'}</T>
-            </Card>
-            <View style={{ flex: 1, gap: 16 }}>
-              <StatTile label="Streak" value={String(d?.stats.current_streak ?? 0)} caption={`days · best ${d?.stats.longest_streak ?? 0}`} icon="Flame" />
-              <StatTile label="Points" value={(d?.stats.total_points ?? 0).toLocaleString('en-US')} caption={d?.me ? `#${d.me.rank} in today’s Arena` : 'total'} icon="Bolt" />
-            </View>
+          <ScoreCard score={room?.score ?? null} onPress={() => router.push('/discipline')} />
+
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            <MiniStat label="Today" value={`${done}/${list.length}`} caption={failed ? `${failed} failed · ${open} open` : `${open} open`} />
+            <MiniStat label="This week" value={room?.week.success_rate == null ? '—' : `${room.week.success_rate}%`} caption={`${room?.week.verified ?? 0} of ${room?.week.settled ?? 0} verified`} />
+            <MiniStat label="Streak" value={String(room?.streak ?? 0)} caption="days" />
+            <MiniStat label="Points" value={(room?.total_points ?? 0).toLocaleString('en-US')} caption={d?.me ? `#${d.me.rank} today` : 'total'} />
           </View>
 
-          {rest.length > 0 && (
+          <View style={{ gap: 12 }}>
+            <SectionHeader title="Today’s commitments" action="All commitments" onAction={() => router.navigate('/habits')} />
+            {list.length === 0 ? (
+              <T variant="bodySmall" tone="tertiary">Nothing scheduled today.</T>
+            ) : (
+              <Card padding={0} style={{ gap: 0 }}>
+                {list.map((c, i) => (
+                  <View key={c.target_id}>
+                    {i > 0 && <Divider />}
+                    <CommitmentRow title={c.title} state={c.state}
+                      meta={`${categoryLabel(c.category, c.custom_category)} · due ${formatTime(c.due_at, tz)}${c.streak ? ` · ${c.streak}-day streak` : ''}`}
+                      onPress={() => (c.state === 'in_progress' || c.state === 'needs_evidence' ? router.push({ pathname: '/proof/[targetId]', params: { targetId: c.target_id } })
+                        : c.state === 'failed' ? router.push({ pathname: '/missed/[targetId]', params: { targetId: c.target_id } })
+                        : router.push({ pathname: '/habit/[id]', params: { id: c.habit_id } }))} />
+                  </View>
+                ))}
+              </Card>
+            )}
+          </View>
+
+          <View style={{ gap: 12 }}>
+            <SectionHeader title="Active challenges" action={room?.challenges.length ? 'All challenges' : 'Browse'} onAction={() => router.navigate('/challenges')} />
+            {(room?.challenges.length ?? 0) === 0 ? (
+              <Tap onPress={() => router.navigate('/challenges')} accessibilityLabel="Start a challenge">
+                <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <T variant="bodyStrong">No active challenge</T>
+                    <T variant="caption" tone="secondary">Put one commitment on the line for 7–30 days. Complete it for a bonus.</T>
+                  </View>
+                  <Icon name="ChevronRight" size={20} tint={color.icon.secondary} />
+                </Card>
+              </Tap>
+            ) : (
+              <Card padding={0} style={{ gap: 0 }}>
+                {room!.challenges.map((c, i) => (
+                  <View key={c.id}>
+                    {i > 0 && <Divider />}
+                    <ChallengeRow title={c.title} progress={c.progress} onPress={() => router.push({ pathname: '/challenge/[id]', params: { id: c.id } })} />
+                  </View>
+                ))}
+              </Card>
+            )}
+          </View>
+
+          {(room?.upcoming.length ?? 0) > 0 && (
             <View style={{ gap: 12 }}>
-              <SectionHeader title="Today" action="All habits" onAction={() => router.navigate('/habits')} />
-              {rest.map((t) => {
-                const c = targetCard(t, now, tz);
-                return (
-                  <HabitCard key={t.id} {...c} title={t.habit.title}
-                    onPress={() => (c.status === 'due' ? router.push({ pathname: '/proof/[targetId]', params: { targetId: t.id } })
-                      : c.status === 'missed' ? router.push({ pathname: '/missed/[targetId]', params: { targetId: t.id } })
-                      : router.push({ pathname: '/habit/[id]', params: { id: t.habit_id } }))} />
-                );
-              })}
+              <SectionHeader title="Upcoming deadlines" />
+              <Card padding={0} style={{ gap: 0 }}>
+                {room!.upcoming.map((u, i) => (
+                  <View key={u.target_id}>
+                    {i > 0 && <Divider />}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12 }}>
+                      <T variant="bodySmall" numberOfLines={1} style={{ flex: 1 }}>{u.title}</T>
+                      <T variant="caption" tone="secondary">{dayLabel(u.due_at, tz, now)} · {formatTime(u.due_at, tz)}</T>
+                    </View>
+                  </View>
+                ))}
+              </Card>
             </View>
           )}
 
@@ -115,17 +158,17 @@ export default function Home() {
 
           <View style={{ gap: 12 }}>
             <SectionHeader title="Recent activity" />
-            {(d?.events.length ?? 0) === 0 ? (
-              <T variant="bodySmall" tone="tertiary">Your verified proofs and penalties will show up here.</T>
+            {(room?.recent.length ?? 0) === 0 ? (
+              <T variant="bodySmall" tone="tertiary">Every point you earn or lose is recorded here.</T>
             ) : (
               <Card padding={0} style={{ gap: 0 }}>
-                {d!.events.map((e, i) => (
+                {room!.recent.map((e, i) => (
                   <View key={e.id}>
                     {i > 0 && <Divider />}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 }} accessible accessibilityLabel={`${e.habit.title}, ${e.delta > 0 ? 'plus' : 'minus'} ${Math.abs(e.delta)} points`}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 }} accessible accessibilityLabel={`${e.title}, ${e.delta > 0 ? 'plus' : 'minus'} ${Math.abs(e.delta)} points`}>
                       <View style={{ flex: 1, gap: 2 }}>
-                        <T variant="bodySmall" numberOfLines={1}>{e.habit.title} {e.reason === 'verified' ? 'verified' : e.reason === 'rejected' ? '— rejected' : '— window missed'}</T>
-                        <T variant="caption" tone="tertiary">{dayLabel(e.created_at, tz, now)} · {formatTime(e.created_at, tz)}</T>
+                        <T variant="bodySmall" numberOfLines={1}>{e.title} {REASON[e.reason]}</T>
+                        <T variant="caption" tone="tertiary">{dayLabel(e.at, tz, now)} · {formatTime(e.at, tz)}</T>
                       </View>
                       <T variant="bodyStrong" tone={e.delta > 0 ? 'success' : 'danger'}>{e.delta > 0 ? `+${e.delta}` : `−${Math.abs(e.delta)}`}</T>
                     </View>
@@ -139,6 +182,8 @@ export default function Home() {
     </Screen>
   );
 }
+
+const REASON: Record<string, string> = { verified: 'verified', rejected: '— rejected', expired: '— late', missed: '— window missed', challenge_bonus: '— challenge completed' };
 
 /** The one thing to do next. Open window → countdown to close + camera. Otherwise → countdown to open. */
 function NextTarget({ target, now, tz, anyHabits }: { target: Target | null; now: number; tz?: string; anyHabits: boolean }) {

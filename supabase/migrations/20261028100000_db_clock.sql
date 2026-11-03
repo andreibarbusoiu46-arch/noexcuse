@@ -1,3 +1,4 @@
+-- @platform-only (pg_cron / pg_net / Vault): skipped by the local test runner
 -- Every minute: create today's/tomorrow's targets and settle closed windows (−100 for missed).
 -- Pure SQL, no secrets needed. Push reminders/retries run from the cron-tick Edge Function (iOS).
 create extension if not exists pg_cron;

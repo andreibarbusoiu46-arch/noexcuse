@@ -4,15 +4,25 @@
 //  3. Reminders before a window opens, and "window open" nudges.
 //  4. Retry proofs stuck in processing/error; give up after N tries → excused, no penalty.
 import { encodeBase64 } from "../_shared/b64.ts";
-import { adminClient, env, fail, json } from "../_shared/http.ts";
+import { adminClient, fail, json } from "../_shared/http.ts";
 import { copy, notifyOnce } from "../_shared/push.ts";
 import { formatLocalTime, MAX_VERIFY_ATTEMPTS, windowBounds } from "../_shared/rules.ts";
 import { safeEqual } from "../_shared/revenuecat.ts";
 import { judgeAndApply } from "../_shared/verify.ts";
 
+// Auth: the caller (pg_cron via pg_net) sends the secret kept in Supabase Vault. The function reads
+// the same value through a service-role-only RPC, so the secret never leaves the project.
+async function cronSecret(db: ReturnType<typeof adminClient>): Promise<string | null> {
+  const fromEnv = Deno.env.get("CRON_SECRET");
+  if (fromEnv) return fromEnv;
+  const { data } = await db.rpc("cron_secret");
+  return typeof data === "string" && data.length >= 32 ? data : null;
+}
+
 Deno.serve(async (req) => {
-  if (!safeEqual(req.headers.get("authorization") ?? "", `Bearer ${env("CRON_SECRET")}`)) return fail(401, "unauthorized", "");
   const db = adminClient();
+  const secret = await cronSecret(db);
+  if (!secret || !safeEqual(req.headers.get("authorization") ?? "", `Bearer ${secret}`)) return fail(401, "unauthorized", "");
   const now = new Date();
   const report = { generated: 0, settled: 0, reminders: 0, opened: 0, retried: 0, excused: 0 };
 

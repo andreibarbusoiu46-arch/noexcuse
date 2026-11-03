@@ -71,6 +71,6 @@ Deno.serve(withCors(async (req) => {
   } catch (_e) {
     // Proof is stored as "processing"; cron-tick will retry it. No penalty.
     return json(202, { proof_id: proofId, outcome: "error", verified: false, points_delta: 0, received_at: receivedAt,
-      critique: "Verification is delayed. Your proof is saved and will be checked automatically. No penalty." });
+      critique: "Verification is delayed. Your proof is saved and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused." });
   }
 }));

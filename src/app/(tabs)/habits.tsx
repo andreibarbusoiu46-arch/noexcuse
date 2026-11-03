@@ -31,7 +31,8 @@ export default function Habits() {
     return { habits, targets };
   });
 
-  const habits = q.data?.habits ?? [];
+  // Archived commitments keep their history (open them from the habit detail) but are not listed here.
+  const habits = (q.data?.habits ?? []).filter((h) => !h.archived_at);
   const today = localDay(now, tz);
   const nextFor = (h: Habit): Target | undefined => {
     const ts = (q.data?.targets ?? []).filter((t) => t.habit_id === h.id);
@@ -53,7 +54,7 @@ export default function Habits() {
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, gap: 4 }}>
           <T variant="overline" tone="tertiary">{active.length} active · {habits.length - active.length} paused</T>
-          <T variant="h1" accessibilityRole="header">Habits</T>
+          <T variant="h1" accessibilityRole="header">Commitments</T>
         </View>
         <IconButton icon="Plus" label="New habit" onPress={() => router.push('/habit/new')} />
       </View>

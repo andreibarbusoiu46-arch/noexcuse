@@ -1,5 +1,14 @@
 import { NativeTabs } from 'expo-router/native-tabs';
+import { Platform } from 'react-native';
 import { color } from '@/theme/tokens';
+
+// Web only: expo-router's web tab bar pads each tab 20px, which overflows five tabs on a phone.
+if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getElementById('nx-tabs-css')) {
+  const el = document.createElement('style');
+  el.id = 'nx-tabs-css';
+  el.textContent = '@media (max-width: 520px){[class*="navigationMenuTrigger"]{padding:0 7px!important}}';
+  document.head.appendChild(el);
+}
 
 /**
  * Native tab bar: on iOS 26 the system draws it in Liquid Glass (never hand-rolled),
@@ -20,6 +29,10 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="habits">
         <NativeTabs.Trigger.Icon sf="checklist" md="checklist" />
         <NativeTabs.Trigger.Label>Habits</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="challenges">
+        <NativeTabs.Trigger.Icon sf={{ default: 'flag', selected: 'flag.fill' }} md="flag" />
+        <NativeTabs.Trigger.Label>Challenges</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="arena">
         <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="emoji_events" />

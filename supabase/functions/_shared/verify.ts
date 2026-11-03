@@ -53,7 +53,12 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, imageBa
     raw = { ...(r.raw as object), observed: r.judgement.observed, verdict: r.judgement.verdict };
   } catch (e) {
     outcome = "error";
-    critique = "The AI check didn’t respond. Your proof is saved with its capture time and will be re-checked automatically. No penalty.";
+    // Say only what is true: the proof is kept, nothing is deducted while it waits, and the
+    // retry job (cron-tick) tries again; after MAX_VERIFY_ATTEMPTS the target is excused.
+    const notConfigured = e instanceof Error && e.message.startsWith("missing env");
+    critique = notConfigured
+      ? "Verification is unavailable right now. Your proof is saved with its capture time and nothing is deducted. We’ll retry; if it still can’t be checked, this target is excused."
+      : "The AI check didn’t respond. Your proof is saved with its capture time and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused.";
     raw = { error: e instanceof Error ? e.message : String(e), retryable: e instanceof AiError ? e.retryable : true };
   }
 
