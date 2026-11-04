@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { t } from '@/i18n';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { IconTile } from '@/components/Blocks';
@@ -12,16 +13,16 @@ import { color } from '@/theme/tokens';
 
 function Pager({ index }: { index: number }) {
   return (
-    <View style={{ flexDirection: 'row', gap: 6 }} accessibilityLabel={`Step ${index + 1} of 2`}>
+    <View style={{ flexDirection: 'row', gap: 6 }} accessibilityLabel={t.onboarding.step(index + 1, 2)}>
       {[0, 1].map((i) => <View key={i} style={{ height: 6, width: i === index ? 22 : 6, borderRadius: 3, backgroundColor: i === index ? color.accent.glow : color.border.strong }} />)}
     </View>
   );
 }
 
-const STEPS = [
-  { n: '01', icon: 'Bolt' as const, ai: false, title: 'Set a hard target', body: 'Pick the habit, the time and the days. Proof is due inside a ±15-minute window.' },
-  { n: '02', icon: 'Camera' as const, ai: false, title: 'Prove it live', body: 'In-app camera only. Gallery uploads are blocked — the moment is the proof.' },
-  { n: '03', icon: 'Sparkle' as const, ai: true, title: 'Get the AI verdict', body: 'Verified: +50 and your streak grows. Missed or rejected: −100 and it resets.' },
+const STEP_LOOK = [
+  { n: '01', icon: 'Bolt' as const, ai: false },
+  { n: '02', icon: 'Camera' as const, ai: false },
+  { n: '03', icon: 'Sparkle' as const, ai: true },
 ];
 
 export default function Onboarding() {
@@ -35,19 +36,19 @@ export default function Onboarding() {
         contentStyle={{ justifyContent: 'space-between' }}
         footer={
           <>
-            <Button label="Get started" onPress={() => setStep(1)} />
-            <Button kind="ghost" label="I already have an account" onPress={() => router.push('/sign-in')} />
+            <Button label={t.onboarding.start} onPress={() => setStep(1)} />
+            <Button kind="ghost" label={t.onboarding.haveAccount} onPress={() => router.push('/sign-in')} />
           </>
         }
       >
         <View style={{ marginTop: 8 }}><Lockup /></View>
         <View style={{ gap: 16 }}>
-          <T variant="overline" tone="accent">The private performance arena</T>
+          <T variant="overline" tone="accent">{t.onboarding.overline}</T>
           <View accessible accessibilityRole="header">
-            <T variant="hero">No excuses.</T>
-            <T variant="hero" tone="accent">Just execution.</T>
+            <T variant="hero">{t.onboarding.hero1}</T>
+            <T variant="hero" tone="accent">{t.onboarding.hero2}</T>
           </View>
-          <T tone="secondary">Set a target. Prove it live. An AI judge checks your proof. Your streak and your rank do the rest.</T>
+          <T tone="secondary">{t.onboarding.pitch}</T>
           <Pager index={0} />
         </View>
       </Screen>
@@ -55,20 +56,20 @@ export default function Onboarding() {
   }
 
   return (
-    <Screen glow="violet" footer={<Button label="Continue" onPress={() => router.push('/sign-in')} />}>
+    <Screen glow="violet" footer={<Button label={t.common.continue} onPress={() => router.push('/sign-in')} />}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <IconButton icon="ChevronLeft" label="Back" onPress={() => setStep(0)} />
+        <IconButton icon="ChevronLeft" label={t.common.back} onPress={() => setStep(0)} />
         <Pager index={1} />
-        <Tap onPress={() => router.push('/sign-in')} accessibilityLabel="Skip">
-          <T variant="caption" tone="tertiary" style={{ width: 44, textAlign: 'right' }}>Skip</T>
+        <Tap onPress={() => router.push('/sign-in')} accessibilityLabel={t.common.skip}>
+          <T variant="caption" tone="tertiary" style={{ width: 44, textAlign: 'right' }}>{t.common.skip}</T>
         </Tap>
       </View>
       <View style={{ gap: 14 }}>
-        <T variant="overline" tone="accent">How it works</T>
-        <T variant="h1" accessibilityRole="header">Discipline you can’t fake.</T>
+        <T variant="overline" tone="accent">{t.onboarding.howOver}</T>
+        <T variant="h1" accessibilityRole="header">{t.onboarding.howTitle}</T>
       </View>
       <View style={{ gap: 12 }}>
-        {STEPS.map((s) => (
+        {STEP_LOOK.map((l, i) => ({ ...l, ...t.onboarding.steps[i] })).map((s) => (
           <Card key={s.n} tone={s.ai ? 'ai' : 'default'} style={{ flexDirection: 'row', gap: 14, padding: 16 }}>
             <IconTile icon={s.icon} bg={s.ai ? color.ai.soft : color.accent.soft} tint={s.ai ? color.ai.accent : color.accent.glow} />
             <View style={{ flex: 1, gap: 4 }}>

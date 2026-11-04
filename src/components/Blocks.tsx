@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 // Small building blocks from the Figma library: Stat Tile, Section Header, Avatar, Icon Tile, Segmented, Day chips, Toggle row.
 import type { ReactNode } from 'react';
 import { Switch, View } from 'react-native';
@@ -71,11 +72,8 @@ export function Segmented<K extends string>({ value, options, onChange }: { valu
   );
 }
 
-const DAYS = [
-  { n: 1, s: 'M', l: 'Monday' }, { n: 2, s: 'T', l: 'Tuesday' }, { n: 3, s: 'W', l: 'Wednesday' }, { n: 4, s: 'T', l: 'Thursday' },
-  { n: 5, s: 'F', l: 'Friday' }, { n: 6, s: 'S', l: 'Saturday' }, { n: 7, s: 'S', l: 'Sunday' },
-];
 export function DayChips({ value, onChange }: { value: number[]; onChange: (v: number[]) => void }) {
+  const DAYS = [1, 2, 3, 4, 5, 6, 7].map((n) => ({ n, s: t.common.weekdayLetter[n], l: t.common.weekdayLong[n] }));
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 4 }}>
       {DAYS.map((d) => {
@@ -93,7 +91,7 @@ export function DayChips({ value, onChange }: { value: number[]; onChange: (v: n
 }
 
 // React Native Web paints the "on" thumb teal unless told otherwise.
-const webSwitchColors = { activeThumbColor: color.text.onLight, activeTrackColor: palette.white } as object;
+const webSwitchColors = () => ({ activeThumbColor: color.text.onLight, activeTrackColor: color.accent.primary }) as object;
 
 export function ToggleRow({ title, subtitle, value, onChange, icon, disabled }: { title: string; subtitle?: string; value: boolean; onChange: (v: boolean) => void; icon?: ReactNode; disabled?: boolean }) {
   return (
@@ -106,7 +104,7 @@ export function ToggleRow({ title, subtitle, value, onChange, icon, disabled }: 
       <Switch value={value} disabled={disabled} accessibilityLabel={title}
         onValueChange={(v) => { haptics.medium(); onChange(v); }}
         trackColor={{ true: color.status.success, false: color.surface.control }} thumbColor={value ? color.text.onLight : palette.white} ios_backgroundColor={color.surface.control}
-          {...webSwitchColors} />
+          {...webSwitchColors()} />
     </View>
   );
 }

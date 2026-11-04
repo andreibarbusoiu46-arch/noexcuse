@@ -94,9 +94,14 @@ Deno.serve(withCors(async (req) => {
   })));
   if (itemsErr) return fail(500, "server_error", "Could not record the evidence.");
 
+  const { data: prof } = await db.from("profiles").select("language").eq("id", user.id).maybeSingle();
+  const ro = prof?.language === "ro";
+
   // Late: no AI call needed — it counts as a missed window.
   if (state === "closed") {
-    const critique = "Received after the window closed (±15 min). Late proof doesn’t count.";
+    const critique = ro
+      ? "Primită după ce fereastra s-a închis (±15 min). Dovada întârziată nu contează."
+      : "Received after the window closed (±15 min). Late proof doesn’t count.";
     const { data: a, error } = await db.rpc("apply_verdict", {
       p_proof_id: proofId, p_outcome: "expired", p_critique: critique, p_confidence: null, p_model: null, p_raw: null,
     });
@@ -110,6 +115,8 @@ Deno.serve(withCors(async (req) => {
   } catch (_e) {
     // Proof is stored as "processing"; cron-tick will retry it. No penalty.
     return json(202, { proof_id: proofId, outcome: "error", verified: false, points_delta: 0, received_at: receivedAt, level, requested_evidence: null,
-      critique: "Verification is delayed. Your proof is saved and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused." });
+      critique: ro
+        ? "Verificarea întârzie. Dovada ta e salvată și nu se scade nimic. Reîncercăm curând; dacă tot nu poate fi verificată, obiectivul e scuzat."
+        : "Verification is delayed. Your proof is saved and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused." });
   }
 }));

@@ -1,5 +1,5 @@
 import { callFunction, supabase } from '@/lib/supabase';
-import type { Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
+import type { Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, ChallengeDetail, ChallengePlan, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
 const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, proof_hint, current_streak, is_active, verification_level)';
 const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, verification_level, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
@@ -19,7 +19,7 @@ function must<T>(res: { data: T | null; error: { message: string } | null }): T 
 
 export const liveApi: Api = {
   async getProfile() {
-    return must(await supabase.from('profiles').select('id, display_name, timezone, total_points, notify_prefs').eq('id', await uid()).single()) as Profile;
+    return must(await supabase.from('profiles').select('id, display_name, timezone, total_points, notify_prefs, language, theme, evidence_retention').eq('id', await uid()).single()) as Profile;
   },
   async updateProfile(patch) {
     must(await supabase.from('profiles').update(patch).eq('id', await uid()));
@@ -148,6 +148,21 @@ export const liveApi: Api = {
   },
   async abandonChallenge(id) {
     return must(await supabase.rpc('abandon_challenge', { p_id: id })) as boolean;
+  },
+  async getChallengeDetail(id) {
+    return must(await supabase.rpc('get_challenge_detail', { p_id: id })) as ChallengeDetail | null;
+  },
+  async startChallengePlan(plan, templateId, source) {
+    return must(await supabase.rpc('start_challenge_plan', { p_plan: plan, p_template_id: templateId, p_source: source })) as string;
+  },
+  async generateChallenge(input) {
+    return (await callFunction<{ plan: ChallengePlan }>('challenge-generate', input)).plan;
+  },
+  async exportMyData() {
+    return must(await supabase.rpc('export_my_data'));
+  },
+  async deleteEvidence() {
+    return (await callFunction<{ deleted: number; kept: number }>('privacy', { action: 'delete_evidence' })).deleted;
   },
   async archiveHabit(id) {
     must(await supabase.from('habits').update({ archived_at: new Date().toISOString() }).eq('id', id));

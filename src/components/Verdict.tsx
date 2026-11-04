@@ -1,5 +1,6 @@
 import { ActivityIndicator, View } from 'react-native';
 import type { VerdictResult } from '@/data/types';
+import { t } from '@/i18n';
 import { color, radius } from '@/theme/tokens';
 import { Divider } from './Card';
 import { IconTile } from './Blocks';
@@ -8,18 +9,18 @@ import { T } from './Text';
 
 export type VerdictState = 'processing' | VerdictResult['outcome'];
 
-const COPY: Record<VerdictState, { icon: IconName; bg: string; tint: string; over: string; overTone: 'ai' | 'success' | 'danger' | 'warning' | 'secondary'; title: string }> = {
-  processing: { icon: 'Sparkle', bg: color.ai.soft, tint: color.ai.accent, over: 'AI verification', overTone: 'ai', title: 'Checking your proof…' },
-  verified: { icon: 'Check', bg: color.status.successSoft, tint: color.status.success, over: 'Verified', overTone: 'success', title: 'Done. No excuses.' },
-  rejected: { icon: 'Close', bg: color.status.dangerSoft, tint: color.status.danger, over: 'Rejected', overTone: 'danger', title: 'Proof doesn’t match.' },
-  insufficient: { icon: 'EyeOff', bg: color.status.warningSoft, tint: color.status.warning, over: 'Insufficient evidence', overTone: 'warning', title: 'Can’t confirm this one.' },
-  expired: { icon: 'Clock', bg: color.status.dangerSoft, tint: color.status.danger, over: 'Window closed', overTone: 'danger', title: 'Submitted too late.' },
-  error: { icon: 'Alert', bg: color.surface.glassStrong, tint: color.icon.secondary, over: 'Temporary error', overTone: 'secondary', title: 'Verification is down. Not you.' },
-};
+const look = (): Record<VerdictState, { icon: IconName; bg: string; tint: string; overTone: 'ai' | 'success' | 'danger' | 'warning' | 'secondary' }> => ({
+  processing: { icon: 'Sparkle', bg: color.ai.soft, tint: color.ai.accent, overTone: 'ai' },
+  verified: { icon: 'Check', bg: color.status.successSoft, tint: color.status.success, overTone: 'success' },
+  rejected: { icon: 'Close', bg: color.status.dangerSoft, tint: color.status.danger, overTone: 'danger' },
+  insufficient: { icon: 'EyeOff', bg: color.status.warningSoft, tint: color.status.warning, overTone: 'warning' },
+  expired: { icon: 'Clock', bg: color.status.dangerSoft, tint: color.status.danger, overTone: 'danger' },
+  error: { icon: 'Alert', bg: color.surface.glassStrong, tint: color.icon.secondary, overTone: 'secondary' },
+});
 
 /** Figma "Verdict Card" — six states, server-authored critique and outcome. */
 export function VerdictCard({ state, critique, points, streak }: { state: VerdictState; critique: string; points: string; streak: string }) {
-  const c = COPY[state];
+  const c = { ...look()[state], ...t.domain.verdict[state] };
   const pointsTone = state === 'verified' ? 'success' : state === 'rejected' || state === 'expired' ? 'danger' : 'secondary';
   const streakTone = state === 'verified' ? 'primary' : state === 'rejected' || state === 'expired' ? 'danger' : 'secondary';
   return (
@@ -42,11 +43,11 @@ export function VerdictCard({ state, critique, points, streak }: { state: Verdic
       <Divider />
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <T variant="overline" tone="tertiary">Points</T>
+          <T variant="overline" tone="tertiary">{t.domain.verdict.points}</T>
           <T variant="h3" tone={pointsTone}>{points}</T>
         </View>
         <View style={{ flex: 1, gap: 4 }}>
-          <T variant="overline" tone="tertiary">Streak</T>
+          <T variant="overline" tone="tertiary">{t.domain.verdict.streak}</T>
           <T variant="h3" tone={streakTone}>{streak}</T>
         </View>
       </View>

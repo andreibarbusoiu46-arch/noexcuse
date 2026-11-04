@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { t } from '@/i18n';
 import { View } from 'react-native';
 import { IconButton } from './Button';
 import { T } from './Text';
@@ -8,7 +9,7 @@ export function BackHeader({ overline, title }: { overline?: string; title: stri
   return (
     <View style={{ gap: 14 }}>
       <View style={{ flexDirection: 'row' }}>
-        <IconButton icon="ChevronLeft" label="Back" onPress={() => (router.canGoBack() ? router.back() : router.navigate('/'))} />
+        <IconButton icon="ChevronLeft" label={t.common.back} onPress={() => (router.canGoBack() ? router.back() : router.navigate('/'))} />
       </View>
       <View style={{ gap: 4 }}>
         {overline ? <T variant="overline" tone="tertiary">{overline}</T> : null}

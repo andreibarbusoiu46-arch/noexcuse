@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { t } from '@/i18n';
 import { color, radius } from '@/theme/tokens';
 import { Badge } from './Badge';
 import { IconTile } from './Blocks';
@@ -8,14 +9,15 @@ import { T } from './Text';
 
 export type HabitStatus = 'due' | 'upcoming' | 'verified' | 'missed' | 'paused' | 'excused';
 
-const LOOK: Record<HabitStatus, { icon: IconName; bg: string; tint: string; border: string }> = {
+// Read at render time so the tints follow the current theme.
+const look = (): Record<HabitStatus, { icon: IconName; bg: string; tint: string; border: string }> => ({
   due: { icon: 'Bolt', bg: color.accent.soft, tint: color.accent.glow, border: color.border.accent },
   upcoming: { icon: 'Clock', bg: color.surface.glassStrong, tint: color.icon.secondary, border: color.border.hairline },
   verified: { icon: 'Check', bg: color.status.successSoft, tint: color.status.success, border: color.border.hairline },
   missed: { icon: 'Close', bg: color.status.dangerSoft, tint: color.status.danger, border: color.border.hairline },
   paused: { icon: 'Minus', bg: color.surface.glass, tint: color.icon.secondary, border: color.border.hairline },
   excused: { icon: 'Shield', bg: color.surface.glassStrong, tint: color.icon.secondary, border: color.border.hairline },
-};
+});
 
 interface Props {
   status: HabitStatus;
@@ -28,7 +30,7 @@ interface Props {
 
 /** Figma "Habit Card" — status drives the tile tint and the right slot. */
 export function HabitCard({ status, title, meta, right, onPress, accessory }: Props) {
-  const l = LOOK[status];
+  const l = look()[status];
   const body = (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: radius.lg, backgroundColor: color.surface.card, borderWidth: 1, borderColor: l.border,
       ...(status === 'due' ? { shadowColor: color.accent.glow, shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } } : null) }}>
@@ -40,7 +42,7 @@ export function HabitCard({ status, title, meta, right, onPress, accessory }: Pr
       {accessory}
       {!accessory && status === 'verified' && <Badge tone="success" label="+50" />}
       {!accessory && status === 'missed' && <Badge tone="danger" label="−100" />}
-      {!accessory && status === 'excused' && <Badge tone="neutral" label="No penalty" />}
+      {!accessory && status === 'excused' && <Badge tone="neutral" label={t.domain.card.noPenalty} />}
       {!accessory && right && (status === 'due' || status === 'upcoming') && <T variant="caption" tone={status === 'due' ? 'accent' : 'tertiary'}>{right}</T>}
     </View>
   );

@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { t } from '@/i18n';
 import { useState } from 'react';
 import { Switch, View } from 'react-native';
 import { Segmented } from '@/components/Blocks';
@@ -10,6 +11,7 @@ import { LoadingPanel, MessagePanel } from '@/components/StatePanel';
 import { T } from '@/components/Text';
 import { api, type Habit, type Target } from '@/data';
 import { notify } from '@/lib/dialog';
+import { errorText } from '@/lib/errors';
 import { haptics } from '@/lib/haptics';
 import { useLoad, useNow } from '@/lib/hooks';
 import { habitCard } from '@/lib/status';
@@ -50,7 +52,7 @@ export default function Habits() {
 
   async function toggle(h: Habit, on: boolean) {
     haptics.medium();
-    await api.updateHabit(h.id, { is_active: on }).catch((e: Error) => { haptics.error(); notify('Can’t activate', e.message); });
+    await api.updateHabit(h.id, { is_active: on }).catch((e: unknown) => { haptics.error(); notify(t.habits.cantActivate, errorText(e)); });
     void q.reload({ silent: true });
   }
 
@@ -60,35 +62,35 @@ export default function Habits() {
     <Screen tabBar refreshing={q.refreshing} onRefresh={() => q.reload()}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <T variant="overline" tone="tertiary">{active.length} active · {habits.length - active.length} paused</T>
-          <T variant="h1" accessibilityRole="header">Commitments</T>
+          <T variant="overline" tone="tertiary">{t.habits.overline(active.length, habits.length - active.length)}</T>
+          <T variant="h1" accessibilityRole="header">{t.habits.title}</T>
         </View>
-        <IconButton icon="Plus" label="New commitment" onPress={create} />
+        <IconButton icon="Plus" label={t.habits.newA11y} onPress={create} />
       </View>
       {!premium && (
         <T variant="caption" tone={atFreeLimit ? 'secondary' : 'tertiary'}>
-          Free plan: {Math.min(active.length, freeMax)} of {freeMax} active commitments.{atFreeLimit ? ' Pause one to add another, or go Premium for unlimited.' : ''}
+          {t.habits.freePlan(Math.min(active.length, freeMax), freeMax)}{atFreeLimit ? t.habits.freeFull : ''}
         </T>
       )}
-      <Segmented value={filter} onChange={setFilter} options={[{ key: 'today', label: 'Today' }, { key: 'all', label: 'All' }, { key: 'paused', label: 'Paused' }]} />
+      <Segmented value={filter} onChange={setFilter} options={[{ key: 'today', label: t.habits.today }, { key: 'all', label: t.habits.all }, { key: 'paused', label: t.habits.paused }]} />
 
       {q.loading && !q.data ? (
-        <LoadingPanel label="Loading habits…" />
+        <LoadingPanel label={t.habits.loading} />
       ) : q.error && !q.data ? (
-        <MessagePanel kind="error" icon="Alert" title="Couldn’t load habits." body="Check your connection and try again." action="Try again" onAction={() => q.reload()} />
+        <MessagePanel kind="error" icon="Alert" title={t.habits.failTitle} body={t.common.connection} action={t.common.tryAgain} onAction={() => q.reload()} />
       ) : habits.length === 0 ? (
-        <MessagePanel kind="empty" icon="Target" title="No commitments yet." body="Pick a time and the days. That’s your first commitment." action="Create a commitment" onAction={create} />
+        <MessagePanel kind="empty" icon="Target" title={t.habits.emptyTitle} body={t.habits.emptyBody} action={t.habits.create} onAction={create} />
       ) : shown.length === 0 ? (
-        <MessagePanel kind="empty" icon={filter === 'paused' ? 'Minus' : 'Check'} title={filter === 'paused' ? 'Nothing paused.' : 'Nothing scheduled today.'} body={filter === 'paused' ? 'Paused habits keep their history and score nothing.' : 'Check “All” to see your full schedule.'} />
+        <MessagePanel kind="empty" icon={filter === 'paused' ? 'Minus' : 'Check'} title={filter === 'paused' ? t.habits.nothingPaused : t.habits.nothingToday} body={filter === 'paused' ? t.habits.pausedBody : t.habits.todayBody} />
       ) : (
         <View style={{ gap: 12 }}>
           {shown.map((h) => {
-            const t = nextFor(h);
-            const c = habitCard(h, t, now, tz);
+            const next = nextFor(h);
+            const c = habitCard(h, next, now, tz);
             return (
               <HabitCard key={h.id} {...c} title={h.title}
-                accessory={!h.is_active ? <Switch value={false} onValueChange={(on) => toggle(h, on)} accessibilityLabel={`Activate ${h.title}`} trackColor={{ true: color.status.success, false: color.surface.control }} thumbColor="#FFFFFF" /> : undefined}
-                onPress={() => (c.status === 'due' && t ? router.push({ pathname: '/proof/[targetId]', params: { targetId: t.id } }) : router.push({ pathname: '/habit/[id]', params: { id: h.id } }))} />
+                accessory={!h.is_active ? <Switch value={false} onValueChange={(on) => toggle(h, on)} accessibilityLabel={t.habits.activate(h.title)} trackColor={{ true: color.status.success, false: color.surface.control }} thumbColor={color.surface.card} /> : undefined}
+                onPress={() => (c.status === 'due' && next ? router.push({ pathname: '/proof/[targetId]', params: { targetId: next.id } }) : router.push({ pathname: '/habit/[id]', params: { id: h.id } }))} />
             );
           })}
         </View>
@@ -96,7 +98,7 @@ export default function Habits() {
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Icon name="Clock" size={16} tint={color.icon.secondary} />
-        <T variant="caption" tone="tertiary" style={{ flex: 1 }}>Proof is accepted 15 min either side of the target time, in {tz ?? 'your'} time, judged on the server clock.</T>
+        <T variant="caption" tone="tertiary" style={{ flex: 1 }}>{t.habits.footer(tz ?? t.habits.yourTz)}</T>
       </View>
     </Screen>
   );

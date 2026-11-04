@@ -8,10 +8,11 @@
 //  7. Weekly reports, Monday from 06:00 local time.
 //  8. Partner nudges.
 //  9. Achievements earned by recent activity.
+// 10. Evidence retention: photos older than 30 days for users who chose it.
 import { runAppealReview } from "../_shared/appeal.ts";
 import { loadEvidence, storedNotes } from "../_shared/evidence.ts";
 import { adminClient, fail, json } from "../_shared/http.ts";
-import { copy, notifyOnce } from "../_shared/push.ts";
+import { ACHIEVEMENT_RO, copy, type Lang, notifyOnce } from "../_shared/push.ts";
 import { formatLocalTime, MAX_VERIFY_ATTEMPTS, windowBounds } from "../_shared/rules.ts";
 import { safeEqual } from "../_shared/revenuecat.ts";
 import { judgeAndApply } from "../_shared/verify.ts";
@@ -30,7 +31,7 @@ Deno.serve(async (req) => {
   const secret = await cronSecret(db);
   if (!secret || !safeEqual(req.headers.get("authorization") ?? "", `Bearer ${secret}`)) return fail(401, "unauthorized", "");
   const now = new Date();
-  const report = { generated: 0, settled: 0, reminders: 0, opened: 0, retried: 0, excused: 0, appeals: 0, smart: 0, reports: 0, partner: 0, achievements: 0 };
+  const report = { generated: 0, settled: 0, reminders: 0, opened: 0, retried: 0, excused: 0, appeals: 0, smart: 0, reports: 0, partner: 0, achievements: 0, evidence_deleted: 0 };
 
   // 1
   const gen = await db.rpc("ensure_targets_all");
@@ -131,7 +132,20 @@ Deno.serve(async (req) => {
     for (const a of (earned ?? []) as Array<{ user_id: string; key: string; title: string }>) {
       report.achievements++;
       // notification_log needs a uuid ref: derive a stable one from the achievement key.
-      await notifyOnce(db, a.user_id, "achievement", await keyUuid(a.key), copy.achievement(a.title));
+      await notifyOnce(db, a.user_id, "achievement", await keyUuid(a.key), copy.achievement({ en: a.title, ro: ACHIEVEMENT_RO[a.key] ?? a.title }));
+    }
+  }
+
+  // 10
+  if (now.getUTCMinutes() % 15 === 7) {
+    const { data: due } = await db.rpc("evidence_due_for_deletion", { p_limit: 200 });
+    const rows = (due ?? []) as Array<{ proof_id: string; paths: string[] }>;
+    if (rows.length) {
+      const { error } = await db.storage.from("proofs").remove(rows.flatMap((r) => r.paths));
+      if (!error) {
+        const { data: n } = await db.rpc("mark_evidence_deleted", { p_proofs: rows.map((r) => r.proof_id) });
+        report.evidence_deleted = (n as number) ?? 0;
+      }
     }
   }
 
@@ -160,9 +174,14 @@ async function alertPartners(db: ReturnType<typeof adminClient>, userId: string,
   return sent;
 }
 
-function describeNext(next: Date, now: Date, tz: string): string {
+function describeNext(next: Date, now: Date, tz: string): Record<Lang, string> {
   const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(d);
   const tomorrow = new Date(now.getTime() + 86_400_000);
-  const label = day(next) === day(now) ? "today" : day(next) === day(tomorrow) ? "tomorrow" : new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: tz }).format(next);
-  return `${label} ${formatLocalTime(next, tz)}`;
+  const rel = day(next) === day(now) ? 0 : day(next) === day(tomorrow) ? 1 : null;
+  const weekday = (locale: string) => new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: tz }).format(next);
+  const time = formatLocalTime(next, tz);
+  return {
+    en: `${rel === 0 ? "today" : rel === 1 ? "tomorrow" : weekday("en-GB")} ${time}`,
+    ro: `${rel === 0 ? "azi" : rel === 1 ? "mâine" : weekday("ro-RO")} la ${time}`,
+  };
 }

@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
+import { t } from '@/i18n';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TextInput, View, type ScrollViewInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,12 +11,11 @@ import { Tap } from '@/components/Tap';
 import { T } from '@/components/Text';
 import { Upsell } from '@/components/Upsell';
 import { api, type CoachMessage } from '@/data';
+import { errorText } from '@/lib/errors';
 import { haptics } from '@/lib/haptics';
 import { useLoad } from '@/lib/hooks';
 import { useApp } from '@/providers/AppProvider';
 import { color, layout, radius } from '@/theme/tokens';
-
-const STARTERS = ['Review my last 7 days', 'Which commitment am I most likely to miss next — and why?', 'Plan tomorrow so I don’t miss anything', 'How do I raise my Discipline Score fastest?'];
 
 /** The AI coach answers from a snapshot of your own data, built on the server. */
 export default function Coach() {
@@ -47,7 +47,7 @@ export default function Coach() {
     } catch (e) {
       setMsgs((p) => p.filter((x) => x.id !== optimistic.id));
       setText(m);
-      setError((e as Error).message || 'The coach didn’t answer. Try again.');
+      setError(errorText(e) || t.coach.noAnswer);
       haptics.error();
     } finally {
       setBusy(false);
@@ -59,20 +59,20 @@ export default function Coach() {
       <Glow tone="ice" />
       <ScrollView ref={scroll} onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })} keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 16, paddingHorizontal: layout.gutter, gap: 16, width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center' }}>
-        <BackHeader overline="Built from your own data" title="Coach" />
+        <BackHeader overline={t.coach.overline} title={t.coach.title} />
         {!premium ? (
-          <Upsell title="A coach that reads your record." body="Ask why you keep missing, plan tomorrow, or review your week. Every answer is grounded in your commitments, results and Discipline Score." />
+          <Upsell title={t.coach.upsellTitle} body={t.coach.upsellBody} />
         ) : q.loading && !q.data ? (
           <ActivityIndicator color={color.text.secondary} />
         ) : q.error && !q.data ? (
-          <MessagePanel kind="error" icon="Alert" title="Couldn’t load the conversation." body="Check your connection and try again." action="Try again" onAction={() => q.reload()} />
+          <MessagePanel kind="error" icon="Alert" title={t.coach.failTitle} body={t.common.connection} action={t.common.tryAgain} onAction={() => q.reload()} />
         ) : (
           <>
             {msgs.length === 0 && (
               <View style={{ gap: 10 }}>
-                <T variant="bodySmall" tone="secondary">The coach sees your commitments, results, Discipline Score, recent misses and challenges — never your photos or private notes.</T>
-                {STARTERS.map((s) => (
-                  <Tap key={s} onPress={() => send(s)} accessibilityLabel={`Ask: ${s}`}
+                <T variant="bodySmall" tone="secondary">{t.coach.sees}</T>
+                {t.coach.starters.map((s) => (
+                  <Tap key={s} onPress={() => send(s)} accessibilityLabel={t.coach.ask(s)}
                     style={{ padding: 14, borderRadius: radius.md, borderWidth: 1, borderColor: color.border.hairline, backgroundColor: color.surface.card }}>
                     <T variant="bodySmall">{s}</T>
                   </Tap>
@@ -85,7 +85,7 @@ export default function Coach() {
                 <T variant="bodySmall" tone={m.role === 'user' ? 'onLight' : 'primary'} selectable>{m.content}</T>
               </View>
             ))}
-            {busy && <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}><ActivityIndicator color={color.text.secondary} /><T variant="caption" tone="tertiary">Reading your record…</T></View>}
+            {busy && <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}><ActivityIndicator color={color.text.secondary} /><T variant="caption" tone="tertiary">{t.coach.reading}</T></View>}
             {error && <T variant="bodySmall" tone="danger" accessibilityLiveRegion="assertive">{error}</T>}
           </>
         )}
@@ -93,13 +93,13 @@ export default function Coach() {
       {premium && (
         <View style={{ paddingHorizontal: layout.gutter, paddingTop: 8, paddingBottom: insets.bottom + 10, width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center', gap: 6 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
-            <TextInput value={text} onChangeText={setText} placeholder="Ask your coach…" placeholderTextColor={color.text.tertiary} multiline maxLength={1000}
-              accessibilityLabel="Message to the coach"
+            <TextInput value={text} onChangeText={setText} placeholder={t.coach.placeholder} placeholderTextColor={color.text.tertiary} multiline maxLength={1000}
+              accessibilityLabel={t.coach.input}
               style={{ flex: 1, minHeight: 46, maxHeight: 140, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 23, color: color.text.primary,
                 backgroundColor: color.surface.inset, borderWidth: 1, borderColor: color.border.hairline, fontSize: 16 }} />
-            <IconButton icon="ArrowUp" label="Send" onPress={() => send(text)} />
+            <IconButton icon="ArrowUp" label={t.coach.send} onPress={() => send(text)} />
           </View>
-          {remaining !== null && <T variant="caption" tone="tertiary" align="center">{remaining} message{remaining === 1 ? '' : 's'} left today</T>}
+          {remaining !== null && <T variant="caption" tone="tertiary" align="center">{t.coach.left(remaining)}</T>}
         </View>
       )}
     </KeyboardAvoidingView>

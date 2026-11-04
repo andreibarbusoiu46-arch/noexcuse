@@ -20,16 +20,19 @@ export interface VerdictResult {
   requested_evidence: string | null;
 }
 
+const LEVEL_RO: Record<Level, string> = { standard: "Standard", strict: "Strict", elite: "Elite" };
+
 export async function judgeAndApply(db: SupabaseClient, proofId: string, images: EvidenceImage[], notes: string[] = []): Promise<VerdictResult> {
   const { data: proof, error } = await db
     .from("proofs")
-    .select("id, user_id, received_at, level, target:targets!inner(id, due_at, habit:habits!inner(id, title, proof_hint, description, longest_streak)), profile:profiles!inner(timezone)")
+    .select("id, user_id, received_at, level, target:targets!inner(id, due_at, habit:habits!inner(id, title, proof_hint, description, longest_streak)), profile:profiles!inner(timezone, language)")
     .eq("id", proofId)
     .single();
   if (error || !proof) throw new Error(`proof ${proofId} not found`);
   // deno-lint-ignore no-explicit-any
   const p = proof as any;
   const tz: string = p.profile.timezone;
+  const ro = p.profile.language === "ro";
   const level: Level = isLevel(p.level) ? p.level : "standard";
   let requested: string | null = null;
 
@@ -49,6 +52,7 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
         localReceivedTime: formatLocalTime(new Date(p.received_at), tz),
         images,
         notes,
+        language: ro ? "ro" : "en",
       },
       { apiKey: env("OPENAI_API_KEY"), model, reasoningEffort: Deno.env.get("OPENAI_REASONING_EFFORT") ?? "low" },
     );
@@ -56,8 +60,10 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
     confidence = r.judgement.confidence;
     critique = r.judgement.critique;
     if (outcome === "insufficient") {
-      requested = r.judgement.missing || "Retake with the activity clearly in frame.";
-      if (r.judgement.verdict !== "insufficient") critique = `${critique} The call wasn’t certain enough to score at ${level} level.`;
+      requested = r.judgement.missing || (ro ? "Refă poza cu activitatea clar în cadru." : "Retake with the activity clearly in frame.");
+      if (r.judgement.verdict !== "insufficient") critique = ro
+        ? `${critique} Decizia n-a fost suficient de sigură pentru a puncta la nivelul ${LEVEL_RO[level]}.`
+        : `${critique} The call wasn’t certain enough to score at ${level} level.`;
     }
     raw = { ...(r.raw as object), observed: r.judgement.observed, verdict: r.judgement.verdict, missing: r.judgement.missing, notes };
   } catch (e) {
@@ -65,7 +71,11 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
     // Say only what is true: the proof is kept, nothing is deducted while it waits, and the
     // retry job (cron-tick) tries again; after MAX_VERIFY_ATTEMPTS the target is excused.
     const notConfigured = e instanceof Error && e.message.startsWith("missing env");
-    critique = notConfigured
+    critique = ro
+      ? (notConfigured
+        ? "Verificarea nu e disponibilă acum. Dovada ta e salvată cu ora capturii și nu se scade nimic. Reîncercăm; dacă tot nu poate fi verificată, obiectivul e scuzat."
+        : "Verificarea AI n-a răspuns. Dovada ta e salvată cu ora capturii și nu se scade nimic. Reîncercăm curând; dacă tot nu poate fi verificată, obiectivul e scuzat.")
+      : notConfigured
       ? "Verification is unavailable right now. Your proof is saved with its capture time and nothing is deducted. We’ll retry; if it still can’t be checked, this target is excused."
       : "The AI check didn’t respond. Your proof is saved with its capture time and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused.";
     raw = { error: e instanceof Error ? e.message : String(e), retryable: e instanceof AiError ? e.retryable : true };

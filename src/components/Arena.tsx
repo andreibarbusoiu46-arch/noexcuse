@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import { View } from 'react-native';
 import type { ArenaRow } from '@/data/types';
 import { color, palette, radius } from '@/theme/tokens';
@@ -28,7 +29,7 @@ export function LeaderboardRow({ row }: { row: ArenaRow }) {
       <T variant="bodyStrong" tone={row.is_me ? 'accent' : 'secondary'} style={{ width: 28 }} numberOfLines={1} adjustsFontSizeToFit>{row.rank}</T>
       <Avatar name={row.display_name} me={row.is_me} />
       <View style={{ flex: 1, gap: 2 }}>
-        <T variant="bodyStrong" numberOfLines={1}>{row.is_me ? 'You' : row.display_name}</T>
+        <T variant="bodyStrong" numberOfLines={1}>{row.is_me ? t.common.you : row.display_name}</T>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Icon name="Flame" size={13} tint={color.accent.glow} />
           <T variant="caption" tone="tertiary">{row.streak}-day streak</T>
@@ -52,7 +53,7 @@ export function Podium({ rows }: { rows: ArenaRow[] }) {
       {order.map((r) => (
         <View key={r.user_id} style={{ flex: 1, alignItems: 'center', gap: 8 }} accessible accessibilityLabel={`Place ${r.rank}: ${r.display_name}, ${r.points} points`}>
           <Avatar name={r.display_name} size={r.rank === 1 ? 64 : 54} me={r.is_me} />
-          <T variant="bodyStrong" numberOfLines={1}>{r.is_me ? 'You' : r.display_name}</T>
+          <T variant="bodyStrong" numberOfLines={1}>{r.is_me ? t.common.you : r.display_name}</T>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
             <Icon name="Flame" size={12} tint={color.accent.glow} />
             <T variant="caption" tone="tertiary">{r.streak} days</T>

@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { t } from '@/i18n';
 import { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { IconTile, ToggleRow } from '@/components/Blocks';
@@ -38,37 +39,37 @@ export default function Comeback() {
 
   return (
     <Screen glow="violet" footer={<>
-      <Button label="Commit to the plan" onPress={commit} loading={busy} />
-      <T variant="caption" tone="tertiary" align="center">Changes apply from the next window. Scores already recorded don’t change.</T>
+      <Button label={t.comeback.commit} onPress={commit} loading={busy} />
+      <T variant="caption" tone="tertiary" align="center">{t.comeback.note}</T>
     </>}>
-      <View style={{ flexDirection: 'row' }}><IconButton icon="ChevronLeft" label="Back" onPress={() => router.back()} /></View>
+      <View style={{ flexDirection: 'row' }}><IconButton icon="ChevronLeft" label={t.common.back} onPress={() => router.back()} /></View>
       <View style={{ gap: 6 }}>
-        <T variant="overline" tone="accent">Recovery</T>
-        <T variant="h1" accessibilityRole="header">Comeback plan</T>
-        <T tone="secondary">{h.title}: rebuild to {goal} days. Start with the next window.</T>
+        <T variant="overline" tone="accent">{t.comeback.over}</T>
+        <T variant="h1" accessibilityRole="header">{t.comeback.title}</T>
+        <T tone="secondary">{t.comeback.body(h.title, goal)}</T>
       </View>
       <Card style={{ padding: 18 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <T variant="bodyStrong">Back to {goal} days</T>
+          <T variant="bodyStrong">{t.comeback.backTo(goal)}</T>
           <T variant="caption" tone="tertiary">{h.current_streak} / {goal}</T>
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }} accessible accessibilityLabel={`${h.current_streak} of ${goal} days rebuilt`}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }} accessible accessibilityLabel={t.comeback.rebuilt(h.current_streak, goal)}>
           {Array.from({ length: dots }).map((_, i) => (
             <View key={i} style={{ width: 20, height: 20, borderRadius: 7, borderWidth: 1, backgroundColor: i < h.current_streak ? color.accent.primary : i === h.current_streak ? color.accent.soft : color.surface.glass, borderColor: i === h.current_streak ? color.border.accent : color.border.hairline }} />
           ))}
         </View>
       </Card>
       <Card style={{ padding: 16 }}>
-        <ToggleRow title="Earlier reminder" subtitle={earlier ? '30 minutes before the window opens' : `Now ${h.reminder_minutes || 'no'} min before — switch to 30`} value={earlier} onChange={setEarlier}
+        <ToggleRow title={t.comeback.earlier} subtitle={earlier ? t.comeback.earlierOn : t.comeback.earlierNow(String(h.reminder_minutes || t.comeback.none))} value={earlier} onChange={setEarlier}
           icon={<IconTile icon="Bell" size={40} bg={color.accent.soft} tint={color.accent.glow} />} />
       </Card>
       <Card tone="ai" style={{ padding: 16, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
         <IconTile icon="Sparkle" size={40} bg={color.ai.soft} tint={color.ai.accent} />
         <View style={{ flex: 1, gap: 2 }}>
-          <T variant="bodyStrong">Sharpen what counts as proof</T>
-          <T variant="caption" tone="tertiary" numberOfLines={3}>{h.proof_hint ? `Now: “${h.proof_hint}”` : 'No description yet — the AI judges more fairly when it knows what to look for.'}</T>
+          <T variant="bodyStrong">{t.comeback.sharpen}</T>
+          <T variant="caption" tone="tertiary" numberOfLines={3}>{h.proof_hint ? t.comeback.now(h.proof_hint) : t.comeback.noHint}</T>
         </View>
-        <Button kind="glass" label="Edit" onPress={() => router.push({ pathname: '/habit/[id]', params: { id: h.id } })} />
+        <Button kind="glass" label={t.common.edit} onPress={() => router.push({ pathname: '/habit/[id]', params: { id: h.id } })} />
       </Card>
     </Screen>
   );

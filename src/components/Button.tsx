@@ -45,7 +45,7 @@ export function Button({ label, onPress, kind = 'primary', icon, loading, disabl
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
-      style={[kind === 'primary' && !glassOn && styles.primaryShadow, style]}
+      style={[kind === 'primary' && !glassOn && [styles.primaryShadow, { shadowColor: color.accent.glow }], style]}
     >
       {kind === 'primary' ? (
         <Glass variant="regular" tint={color.accent.primary} interactive fallback={color.accent.primary} border={color.border.strong} style={styles.base}>
@@ -56,7 +56,7 @@ export function Button({ label, onPress, kind = 'primary', icon, loading, disabl
           {content}
         </Glass>
       ) : (
-        <View style={[styles.base, kind === 'danger' && styles.danger]}>{content}</View>
+        <View style={[styles.base, kind === 'danger' && { backgroundColor: color.status.dangerSoft, borderWidth: 1, borderColor: color.status.danger }]}>{content}</View>
       )}
     </Tap>
   );
@@ -75,7 +75,6 @@ export function IconButton({ icon, label, onPress, tint }: { icon: IconName; lab
 const styles = StyleSheet.create({
   base: { minHeight: 56, borderRadius: radius.full, paddingHorizontal: 24, justifyContent: 'center', overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  danger: { backgroundColor: color.status.dangerSoft, borderWidth: 1, borderColor: color.status.danger },
-  primaryShadow: { borderRadius: radius.full, shadowColor: color.accent.glow, shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
+  primaryShadow: { borderRadius: radius.full, shadowOpacity: 0.18, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
   iconBtn: { width: 44, height: 44, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
 });

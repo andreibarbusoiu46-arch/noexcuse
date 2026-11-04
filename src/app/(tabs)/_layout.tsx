@@ -1,4 +1,5 @@
 import { NativeTabs } from 'expo-router/native-tabs';
+import { t } from '@/i18n';
 import { Platform } from 'react-native';
 import { color } from '@/theme/tokens';
 
@@ -24,23 +25,23 @@ export default function TabsLayout() {
     >
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t.tabs.home}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="habits">
         <NativeTabs.Trigger.Icon sf="checklist" md="checklist" />
-        <NativeTabs.Trigger.Label>Habits</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t.tabs.commitments}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="challenges">
         <NativeTabs.Trigger.Icon sf={{ default: 'flag', selected: 'flag.fill' }} md="flag" />
-        <NativeTabs.Trigger.Label>Challenges</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t.tabs.challenges}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="arena">
         <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="emoji_events" />
-        <NativeTabs.Trigger.Label>Arena</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t.tabs.arena}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Icon sf={{ default: 'person', selected: 'person.fill' }} md="person" />
-        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t.tabs.profile}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

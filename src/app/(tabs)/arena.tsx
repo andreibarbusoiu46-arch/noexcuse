@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { t } from '@/i18n';
 import { View } from 'react-native';
 import { LeaderboardRow, Podium } from '@/components/Arena';
 import { Badge } from '@/components/Badge';
@@ -22,32 +23,32 @@ export default function Arena() {
     <Screen tabBar refreshing={q.refreshing} onRefresh={() => q.reload()}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <T variant="overline" tone="tertiary">Today · resets in {countdown(midnightUtc.getTime() - now)}</T>
-          <T variant="h1" accessibilityRole="header">Arena</T>
+          <T variant="overline" tone="tertiary">{t.arena.resets(countdown(midnightUtc.getTime() - now))}</T>
+          <T variant="h1" accessibilityRole="header">{t.arena.title}</T>
         </View>
-        {rows.length > 0 && <Badge tone="neutral" label={`${rows.length >= 50 ? '50+' : rows.length} ranked`} />}
+        {rows.length > 0 && <Badge tone="neutral" label={t.arena.ranked(rows.length >= 50 ? '50+' : String(rows.length))} />}
       </View>
 
       {q.loading && !q.data ? (
-        <LoadingPanel label="Loading the Arena…" />
+        <LoadingPanel label={t.arena.loading} />
       ) : q.error && !q.data ? (
-        <MessagePanel kind="error" icon="Alert" title="Arena didn’t load." body="Check your connection. Your score is safe on the server." action="Try again" onAction={() => q.reload()} />
+        <MessagePanel kind="error" icon="Alert" title={t.arena.failTitle} body={t.arena.failBody} action={t.common.tryAgain} onAction={() => q.reload()} />
       ) : rows.length === 0 ? (
-        <MessagePanel kind="empty" icon="Target" title="No rankings yet today." body="Submit your first verified proof to enter today’s Arena." action="Go to Home" onAction={() => router.navigate('/')} />
+        <MessagePanel kind="empty" icon="Target" title={t.arena.emptyTitle} body={t.arena.emptyBody} action={t.arena.goHome} onAction={() => router.navigate('/')} />
       ) : (
         <>
           <Podium rows={rows.slice(0, 3)} />
           <View style={{ gap: 8 }}>
-            <T variant="overline" tone="tertiary">Your position</T>
-            {me ? <LeaderboardRow row={me} /> : <T variant="bodySmall" tone="secondary">Not ranked yet today — one verified proof puts you on the board.</T>}
+            <T variant="overline" tone="tertiary">{t.arena.yourPosition}</T>
+            {me ? <LeaderboardRow row={me} /> : <T variant="bodySmall" tone="secondary">{t.arena.notRanked}</T>}
           </View>
           {others.length > 0 && (
             <View style={{ gap: 8 }}>
-              <T variant="overline" tone="tertiary">Rankings</T>
+              <T variant="overline" tone="tertiary">{t.arena.rankings}</T>
               {others.map((r) => <LeaderboardRow key={r.user_id} row={r} />)}
             </View>
           )}
-          <T variant="caption" tone="tertiary" align="center">Points come only from server-verified proof and settled penalties. Ties break on the longer current streak.</T>
+          <T variant="caption" tone="tertiary" align="center">{t.arena.footer}</T>
         </>
       )}
     </Screen>

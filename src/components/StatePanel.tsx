@@ -7,7 +7,7 @@ import { Button } from './Button';
 import { type IconName } from './Icon';
 import { T } from './Text';
 
-const panel = { alignSelf: 'stretch' as const, alignItems: 'center' as const, gap: 12, paddingHorizontal: 24, paddingVertical: 32, borderRadius: radius.xl, backgroundColor: color.surface.card, borderWidth: 1, borderColor: color.border.hairline };
+const panel = () => ({ alignSelf: 'stretch' as const, alignItems: 'center' as const, gap: 12, paddingHorizontal: 24, paddingVertical: 32, borderRadius: radius.xl, backgroundColor: color.surface.card, borderWidth: 1, borderColor: color.border.hairline });
 
 export function LoadingPanel({ label, rows = 3 }: { label: string; rows?: number }) {
   const reduce = useReduceMotion();
@@ -22,7 +22,7 @@ export function LoadingPanel({ label, rows = 3 }: { label: string; rows?: number
     return () => loop.stop();
   }, [pulse, reduce]);
   return (
-    <View style={panel} accessibilityRole="progressbar" accessibilityLabel={label}>
+    <View style={panel()} accessibilityRole="progressbar" accessibilityLabel={label}>
       <Animated.View style={{ alignSelf: 'stretch', gap: 18, opacity: reduce ? 0.7 : pulse }}>
         {Array.from({ length: rows }).map((_, i) => (
           <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -40,7 +40,7 @@ export function LoadingPanel({ label, rows = 3 }: { label: string; rows?: number
 
 export function MessagePanel({ kind, icon, title, body, action, onAction }: { kind: 'empty' | 'error'; icon: IconName; title: string; body: string; action?: string; onAction?: () => void }) {
   return (
-    <View style={panel}>
+    <View style={panel()}>
       <IconTile icon={icon} size={52} bg={kind === 'error' ? color.status.dangerSoft : color.accent.soft} tint={kind === 'error' ? color.status.danger : color.accent.glow} />
       <T variant="h3" align="center">{title}</T>
       <T variant="bodySmall" tone="secondary" align="center">{body}</T>

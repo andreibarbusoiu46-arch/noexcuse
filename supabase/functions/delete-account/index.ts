@@ -9,8 +9,12 @@ Deno.serve(withCors(async (req) => {
   if (user instanceof Response) return user;
 
   // Delete stored photos page by page (paths are "<user>/<target>/<proof>.jpg").
-  const { data: proofs } = await db.from("proofs").select("storage_path").eq("user_id", user.id);
-  const paths = (proofs ?? []).map((p) => p.storage_path as string);
+  // Multi-photo proofs keep their extra photos in proof_items.
+  const [{ data: proofs }, { data: items }] = await Promise.all([
+    db.from("proofs").select("storage_path").eq("user_id", user.id),
+    db.from("proof_items").select("storage_path").eq("user_id", user.id),
+  ]);
+  const paths = [...new Set([...(proofs ?? []), ...(items ?? [])].map((p) => p.storage_path as string))];
   for (let i = 0; i < paths.length; i += 100) {
     const { error } = await db.storage.from("proofs").remove(paths.slice(i, i + 100));
     if (error) return fail(500, "storage_error", "Couldn’t delete stored photos. Try again.");

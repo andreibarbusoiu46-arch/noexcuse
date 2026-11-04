@@ -2,7 +2,7 @@ import { GlassContainer, GlassView } from 'expo-glass-effect';
 import type { ReactNode } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { useLiquidGlassEnabled } from '@/lib/glass';
-import { color } from '@/theme/tokens';
+import { color, scheme } from '@/theme/tokens';
 
 export interface GlassProps {
   /** "regular" for panels and sheets, "clear" for controls (Liquid Glass skill). */
@@ -31,7 +31,7 @@ export function Glass({ variant = 'regular', tint, interactive, fallback = color
     );
   }
   return (
-    <GlassView glassEffectStyle={variant} tintColor={tint} isInteractive={interactive} colorScheme="dark" style={style}>
+    <GlassView glassEffectStyle={variant} tintColor={tint} isInteractive={interactive} colorScheme={scheme()} style={style}>
       {children}
     </GlassView>
   );

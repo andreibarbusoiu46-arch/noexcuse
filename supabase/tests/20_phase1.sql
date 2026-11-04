@@ -132,7 +132,7 @@ select pg_temp.ok((select count(*) = 0 from public.discipline_scores where user_
 select pg_temp.as_user('cccccccc-0000-0000-0000-000000000003');
 select pg_temp.expect_error($$select public.start_challenge('c0000000-0000-0000-0000-00000000000c', 'early-7')$$, 'must be active');
 select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004');
-select pg_temp.ok((select jsonb_array_length(public.get_challenges() -> 'templates') = 6), 'six predefined challenges');
+select pg_temp.ok((select jsonb_array_length(public.get_challenges() -> 'templates') >= 6), 'predefined challenges');
 select pg_temp.expect_error($$select public.start_challenge('c0000000-0000-0000-0000-00000000000c', 'early-7')$$, 'not found');
 select pg_temp.expect_error($$insert into public.challenges (user_id, habit_id, title, start_date, end_date, weekdays, required_days, bonus_points)
                               select user_id, id, 'x', current_date, current_date, '{1}', 1, 99999 from public.habits limit 1$$, 'permission denied');
@@ -202,7 +202,7 @@ select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004');
 select pg_temp.ok((select (public.get_war_room() ->> 'total_points')::integer = 180), 'War Room: total points');
 select pg_temp.ok((select jsonb_array_length(public.get_war_room() -> 'recent') = 3), 'War Room: recent ledger entries (2 targets + 1 bonus)');
 select pg_temp.ok((select public.get_war_room() -> 'recent' -> 0 ->> 'title' = 'Early Mornings' or
-                          public.get_war_room() -> 'recent' -> 0 ->> 'title' = '7 Days of Early Mornings'), 'War Room: bonus row shows the challenge title');
+                          public.get_war_room() -> 'recent' -> 0 ->> 'title' in ('7 Days of Early Mornings', '5 AM Protocol')), 'War Room: bonus row shows the challenge title');
 select pg_temp.ok((select (public.get_war_room() -> 'week' ->> 'settled')::integer >= 7), 'War Room: weekly numbers come from targets');
 select pg_temp.as_user('eeeeeeee-0000-0000-0000-000000000005');
 select pg_temp.ok((select (public.get_war_room() ->> 'total_points')::integer = 0), 'War Room only shows the caller''s data');

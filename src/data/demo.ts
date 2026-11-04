@@ -1,5 +1,7 @@
 // Demo mode (EXPO_PUBLIC_DEMO=1): fixture data shaped exactly like the live API.
 // No backend, no AI, no purchases — for design review and Expo Go only. Never ships with this flag on.
+import { ApiError } from '@/lib/supabase';
+import { demoTemplates } from './demoTemplates';
 import type { Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, Challenge, Challenges, ChallengeTemplate, Discipline, Habit, HabitInput, Profile, ScoreEvent, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
 const MIN = 60_000;
@@ -13,7 +15,8 @@ let seq = 100;
 const id = () => `demo-${++seq}`;
 
 const profile: Profile = { id: 'demo-me', display_name: 'Andrei', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, total_points: 1250,
-  notify_prefs: { reminders: true, heads_up: true, last_call: true, weekly_report: true, partners: true } };
+  notify_prefs: { reminders: true, heads_up: true, last_call: true, weekly_report: true, partners: true },
+  language: 'en', theme: 'dark', evidence_retention: 'keep' };
 
 const habits: Habit[] = [
   { id: 'h-shower', category: 'health', custom_category: null, description: null, notes: null, archived_at: null, verification_level: 'standard', title: 'Cold shower — 3 min', proof_hint: 'Me under the running shower, timer visible on my phone.', target_time: hhmm(-180), weekdays: [1, 2, 3, 4, 5, 6, 7], is_active: true, reminder_minutes: 10, current_streak: 12, longest_streak: 21 },
@@ -70,17 +73,10 @@ const demoScore = {
   counts: { settled_28: 60, verified_28: 48, settled_7: 14, verified_7: 12, days_14: 14, clean_days_14: 11, streak: 12 },
 };
 
-const templates: ChallengeTemplate[] = [
-  { id: 'discipline-30', title: '30 Days of Discipline', tagline: 'One commitment. Thirty days. Up to two misses.', description: 'Pick any commitment you already have and keep it for 30 days. You can miss at most two scheduled days.', category: 'personal', duration_days: 30, allowed_misses: 2, habit_title: null, habit_time: null, habit_weekdays: null, proof_hint: null },
-  { id: 'no-excuses-30', title: '30 Days Without Excuses', tagline: 'Thirty days. Zero misses.', description: 'Keep one commitment every scheduled day for 30 days. A single miss ends the challenge.', category: 'personal', duration_days: 30, allowed_misses: 0, habit_title: null, habit_time: null, habit_weekdays: null, proof_hint: null },
-  { id: 'early-7', title: '7 Days of Early Mornings', tagline: 'Up at six, seven days running.', description: 'Prove you are up and moving at 06:00 every day for a week.', category: 'lifestyle', duration_days: 7, allowed_misses: 0, habit_title: 'Up at 06:00', habit_time: '06:00:00', habit_weekdays: [1, 2, 3, 4, 5, 6, 7], proof_hint: 'My face and a clock or phone screen showing the time, in a lit room.' },
-  { id: 'fitness-30', title: '30 Days of Fitness', tagline: 'A workout a day for a month. Three misses allowed.', description: 'Train every day for 30 days. Gym, run, home workout — the photo has to show it.', category: 'fitness', duration_days: 30, allowed_misses: 3, habit_title: 'Workout — 30 min', habit_time: '18:00:00', habit_weekdays: [1, 2, 3, 4, 5, 6, 7], proof_hint: 'Me training, or the gym floor / equipment with me in frame.' },
-  { id: 'deep-work-21', title: '21 Days of Deep Work', tagline: 'Ninety focused minutes, every weekday.', description: 'Three weeks of weekday deep-work blocks. One miss allowed.', category: 'productivity', duration_days: 21, allowed_misses: 1, habit_title: 'Deep work — 90 min', habit_time: '09:00:00', habit_weekdays: [1, 2, 3, 4, 5], proof_hint: 'My desk with the focus timer or the work itself on screen.' },
-  { id: 'reading-30', title: '30 Days of Reading', tagline: 'Twenty pages a night for a month.', description: 'Read every evening for 30 days. Two misses allowed.', category: 'education', duration_days: 30, allowed_misses: 2, habit_title: 'Read 20 pages', habit_time: '21:30:00', habit_weekdays: [1, 2, 3, 4, 5, 6, 7], proof_hint: 'The open book with the page number visible.' },
-];
+const templates: ChallengeTemplate[] = demoTemplates;
 
 const challenges: Challenge[] = [
-  { id: 'c-run', template_id: 'fitness-30', habit_id: 'h-run', habit_title: 'Morning run — 5 km', title: '30 Days of Fitness',
+  { id: 'c-run', template_id: 'fitness-30', habit_id: 'h-run', habit_title: 'Morning run — 5 km', title: '30 Days of Fitness', kind: 'thirty_day', difficulty: 'intermediate', description: null, rules: null, source: 'template', objective_count: 1,
     start_date: new Date(Date.now() - 11 * 86_400_000).toISOString().slice(0, 10), end_date: new Date(Date.now() + 18 * 86_400_000).toISOString().slice(0, 10),
     weekdays: [1, 2, 3, 4, 5, 6], required_days: 26, allowed_misses: 3, bonus_points: 260, status: 'active', finished_at: null, created_at: at(-11 * 1440),
     progress: { done: 9, lost: 1, left: 16, required: 26, allowed_misses: 3, misses_left: 2, percent: 35, days_remaining: 19, today: new Date().toISOString().slice(0, 10) } },
@@ -194,7 +190,14 @@ export const demoApi: Api = {
     weekly: [61, 66, 70, 74].map((avg, i) => ({ week: new Date(Date.now() - (3 - i) * 7 * 86_400_000).toISOString().slice(0, 10), avg })),
     monthly: [{ month: new Date().toISOString().slice(0, 8) + '01', avg: 72 }],
   }),
-  getChallenges: async (): Promise<Challenges> => ({ templates, mine: challenges, bonus_per_day: 10 }),
+  getChallenges: async (): Promise<Challenges> => ({ templates, mine: challenges, bonus_per_day: 10,
+    stats: { active: challenges.filter((c) => c.status === 'active').length, completed: 0, failed: 0, abandoned: challenges.filter((c) => c.status === 'abandoned').length, completion_rate: null, bonus_earned: 0 } }),
+  getChallengeDetail: async () => null,
+  startChallengePlan: async () => { throw new ApiError('demo', 'Demo mode: starting plans needs a signed-in account.', 400); },
+  // No fake AI: the generator only runs against the real server.
+  generateChallenge: async () => { throw new ApiError('ai_unavailable', 'Demo mode: the AI generator only runs with a signed-in account.', 503); },
+  exportMyData: async () => ({ profile }),
+  deleteEvidence: async () => 0,
   startChallenge: async (habitId, template) => {
     const tpl = typeof template === 'string' ? templates.find((t) => t.id === template)! : null;
     const days = tpl ? tpl.duration_days : (template as { days: number }).days;
@@ -203,6 +206,7 @@ export const demoApi: Api = {
       title: tpl ? tpl.title : (template as { title: string }).title, start_date: new Date().toISOString().slice(0, 10),
       end_date: new Date(Date.now() + (days - 1) * 86_400_000).toISOString().slice(0, 10), weekdays: [1, 2, 3, 4, 5, 6, 7],
       required_days: days, allowed_misses: tpl ? tpl.allowed_misses : 0, bonus_points: days * 10, status: 'active', finished_at: null,
+      kind: tpl?.kind ?? 'custom', difficulty: tpl?.difficulty ?? 'intermediate', description: null, rules: null, source: tpl ? 'template' : 'custom', objective_count: 1,
       created_at: new Date().toISOString(),
       progress: { done: 0, lost: 0, left: days, required: days, allowed_misses: tpl ? tpl.allowed_misses : 0, misses_left: tpl ? tpl.allowed_misses : 0, percent: 0, days_remaining: days, today: new Date().toISOString().slice(0, 10) },
     };

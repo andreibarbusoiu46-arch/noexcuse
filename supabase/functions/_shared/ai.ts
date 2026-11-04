@@ -65,6 +65,8 @@ export interface JudgeInput {
   images: EvidenceImage[]; // JPEG
   /** Server observations about the evidence (e.g. near-duplicates of earlier proofs). */
   notes?: string[];
+  /** The language the user reads: critique, observed and missing are written in it. */
+  language?: "en" | "ro";
 }
 
 export interface AppealInput extends JudgeInput {
@@ -100,6 +102,7 @@ function contextText(input: JudgeInput): string[] {
     input.proofHint ? `The user's own description of valid proof: ${input.proofHint}` : `No proof description provided.`,
     `Verification level — ${LEVEL_TEXT[input.level ?? "standard"]}`,
     ...(input.notes ?? []).map((n) => `Server note: ${n}`),
+    input.language === "ro" ? "Write critique, observed and missing in Romanian (the user reads Romanian)." : null,
   ].filter((x): x is string => x !== null);
 }
 

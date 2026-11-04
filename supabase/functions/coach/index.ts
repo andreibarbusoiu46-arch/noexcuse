@@ -28,7 +28,9 @@ Deno.serve(withCors(async (req) => {
 
   let reply: string;
   try {
-    reply = await askCoach(context, history, message, {
+    const { data: prof } = await db.from("profiles").select("language").eq("id", user.id).maybeSingle();
+    const replyLanguage = prof?.language === "ro" ? "Romanian" : "English";
+    reply = await askCoach({ ...(context as object), reply_language: replyLanguage }, history, message, {
       apiKey: env("OPENAI_API_KEY"), model: Deno.env.get("OPENAI_COACH_MODEL") ?? env("OPENAI_MODEL", "gpt-5-mini"),
       reasoningEffort: Deno.env.get("OPENAI_COACH_REASONING_EFFORT") ?? "low",
     });

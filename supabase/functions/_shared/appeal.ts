@@ -17,7 +17,7 @@ export interface AppealResult {
 
 export async function runAppealReview(db: SupabaseClient, appealId: string, notify = true): Promise<AppealResult> {
   const { data, error } = await db.from("appeals")
-    .select("id, user_id, note, status, proof:proofs!inner(id, storage_path, received_at, level, critique, target:targets!inner(id, due_at, habit:habits!inner(title, proof_hint, description))), profile:profiles!inner(timezone)")
+    .select("id, user_id, note, status, proof:proofs!inner(id, storage_path, received_at, level, critique, target:targets!inner(id, due_at, habit:habits!inner(title, proof_hint, description))), profile:profiles!inner(timezone, language)")
     .eq("id", appealId).single();
   if (error || !data) throw new Error(`appeal ${appealId} not found`);
   // deno-lint-ignore no-explicit-any
@@ -34,7 +34,7 @@ export async function runAppealReview(db: SupabaseClient, appealId: string, noti
     const r = await reviewAppeal({
       habitTitle: a.proof.target.habit.title, proofHint: a.proof.target.habit.proof_hint, description: a.proof.target.habit.description,
       level, localTargetTime: formatLocalTime(new Date(a.proof.target.due_at), tz), localReceivedTime: formatLocalTime(new Date(a.proof.received_at), tz),
-      images, notes, firstCritique: a.proof.critique, appealNote: a.note,
+      images, notes, firstCritique: a.proof.critique, appealNote: a.note, language: a.profile.language === "ro" ? "ro" : "en",
     }, { apiKey: env("OPENAI_API_KEY"), model, reasoningEffort: Deno.env.get("OPENAI_APPEAL_REASONING_EFFORT") ?? "medium", timeoutMs: 60_000 });
     const overturn = appealOverturns(r.judgement.verdict, r.judgement.confidence, level);
     const { data: res, error: rErr } = await db.rpc("resolve_appeal", {

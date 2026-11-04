@@ -16,7 +16,7 @@ export const palette = {
   white: '#FFFFFF',
 } as const;
 
-export const color = {
+const darkColorsRaw = {
   bg: { base: palette.obsidian950, elevated: palette.obsidian900 },
   surface: {
     card: palette.obsidian850,
@@ -40,7 +40,8 @@ export const color = {
     warning: palette.silver300,
     danger: palette.silver400,
   },
-  // Monochrome: the accent is white. Anything drawn ON an accent fill uses text.onLight.
+  // Monochrome: the accent is white in dark mode, graphite in light mode. Anything drawn ON an
+  // accent fill uses text.onLight (the name predates light mode: it means "on the accent").
   accent: { primary: palette.white, pressed: '#D9D9DD', glow: palette.white, soft: 'rgba(255,255,255,0.10)' },
   ai: { accent: palette.silver200, soft: 'rgba(255,255,255,0.08)' },
   status: {
@@ -52,7 +53,66 @@ export const color = {
     dangerSoft: 'rgba(255,255,255,0.05)',
   },
   icon: { primary: palette.white, secondary: palette.silver400 },
-} as const;
+  /** Light mode lifts surfaces with a soft shadow; dark mode relies on hairlines. */
+  shadow: { color: '#000000', opacity: 0 },
+};
+type Widen<T> = { [K in keyof T]: T[K] extends string ? string : T[K] extends number ? number : Widen<T[K]> };
+export type ColorTokens = Widen<typeof darkColorsRaw>;
+const darkColors: ColorTokens = darkColorsRaw;
+
+const lightColors: ColorTokens = {
+  bg: { base: '#F5F5F3', elevated: '#FFFFFF' },
+  surface: {
+    card: '#FFFFFF',
+    raised: '#FBFBFA',
+    inset: '#EFEFEC',
+    control: '#E2E2DF',
+    glass: 'rgba(17,17,19,0.04)',
+    glassStrong: 'rgba(17,17,19,0.07)',
+    glassFaint: 'rgba(17,17,19,0.025)',
+  },
+  overlay: { scrim: 'rgba(0,0,0,0.35)' },
+  border: { hairline: 'rgba(17,17,19,0.09)', strong: 'rgba(17,17,19,0.16)', accent: 'rgba(17,17,19,0.32)' },
+  text: {
+    primary: '#111113',
+    secondary: '#3A3A3F',
+    tertiary: '#6E6E75',
+    accent: '#2A2A2E',
+    ai: '#2A2A2E',
+    onLight: '#FFFFFF',
+    success: '#111113',
+    warning: '#3A3A3F',
+    danger: '#6E6E75',
+  },
+  accent: { primary: '#111113', pressed: '#2A2A2E', glow: '#111113', soft: 'rgba(17,17,19,0.06)' },
+  ai: { accent: '#2A2A2E', soft: 'rgba(17,17,19,0.05)' },
+  status: {
+    success: '#111113',
+    successSoft: 'rgba(17,17,19,0.07)',
+    warning: '#3A3A3F',
+    warningSoft: 'rgba(17,17,19,0.045)',
+    danger: '#6E6E75',
+    dangerSoft: 'rgba(17,17,19,0.04)',
+  },
+  icon: { primary: '#111113', secondary: '#6E6E75' },
+  shadow: { color: '#000000', opacity: 0.06 },
+};
+
+export type Scheme = 'dark' | 'light';
+let currentScheme: Scheme = 'dark';
+export const scheme = () => currentScheme;
+
+/**
+ * The live token set. Components read it at render time; ThemeProvider swaps the values and
+ * re-renders the tree, so there is one source of truth and no hard-coded colours in screens.
+ */
+export const color: ColorTokens = JSON.parse(JSON.stringify(darkColors));
+
+export function applyScheme(next: Scheme) {
+  currentScheme = next;
+  const src = next === 'light' ? lightColors : darkColors;
+  for (const k of Object.keys(src) as (keyof ColorTokens)[]) Object.assign(color[k], src[k]);
+}
 
 export const space = { 2: 2, 4: 4, 8: 8, 12: 12, 16: 16, 20: 20, 24: 24, 32: 32, 40: 40, 56: 56 } as const;
 export const radius = { sm: 10, md: 16, lg: 22, xl: 28, full: 999 } as const;

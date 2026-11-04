@@ -6,7 +6,7 @@ import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 import { useFonts } from 'expo-font';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -14,13 +14,13 @@ import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useNotificationRouting } from '@/lib/notificationRouting';
 import { AppProvider, useApp } from '@/providers/AppProvider';
+import { PrefsProvider, usePrefs } from '@/providers/PrefsProvider';
 import { color } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const WEB_FONT_GRACE_MS = 1200;
 
-const theme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: color.bg.base, card: color.bg.base, primary: color.accent.glow, text: color.text.primary, border: color.border.hairline } };
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, BodoniModa_500Medium, BodoniModa_600SemiBold });
@@ -36,20 +36,42 @@ export default function RootLayout() {
   }, []);
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={theme}>
-        <AppProvider>
-          <StatusBar style="light" />
-          <Navigator fontsReady={fontsLoaded || !!fontError || fontGrace} />
-        </AppProvider>
-      </ThemeProvider>
+      <AppProvider>
+        <PrefsProvider>
+          <Themed fontsReady={fontsLoaded || !!fontError || fontGrace} />
+        </PrefsProvider>
+      </AppProvider>
     </SafeAreaProvider>
+  );
+}
+
+/** Navigation theme + status bar follow the app's appearance setting. */
+function Themed({ fontsReady }: { fontsReady: boolean }) {
+  const { scheme, version } = usePrefs();
+  const base = scheme === 'light' ? DefaultTheme : DarkTheme;
+  const theme = { ...base, colors: { ...base.colors, background: color.bg.base, card: color.bg.base, primary: color.accent.glow, text: color.text.primary, border: color.border.hairline } };
+  return (
+    <ThemeProvider value={theme}>
+      <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />
+      <Navigator key={version} fontsReady={fontsReady} />
+    </ThemeProvider>
   );
 }
 
 function Navigator({ fontsReady }: { fontsReady: boolean }) {
   const { ready, session } = useApp();
+  const prefs = usePrefs();
   const signedIn = !!session;
-  const show = ready && fontsReady;
+  const show = ready && fontsReady && prefs.ready;
+
+  // After a language or appearance change the navigator re-renders from scratch; go back to the
+  // screen where the change was made (usually Settings).
+  const restore = prefs.restorePath;
+  useEffect(() => {
+    if (!show || !restore || restore === '/') return;
+    const id = setTimeout(() => router.push(restore as never), 0);
+    return () => clearTimeout(id);
+  }, [show, restore]);
 
   useEffect(() => {
     if (show) SplashScreen.hideAsync().catch(() => {});

@@ -1,5 +1,6 @@
 import type { HabitStatus } from '@/components/HabitCard';
 import type { Habit, Target } from '@/data/types';
+import { t } from '@/i18n';
 import { describeDays, formatTime, hhmmOf, phaseOf, relativeIn, windowOf } from './time';
 
 export interface CardModel {
@@ -9,32 +10,32 @@ export interface CardModel {
 }
 
 /** How a scheduled target shows up as a Habit Card right now. */
-export function targetCard(t: Target, now: number, tz?: string): CardModel {
-  const time = formatTime(t.due_at, tz);
-  switch (t.status) {
+export function targetCard(x: Target, now: number, tz?: string): CardModel {
+  const time = formatTime(x.due_at, tz);
+  switch (x.status) {
     case 'verified':
-      return { status: 'verified', meta: `${time} · verified` };
+      return { status: 'verified', meta: t.domain.card.verified(time) };
     case 'rejected':
-      return { status: 'missed', meta: `${time} · proof rejected` };
+      return { status: 'missed', meta: t.domain.card.rejected(time) };
     case 'missed':
-      return { status: 'missed', meta: `${time} · window closed` };
+      return { status: 'missed', meta: t.domain.card.missed(time) };
     case 'excused':
-      return { status: 'excused', meta: `${time} · our error, no penalty` };
+      return { status: 'excused', meta: t.domain.card.excused(time) };
     default: {
-      const w = windowOf(t.due_at);
-      const p = phaseOf(t.due_at, now);
-      if (p === 'open') return { status: 'due', meta: `${time} · window ±15 min`, right: `Due ${formatTime(w.closesAt, tz)}` };
-      if (p === 'closed') return { status: 'upcoming', meta: `${time} · window closed, settling…` };
-      return { status: 'upcoming', meta: `${time} · opens ${formatTime(w.opensAt, tz)}`, right: relativeIn(w.opensAt - now) };
+      const w = windowOf(x.due_at);
+      const p = phaseOf(x.due_at, now);
+      if (p === 'open') return { status: 'due', meta: t.domain.card.open(time), right: t.domain.card.due(formatTime(w.closesAt, tz)) };
+      if (p === 'closed') return { status: 'upcoming', meta: t.domain.card.settling(time) };
+      return { status: 'upcoming', meta: t.domain.card.opens(time, formatTime(w.opensAt, tz)), right: relativeIn(w.opensAt - now) };
     }
   }
 }
 
 export function habitCard(h: Habit, next: Target | undefined, now: number, tz?: string): CardModel {
-  if (!h.is_active) return { status: 'paused', meta: `Paused · was ${describeDays(h.weekdays)}` };
+  if (!h.is_active) return { status: 'paused', meta: t.domain.card.paused(describeDays(h.weekdays)) };
   if (next) {
     const c = targetCard(next, now, tz);
-    return { ...c, meta: `${hhmmOf(h.target_time)} · ${describeDays(h.weekdays)}${h.current_streak ? ` · ${h.current_streak}-day streak` : ''}` };
+    return { ...c, meta: `${hhmmOf(h.target_time)} · ${describeDays(h.weekdays)}${h.current_streak ? ` · ${t.common.dayStreak(h.current_streak)}` : ''}` };
   }
   return { status: 'upcoming', meta: `${hhmmOf(h.target_time)} · ${describeDays(h.weekdays)}` };
 }

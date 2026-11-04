@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Platform, RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { color, layout, palette } from '@/theme/tokens';
+import { color, layout, palette, scheme } from '@/theme/tokens';
 
 type GlowTone = 'violet' | 'ice' | 'green' | 'red' | 'amber' | 'grey' | 'none';
 const GLOW: Record<Exclude<GlowTone, 'none'>, [string, number]> = {
@@ -14,7 +14,9 @@ const GLOW: Record<Exclude<GlowTone, 'none'>, [string, number]> = {
 /** Ambient radial light from the top of the screen (Figma "Glow"). Pure SVG gradient — cheap, no blur. */
 export function Glow({ tone = 'violet', x = '50%', height = 520 }: { tone?: GlowTone; x?: string; height?: number }) {
   if (tone === 'none') return null;
-  const [c, o] = GLOW[tone];
+  const [c0, o0] = GLOW[tone];
+  // Light mode: a faint graphite light instead of white.
+  const [c, o] = scheme() === 'light' ? ['#111113', o0 * 0.25] : [c0, o0];
   return (
     <Svg pointerEvents="none" style={[StyleSheet.absoluteFill, { height }]} width="100%" height={height}>
       <Defs>
@@ -30,6 +32,7 @@ export function Glow({ tone = 'violet', x = '50%', height = 520 }: { tone?: Glow
 
 /** The black-and-white summit from the Pinterest reference, rebuilt as two silhouettes + a lit ridge. */
 export function Summit({ top = 150, height = 330 }: { top?: number; height?: number }) {
+  if (scheme() === 'light') return null; // the night summit is a dark-mode illustration
   return (
     <Svg pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top }} width="100%" height={height} viewBox="0 0 390 330" preserveAspectRatio="xMidYMax slice">
       <Defs>
@@ -72,7 +75,7 @@ export function Screen({ children, glow = 'violet', scroll = true, tabBar, refre
   const pad = { paddingTop: insets.top + 12 + (webTabs ? 76 : 0), paddingBottom: (tabBar && !webTabs ? layout.tabBarClearance : 24) + (footer ? 0 : insets.bottom) };
   const column = [styles.column, pad, contentStyle];
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: color.bg.base }]}>
       <Glow tone={glow} />
       {background}
       {scroll ? (
@@ -94,7 +97,7 @@ export function Screen({ children, glow = 'violet', scroll = true, tabBar, refre
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: color.bg.base },
+  root: { flex: 1 },
   column: { width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center', paddingHorizontal: layout.gutter, gap: 20 },
   footer: { width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center', paddingHorizontal: layout.gutter, gap: 10, paddingTop: 12 },
 });

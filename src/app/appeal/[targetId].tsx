@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { t } from '@/i18n';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { BackHeader } from '@/components/BackHeader';
@@ -12,17 +13,13 @@ import { T } from '@/components/Text';
 import { api, type AppealResult, type AppealStatus } from '@/data';
 import { haptics } from '@/lib/haptics';
 import { useLoad, useNow } from '@/lib/hooks';
-import { ApiError } from '@/lib/supabase';
+import { errorText } from '@/lib/errors';
 import { countdown, dayLabel, formatTime } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color, radius } from '@/theme/tokens';
 
-const STATUS: Record<AppealStatus, { label: string; tone: Tone; body: string }> = {
-  pending: { label: 'Under review', tone: 'ai', body: 'The second review is running. You’ll get a notification with the decision.' },
-  upheld: { label: 'Verdict stands', tone: 'danger', body: 'The second review reached the same decision. The penalty stays.' },
-  overturned: { label: 'Overturned', tone: 'success', body: 'The second review verified your proof. The penalty was reversed, the points were paid and your streak was restored.' },
-  unavailable: { label: 'Couldn’t be reviewed', tone: 'neutral', body: 'The AI review was unavailable, so the original verdict stands.' },
-};
+const TONE: Record<AppealStatus, Tone> = { pending: 'ai', upheld: 'danger', overturned: 'success', unavailable: 'neutral' };
+const statusInfo = (s: AppealStatus) => ({ tone: TONE[s], ...t.appeal.status[s] });
 
 /** One appeal per rejected proof: an independent AI re-review of the same evidence. */
 export default function AppealScreen() {
@@ -55,7 +52,7 @@ export default function AppealScreen() {
       void refreshProfile();
     } catch (e) {
       haptics.error();
-      setError(e instanceof ApiError || e instanceof Error ? e.message : 'Couldn’t file the appeal.');
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -66,50 +63,49 @@ export default function AppealScreen() {
 
   return (
     <Screen glow="none">
-      <BackHeader overline={d?.target ? `${d.target.habit.title} · ${dayLabel(d.target.due_at, tz, now)} ${formatTime(d.target.due_at, tz)}` : 'Appeal'} title="Appeal" />
-      {q.loading && !d ? <LoadingPanel label="Loading…" /> : q.error && !d ? (
-        <MessagePanel kind="error" icon="Alert" title="Couldn’t load this proof." body="Check your connection and try again." action="Try again" onAction={() => q.reload()} />
+      <BackHeader overline={d?.target ? `${d.target.habit.title} · ${dayLabel(d.target.due_at, tz, now)} ${formatTime(d.target.due_at, tz)}` : t.appeal.title} title={t.appeal.title} />
+      {q.loading && !d ? <LoadingPanel label={t.common.loading} /> : q.error && !d ? (
+        <MessagePanel kind="error" icon="Alert" title={t.appeal.failTitle} body={t.common.connection} action={t.common.tryAgain} onAction={() => q.reload()} />
       ) : !proof || (proof.outcome !== 'rejected' && !appeal) ? (
-        <MessagePanel kind="empty" icon="Shield" title="Nothing to appeal." body="Only a rejected proof can be appealed." action="Close" onAction={() => router.back()} />
+        <MessagePanel kind="empty" icon="Shield" title={t.appeal.nothing} body={t.appeal.nothingBody} action={t.common.close} onAction={() => router.back()} />
       ) : (
         <>
           <Card style={{ padding: 18, gap: 8 }}>
-            <T variant="overline" tone="tertiary">First review · rejected</T>
-            <T variant="bodySmall">{proof.critique ?? 'No reason recorded.'}</T>
+            <T variant="overline" tone="tertiary">{t.appeal.first}</T>
+            <T variant="bodySmall">{proof.critique ?? t.appeal.noReason}</T>
           </Card>
 
           {status ? (
             <Card style={{ padding: 18, gap: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <T variant="overline" tone="tertiary" style={{ flex: 1 }}>Second review</T>
-                <Badge tone={STATUS[status].tone} label={STATUS[status].label} />
+                <T variant="overline" tone="tertiary" style={{ flex: 1 }}>{t.appeal.second}</T>
+                <Badge tone={statusInfo(status).tone} label={statusInfo(status).label} />
               </View>
               {decisionText && status !== 'pending' ? <T variant="bodySmall">{decisionText}</T> : null}
-              <T variant="caption" tone="secondary">{STATUS[status].body}</T>
+              <T variant="caption" tone="secondary">{statusInfo(status).body}</T>
               {result?.status === 'overturned' ? <T variant="h2" tone="success">+{result.points_delta}</T> : null}
             </Card>
           ) : !premium ? (
             <Card tone="accent" style={{ padding: 18, gap: 10 }}>
-              <T variant="bodyStrong">Appeals are part of Premium.</T>
-              <T variant="caption" tone="secondary">A second, independent AI review of the same evidence. One per rejected proof.</T>
-              <Button label="See Premium" onPress={() => router.push('/paywall')} />
+              <T variant="bodyStrong">{t.appeal.premiumTitle}</T>
+              <T variant="caption" tone="secondary">{t.appeal.premiumBody}</T>
+              <Button label={t.common.seePremium} onPress={() => router.push('/paywall')} />
             </Card>
           ) : canAppeal ? (
             <>
               <View style={{ gap: 6 }}>
                 <T variant="bodySmall" tone="secondary">
-                  A second AI reviewer looks at the same evidence with fresh eyes. Your note tells it where to look — it can’t add new evidence.
-                  If it verifies the proof, the −100 is reversed and you get the +50 (one new ledger entry of +150), and your streak is restored.
+                  {t.appeal.explain}
                 </T>
-                <T variant="caption" tone="tertiary">One appeal per rejection · {until ? `${countdown(until - now)} left to file` : ''}</T>
+                <T variant="caption" tone="tertiary">{until ? t.appeal.oneLeft(countdown(until - now)) : ''}</T>
               </View>
-              <Field label="What should the reviewer look at? (optional)" value={note} onChangeText={setNote} maxLength={500} multiline
-                placeholder="e.g. The treadmill display in the second photo shows 5.1 km." style={{ minHeight: 96, textAlignVertical: 'top' }} />
+              <Field label={t.appeal.note} value={note} onChangeText={setNote} maxLength={500} multiline
+                placeholder={t.appeal.notePlaceholder} style={{ minHeight: 96, textAlignVertical: 'top' }} />
               {error && <View style={{ padding: 14, borderRadius: radius.md, backgroundColor: color.status.dangerSoft }} accessibilityLiveRegion="assertive"><T variant="bodySmall" tone="danger">{error}</T></View>}
-              <Button label="File appeal" icon="Shield" loading={busy} onPress={submit} />
+              <Button label={t.appeal.file} icon="Shield" loading={busy} onPress={submit} />
             </>
           ) : (
-            <T variant="bodySmall" tone="tertiary">The appeal window (48 hours after the verdict) has closed.</T>
+            <T variant="bodySmall" tone="tertiary">{t.appeal.closed}</T>
           )}
         </>
       )}
