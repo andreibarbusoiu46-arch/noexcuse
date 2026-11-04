@@ -1,7 +1,11 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useState, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { router } from 'expo-router';
 import { CATEGORIES } from '@/lib/categories';
+import { LEVEL_ORDER, LEVELS } from '@/lib/levels';
+import { useApp } from '@/providers/AppProvider';
+import { Icon } from './Icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { HabitInput } from '@/data/types';
 import { haptics } from '@/lib/haptics';
@@ -30,6 +34,7 @@ interface Props {
 /** Figma D2 — the new/edit habit sheet. Server validates everything again. */
 export function HabitForm({ title, initial, submitLabel, onSubmit, onClose, note, footer }: Props) {
   const insets = useSafeAreaInsets();
+  const { premium } = useApp();
   const [v, setV] = useState<HabitInput>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +106,29 @@ export function HabitForm({ title, initial, submitLabel, onSubmit, onClose, note
         <View style={{ gap: 8 }}>
           <Field label="What counts as proof" value={v.proof_hint ?? ''} onChangeText={(t) => set('proof_hint', t)} placeholder="Me under the running shower, timer visible on my phone." multiline maxLength={280} style={{ minHeight: 84, textAlignVertical: 'top' }} />
           <T variant="caption" tone="tertiary">Specific proof makes the AI verdict fairer and faster.</T>
+        </View>
+        <View style={{ gap: 8 }}>
+          <T variant="overline" tone="tertiary">Verification level</T>
+          <View style={{ gap: 8 }} accessibilityRole="radiogroup">
+            {LEVEL_ORDER.map((lv) => {
+              const on = v.verification_level === lv;
+              const locked = lv !== 'standard' && !premium;
+              return (
+                <Tap key={lv} haptic="selection" onPress={() => (locked ? router.push('/paywall') : set('verification_level', lv))}
+                  accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={`${LEVELS[lv].label}: ${LEVELS[lv].summary}${locked ? ' Premium.' : ''}`}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 1,
+                    borderColor: on ? color.text.primary : color.border.hairline, backgroundColor: on ? color.surface.glassStrong : color.surface.glass }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <T variant="bodyStrong" tone={locked ? 'secondary' : 'primary'}>{LEVELS[lv].label}</T>
+                    <T variant="caption" tone="tertiary">{LEVELS[lv].summary}</T>
+                  </View>
+                  {locked ? <><Icon name="Lock" size={14} tint={color.icon.secondary} /><T variant="caption" tone="secondary">Premium</T></>
+                    : on ? <Icon name="Check" size={18} tint={color.text.primary} /> : null}
+                </Tap>
+              );
+            })}
+          </View>
+          <T variant="caption" tone="tertiary">Live photos are taken in the app inside the window. Screenshots count as supporting evidence only.</T>
         </View>
         <View style={{ gap: 8 }}>
           <Field label="Private notes (optional)" value={v.notes ?? ''} onChangeText={(t) => set('notes', t)} placeholder="Only you can see these." multiline maxLength={1000} style={{ minHeight: 64, textAlignVertical: 'top' }} />

@@ -1,8 +1,9 @@
 import { CameraView, useCameraPermissions, type CameraType, type FlashMode } from 'expo-camera';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Easing, Image, Linking, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge } from '@/components/Badge';
 import { Button, IconButton } from '@/components/Button';
@@ -12,7 +13,8 @@ import { Glow, Screen } from '@/components/Screen';
 import { Tap } from '@/components/Tap';
 import { T } from '@/components/Text';
 import { VerdictCard, type VerdictState } from '@/components/Verdict';
-import { api, type CaptureSession, type Target, type VerdictResult } from '@/data';
+import { api, type CaptureSession, type EvidenceKind, type Level, type Target, type VerdictResult } from '@/data';
+import { LEVELS } from '@/lib/levels';
 import { haptics } from '@/lib/haptics';
 import { useNow, useReduceMotion } from '@/lib/hooks';
 import { ApiError } from '@/lib/supabase';
@@ -20,13 +22,25 @@ import { countdown, formatTime, windowOf } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color, layout } from '@/theme/tokens';
 
+interface Shot { kind: EvidenceKind; uri: string; base64: string; at: number }
+
 type Phase =
   | { k: 'starting' }
   | { k: 'blocked'; title: string; body: string }
   | { k: 'capture' }
-  | { k: 'preview'; uri: string; base64: string; at: number }
+  | { k: 'review' }
   | { k: 'processing'; uri: string }
   | { k: 'result'; r: VerdictResult; uri: string };
+
+/** Camera photos and picked screenshots are normalised to ≤1280 px JPEG before upload. */
+async function toJpeg(uri: string, width: number): Promise<{ uri: string; base64: string }> {
+  const ctx = ImageManipulator.manipulate(uri);
+  if (width > 1280) ctx.resize({ width: 1280 });
+  const img = await ctx.renderAsync();
+  const out = await img.saveAsync({ compress: 0.72, format: SaveFormat.JPEG, base64: true });
+  if (!out.base64) throw new Error('no image data');
+  return { uri: out.uri, base64: out.base64 };
+}
 
 const SESSION_REFRESH_MS = 120_000; // re-issue the capture session if it's older than 2 min (server limit: 3)
 
@@ -37,6 +51,7 @@ function blockedCopy(e: unknown): { title: string; body: string } {
     case 'window_closed': return { title: 'This window has closed.', body: 'Late proof doesn’t count. Your next window is on Home.' };
     case 'already_settled': return { title: 'Already settled.', body: 'This target has a final result. Check Recent activity on Home.' };
     case 'premium_required': return { title: 'Premium required.', body: 'Your subscription isn’t active on the server. Restore purchases from Profile.' };
+    case 'already_appealed': return { title: 'Already appealed.', body: 'Each rejection gets one appeal.' };
     case 'network': return { title: 'No connection.', body: 'Proof needs a connection so the server can time-stamp it.' };
     default: return { title: 'Couldn’t open the camera.', body: e instanceof Error ? e.message : 'Try again in a moment.' };
   }
@@ -44,10 +59,16 @@ function blockedCopy(e: unknown): { title: string; body: string } {
 
 export default function Proof() {
   const { targetId } = useLocalSearchParams<{ targetId: string }>();
-  const { profile, refreshProfile } = useApp();
+  const { profile, refreshProfile, premium } = useApp();
   const tz = profile?.timezone;
   const [phase, setPhase] = useState<Phase>({ k: 'starting' });
   const [target, setTarget] = useState<Target | null>(null);
+  const [shots, setShots] = useState<Shot[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
+  // Strict/Elite need Premium; without it the server judges at Standard, so the app asks for that.
+  const level: Level = premium ? (target?.habit.verification_level ?? 'standard') : 'standard';
+  const req = LEVELS[level];
+  const live = shots.filter((x) => x.kind === 'live');
   const session = useRef<{ s: CaptureSession; at: number } | null>(null);
 
   async function openSession() {
@@ -70,14 +91,28 @@ export default function Proof() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetId]);
 
-  async function submit(p: Extract<Phase, { k: 'preview' }>) {
-    setPhase({ k: 'processing', uri: p.uri });
+  function onShot(uri: string, base64: string) {
+    const next = [...shots, { kind: 'live' as const, uri, base64, at: Date.now() }];
+    setShots(next);
+    setNotice(null);
+    setPhase(next.filter((x) => x.kind === 'live').length >= req.live ? { k: 'review' } : { k: 'capture' });
+  }
+
+  function retakeAll() {
+    setShots([]); setNotice(null);
+    setPhase({ k: 'capture' });
+  }
+
+  async function submit() {
+    const first = live[0];
+    if (!first) return;
+    setPhase({ k: 'processing', uri: first.uri });
     try {
       if (!session.current || Date.now() - session.current.at > SESSION_REFRESH_MS) await openSession();
-      const r = await api.verifyProof(session.current!.s.session_id, p.base64);
+      const r = await api.verifyProof(session.current!.s.session_id, shots.map(({ kind, base64 }) => ({ kind, base64 })));
       session.current = null;
       ({ verified: haptics.success, rejected: haptics.error, expired: haptics.error, insufficient: haptics.warning, error: haptics.warning } as const)[r.outcome]();
-      setPhase({ k: 'result', r, uri: p.uri });
+      setPhase({ k: 'result', r, uri: first.uri });
       void refreshProfile();
     } catch (e) {
       const code = e instanceof ApiError ? e.code : '';
@@ -85,7 +120,16 @@ export default function Proof() {
         haptics.warning();
         session.current = null;
         await openSession().catch(() => {});
+        setShots([]);
+        setNotice('The capture timed out. Take the photos again.');
         setPhase({ k: 'capture' });
+        return;
+      }
+      if (code === 'duplicate_evidence' || code === 'evidence_incomplete') {
+        // Session not spent: fix the evidence and submit again.
+        haptics.warning();
+        setNotice((e as Error).message);
+        setPhase({ k: 'review' });
         return;
       }
       haptics.error();
@@ -108,17 +152,23 @@ export default function Proof() {
     );
   }
   if (phase.k === 'capture') {
-    return <Capture target={target} tz={tz} onShot={(uri, base64) => setPhase({ k: 'preview', uri, base64, at: Date.now() })} />;
+    const step = live.length;
+    return <Capture target={target} tz={tz} onShot={onShot}
+      step={req.live > 1 ? `Photo ${step + 1} of ${req.live} · ${req.steps[step] ?? ''}` : null} />;
   }
-  if (phase.k === 'preview') {
-    return <Preview target={target} tz={tz} shot={phase} onRetake={() => setPhase({ k: 'capture' })} onSubmit={() => submit(phase)} />;
+  if (phase.k === 'review') {
+    return <Review target={target} tz={tz} level={level} shots={shots} notice={notice}
+      onRetakeAll={retakeAll}
+      onAddScreenshot={(sh) => { setShots((p) => [...p, sh]); setNotice(null); }}
+      onRemove={(i) => setShots((p) => p.filter((_x, j) => j !== i))}
+      onSubmit={submit} />;
   }
   if (phase.k === 'processing') return <Processing uri={phase.uri} title={target?.habit.title ?? 'your target'} />;
-  return <Result r={phase.r} target={target} onRetake={async () => { await openSession().catch(() => {}); setPhase({ k: 'capture' }); }} />;
+  return <Result r={phase.r} target={target} premium={premium} onRetake={async () => { await openSession().catch(() => {}); retakeAll(); }} />;
 }
 
 // ---------------------------------------------------------------- E1 capture
-function Capture({ target, tz, onShot }: { target: Target | null; tz?: string; onShot: (uri: string, b64: string) => void }) {
+function Capture({ target, tz, onShot, step }: { target: Target | null; tz?: string; onShot: (uri: string, b64: string) => void; step: string | null }) {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const cam = useRef<CameraView>(null);
@@ -135,11 +185,7 @@ function Capture({ target, tz, onShot }: { target: Target | null; tz?: string; o
     setBusy(true);
     try {
       const pic = await cam.current.takePictureAsync({ quality: 0.85, shutterSound: true });
-      const ctx = ImageManipulator.manipulate(pic.uri);
-      if (pic.width > 1280) ctx.resize({ width: 1280 });
-      const img = await ctx.renderAsync();
-      const out = await img.saveAsync({ compress: 0.72, format: SaveFormat.JPEG, base64: true });
-      if (!out.base64) throw new Error('no image data');
+      const out = await toJpeg(pic.uri, pic.width);
       onShot(out.uri, out.base64);
     } catch {
       haptics.error();
@@ -182,6 +228,13 @@ function Capture({ target, tz, onShot }: { target: Target | null; tz?: string; o
         </Glass>
         <IconButton icon={flash === 'on' ? 'Flash' : 'FlashOff'} label={flash === 'on' ? 'Flash on' : 'Flash off'} onPress={() => setFlash((f) => (f === 'on' ? 'off' : 'on'))} />
       </View>
+      {step ? (
+        <View style={[styles.hint, { top: insets.top + 64 }]} pointerEvents="none">
+          <Glass variant="clear" fallback="rgba(10,10,11,0.72)" style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, overflow: 'hidden' }}>
+            <T variant="caption" accessibilityLiveRegion="polite">{step}</T>
+          </Glass>
+        </View>
+      ) : null}
       {target?.habit.proof_hint ? (
         <View style={[styles.hint, { bottom: insets.bottom + 150 }]} pointerEvents="none">
           <Glass variant="clear" fallback="rgba(10,10,11,0.72)" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 22, overflow: 'hidden' }}>
@@ -214,28 +267,86 @@ function Capture({ target, tz, onShot }: { target: Target | null; tz?: string; o
   );
 }
 
-// ---------------------------------------------------------------- E2 preview
-function Preview({ target, tz, shot, onRetake, onSubmit }: { target: Target | null; tz?: string; shot: { uri: string; at: number }; onRetake: () => void; onSubmit: () => void }) {
+// ---------------------------------------------------------------- E2 review
+function Review({ target, tz, level, shots, notice, onRetakeAll, onAddScreenshot, onRemove, onSubmit }: {
+  target: Target | null; tz?: string; level: Level; shots: Shot[]; notice: string | null;
+  onRetakeAll: () => void; onAddScreenshot: (s: Shot) => void; onRemove: (i: number) => void; onSubmit: () => void;
+}) {
   const now = useNow(1000);
   const closes = target ? windowOf(target.due_at).closesAt : null;
+  const req = LEVELS[level];
+  const screenshots = shots.filter((x) => x.kind === 'screenshot').length;
+  const missingShot = screenshots < req.screenshotsRequired;
+  const [picking, setPicking] = useState(false);
+
+  async function pick() {
+    setPicking(true);
+    try {
+      const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: false, quality: 1 });
+      const a = r.canceled ? null : r.assets[0];
+      if (a) {
+        const out = await toJpeg(a.uri, a.width);
+        onAddScreenshot({ kind: 'screenshot', uri: out.uri, base64: out.base64, at: Date.now() });
+      }
+    } catch {
+      haptics.error();
+    } finally {
+      setPicking(false);
+    }
+  }
+
   return (
     <Screen glow="none" footer={<>
-      <Button label="Submit for verification" icon="Sparkle" onPress={onSubmit} disabled={closes !== null && now > closes + 60_000} />
-      <Button kind="glass" label="Retake" icon="Retry" onPress={onRetake} />
-      <T variant="caption" tone="tertiary" align="center">Submitted proof can’t be edited. The AI judges only what’s visible in the photo.</T>
+      <Button label="Submit for verification" icon="Sparkle" onPress={onSubmit} disabled={missingShot || (closes !== null && now > closes + 60_000)} />
+      <Button kind="glass" label={req.live > 1 ? 'Retake photos' : 'Retake'} icon="Retry" onPress={onRetakeAll} />
+      <T variant="caption" tone="tertiary" align="center">Submitted proof can’t be edited. The AI judges only what’s visible.</T>
     </>}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <IconButton icon="ChevronLeft" label="Retake" onPress={onRetake} />
+        <IconButton icon="ChevronLeft" label="Retake" onPress={onRetakeAll} />
         <T variant="h3" align="center" style={{ flex: 1 }}>Review proof</T>
         <View style={{ width: 44 }} />
       </View>
-      <View style={{ borderRadius: 28, overflow: 'hidden', borderWidth: 1, borderColor: color.border.strong }}>
-        <Image source={{ uri: shot.uri }} style={{ width: '100%', aspectRatio: 3 / 4 }} resizeMode="cover" accessibilityLabel="Your proof photo" />
-        <View style={{ position: 'absolute', top: 14, left: 14, flexDirection: 'row', gap: 8 }}>
-          <Badge tone="success" label="Live capture" />
-          <Badge tone="neutral" label={formatTime(shot.at, tz)} />
+      {req.live === 1 && screenshots === 0 ? (
+        <View style={{ borderRadius: 28, overflow: 'hidden', borderWidth: 1, borderColor: color.border.strong }}>
+          <Image source={{ uri: shots[0]?.uri }} style={{ width: '100%', aspectRatio: 3 / 4 }} resizeMode="cover" accessibilityLabel="Your proof photo" />
+          <View style={{ position: 'absolute', top: 14, left: 14, flexDirection: 'row', gap: 8 }}>
+            <Badge tone="success" label="Live capture" />
+            {shots[0] && <Badge tone="neutral" label={formatTime(shots[0].at, tz)} />}
+          </View>
         </View>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+          {shots.map((sh, i) => (
+            <View key={`${sh.uri}-${i}`} style={{ width: 200, borderRadius: 22, overflow: 'hidden', borderWidth: 1, borderColor: color.border.strong }}>
+              <Image source={{ uri: sh.uri }} style={{ width: 200, height: 266 }} resizeMode="cover" accessibilityLabel={sh.kind === 'live' ? `Live photo ${i + 1}` : 'Screenshot'} />
+              <View style={{ position: 'absolute', top: 10, left: 10, flexDirection: 'row', gap: 6 }}>
+                <Badge tone={sh.kind === 'live' ? 'success' : 'warning'} label={sh.kind === 'live' ? 'Live' : 'Screenshot'} />
+              </View>
+              {sh.kind === 'screenshot' && (
+                <View style={{ position: 'absolute', top: 6, right: 6 }}>
+                  <IconButton icon="Close" label="Remove screenshot" onPress={() => onRemove(i)} />
+                </View>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      )}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Badge tone="accent" label={`${req.label} verification`} />
+        <T variant="caption" tone="tertiary" style={{ flex: 1 }}>{req.summary}</T>
       </View>
+      {req.screenshotsMax > 0 && screenshots < req.screenshotsMax && (
+        <Button kind="glass" icon="Plus" loading={picking}
+          label={missingShot ? 'Add tracking-app screenshot (required)' : 'Add a screenshot (optional)'} onPress={pick} />
+      )}
+      {req.screenshotsMax > 0 && (
+        <T variant="caption" tone="tertiary">Screenshots come from your gallery, so they count as lower-trust supporting evidence. Reused images are refused.</T>
+      )}
+      {notice && (
+        <View style={{ padding: 14, borderRadius: 16, backgroundColor: color.status.warningSoft }} accessibilityLiveRegion="assertive">
+          <T variant="bodySmall" tone="warning">{notice}</T>
+        </View>
+      )}
       {target && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 20, backgroundColor: color.surface.card, borderWidth: 1, borderColor: color.border.hairline }}>
           <View style={{ flex: 1, gap: 2 }}>
@@ -278,7 +389,7 @@ function Processing({ uri, title }: { uri: string; title: string }) {
 }
 
 // ---------------------------------------------------------------- F2–F6 results
-function Result({ r, target, onRetake }: { r: VerdictResult; target: Target | null; onRetake: () => void }) {
+function Result({ r, target, premium, onRetake }: { r: VerdictResult; target: Target | null; premium: boolean; onRetake: () => void }) {
   const now = useNow(1000);
   const currentStreak = target?.habit.current_streak ?? 0;
   const closes = target ? windowOf(target.due_at).closesAt : 0;
@@ -287,7 +398,7 @@ function Result({ r, target, onRetake }: { r: VerdictResult; target: Target | nu
 
   const big = { verified: `+${r.points_delta || 50}`, rejected: '−100', expired: '−100', insufficient: stillOpen ? countdown(closes - now) : '0', error: '0' }[r.outcome];
   const bigTone = { verified: 'success', rejected: 'danger', expired: 'danger', insufficient: 'warning', error: 'secondary' }[r.outcome] as 'success' | 'danger' | 'warning' | 'secondary';
-  const over = { verified: 'Proof verified', rejected: 'Proof rejected', expired: 'Window closed', insufficient: stillOpen ? 'Time left to retake' : 'Not enough evidence', error: 'Temporary error' }[r.outcome];
+  const over = { verified: 'Proof verified', rejected: 'Proof rejected', expired: 'Window closed', insufficient: stillOpen ? 'Needs more evidence' : 'Not enough evidence', error: 'Temporary error' }[r.outcome];
   const streakLine = r.already_settled ? 'Already settled — no change'
     : r.outcome === 'verified' ? `${r.streak ?? currentStreak + 1}-day streak · ${(r.total_points ?? 0).toLocaleString('en-US')} pts`
     : r.outcome === 'rejected' || r.outcome === 'expired' ? `Streak reset · ${(r.total_points ?? 0).toLocaleString('en-US')} pts`
@@ -303,7 +414,7 @@ function Result({ r, target, onRetake }: { r: VerdictResult; target: Target | nu
     </>
   ) : r.outcome === 'insufficient' ? (
     <>
-      {stillOpen && <Button label="Retake proof now" icon="Camera" onPress={onRetake} />}
+      {stillOpen && <Button label="Capture more evidence" icon="Camera" onPress={onRetake} />}
       <Button kind={stillOpen ? 'ghost' : 'primary'} label="Back to Home" onPress={() => router.back()} />
       <T variant="caption" tone="tertiary" align="center">If the window closes without a valid proof, it counts as missed.</T>
     </>
@@ -314,6 +425,10 @@ function Result({ r, target, onRetake }: { r: VerdictResult; target: Target | nu
     </>
   ) : (
     <>
+      {r.outcome === 'rejected' && target && !r.already_settled && (
+        <Button kind="glass" label={premium ? 'Appeal — ask for a second AI review' : 'Appeal (Premium)'} icon="Shield"
+          onPress={() => { router.back(); router.push(premium ? { pathname: '/appeal/[targetId]', params: { targetId: target.id } } : '/paywall'); }} />
+      )}
       <Button label="Plan the comeback" onPress={() => { router.back(); if (target) router.push({ pathname: '/comeback/[habitId]', params: { habitId: target.habit_id } }); }} />
       <Button kind="ghost" label="Done" onPress={() => router.back()} />
       {r.outcome === 'expired' && <T variant="caption" tone="tertiary" align="center">Times are checked on the server, not your phone clock.</T>}
@@ -332,6 +447,12 @@ function Result({ r, target, onRetake }: { r: VerdictResult; target: Target | nu
           <T variant="bodyStrong" tone={r.outcome === 'verified' ? 'primary' : 'secondary'}>{streakLine}</T>
         </View>
         <VerdictCard state={s} critique={r.critique} points={points} streak={streak} />
+        {r.outcome === 'insufficient' && r.requested_evidence ? (
+          <View style={{ alignSelf: 'stretch', padding: 16, borderRadius: 20, gap: 4, backgroundColor: color.status.warningSoft }} accessible>
+            <T variant="overline" tone="warning">Capture next</T>
+            <T variant="bodySmall">{r.requested_evidence}</T>
+          </View>
+        ) : null}
       </Screen>
     </View>
   );

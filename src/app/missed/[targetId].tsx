@@ -13,13 +13,18 @@ import { countdown, dayLabel, formatTime, windowOf } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color } from '@/theme/tokens';
 
+const rejected0 = (s: string) => s === 'rejected';
+
 /** Figma I1 — the consequence, stated plainly, and the next chance to recover. */
 export default function Missed() {
   const { targetId } = useLocalSearchParams<{ targetId: string }>();
   const { profile } = useApp();
   const tz = profile?.timezone;
   const now = useNow(1000);
-  const q = useLoad(() => api.getMissed(targetId), [targetId]);
+  const q = useLoad(async () => {
+    const [m, review] = await Promise.all([api.getMissed(targetId), api.getTargetReview(targetId).catch(() => null)]);
+    return { ...m, review };
+  }, [targetId]);
 
   if (q.loading) return <View style={{ flex: 1, backgroundColor: color.bg.base, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={color.text.secondary} /></View>;
   if (!q.data) {
@@ -29,7 +34,9 @@ export default function Missed() {
       </Screen>
     );
   }
-  const { target, event, next, totalBefore, totalAfter, streakBefore } = q.data;
+  const { target, event, next, totalBefore, totalAfter, streakBefore, review, lastCritique } = q.data;
+  const appeal = review?.appeal ?? null;
+  const canAppeal = rejected0(target.status) && !!review?.appealUntil && new Date(review.appealUntil).getTime() > now;
   const rejected = target.status === 'rejected';
   const when = formatTime(event?.created_at ?? windowOf(target.due_at).closesAt, tz);
   const rows: { icon: IconName; label: string; from: string; to: string; delta: string }[] = [
@@ -70,6 +77,18 @@ export default function Missed() {
           </View>
         ))}
       </Card>
+      {rejected && (lastCritique || appeal || canAppeal) && (
+        <Card style={{ padding: 18, gap: 10 }}>
+          <T variant="overline" tone="tertiary">Why it was rejected</T>
+          {lastCritique ? <T variant="bodySmall">{lastCritique}</T> : null}
+          {appeal ? (
+            <Badge tone={appeal.status === 'overturned' ? 'success' : appeal.status === 'pending' ? 'ai' : 'neutral'}
+              label={{ pending: 'Appeal under review', upheld: 'Appeal: verdict stands', overturned: 'Appeal won', unavailable: 'Appeal couldn’t be reviewed' }[appeal.status]} />
+          ) : canAppeal ? (
+            <Button kind="glass" icon="Shield" label="Appeal — second AI review" onPress={() => router.replace({ pathname: '/appeal/[targetId]', params: { targetId: target.id } })} />
+          ) : null}
+        </Card>
+      )}
       {next && nextOpens && (
         <Card tone="accent" style={{ padding: 18, gap: 10 }}>
           <T variant="overline" tone="accent">Your next chance</T>

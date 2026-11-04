@@ -1,7 +1,7 @@
 // One verification pipeline, used by verify-proof (live) and cron-tick (retries).
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.118.0";
-import { AiError, judgeProof } from "./ai.ts";
-import { finalOutcome, formatLocalTime, isMilestone } from "./rules.ts";
+import { AiError, type EvidenceImage, judgeProof } from "./ai.ts";
+import { finalOutcome, formatLocalTime, isLevel, isMilestone, type Level } from "./rules.ts";
 import { copy, notifyOnce } from "./push.ts";
 import { env } from "./http.ts";
 
@@ -15,18 +15,23 @@ export interface VerdictResult {
   total_points: number;
   target_status: string;
   already_settled: boolean;
+  level: Level;
+  /** When more evidence is needed: exactly what to capture next. */
+  requested_evidence: string | null;
 }
 
-export async function judgeAndApply(db: SupabaseClient, proofId: string, imageBase64: string): Promise<VerdictResult> {
+export async function judgeAndApply(db: SupabaseClient, proofId: string, images: EvidenceImage[], notes: string[] = []): Promise<VerdictResult> {
   const { data: proof, error } = await db
     .from("proofs")
-    .select("id, user_id, received_at, target:targets!inner(id, due_at, habit:habits!inner(id, title, proof_hint, longest_streak)), profile:profiles!inner(timezone)")
+    .select("id, user_id, received_at, level, target:targets!inner(id, due_at, habit:habits!inner(id, title, proof_hint, description, longest_streak)), profile:profiles!inner(timezone)")
     .eq("id", proofId)
     .single();
   if (error || !proof) throw new Error(`proof ${proofId} not found`);
   // deno-lint-ignore no-explicit-any
   const p = proof as any;
   const tz: string = p.profile.timezone;
+  const level: Level = isLevel(p.level) ? p.level : "standard";
+  let requested: string | null = null;
 
   let outcome: VerdictResult["outcome"];
   let critique: string;
@@ -38,19 +43,23 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, imageBa
       {
         habitTitle: p.target.habit.title,
         proofHint: p.target.habit.proof_hint,
+        description: p.target.habit.description,
+        level,
         localTargetTime: formatLocalTime(new Date(p.target.due_at), tz),
         localReceivedTime: formatLocalTime(new Date(p.received_at), tz),
-        imageBase64,
+        images,
+        notes,
       },
       { apiKey: env("OPENAI_API_KEY"), model, reasoningEffort: Deno.env.get("OPENAI_REASONING_EFFORT") ?? "low" },
     );
-    outcome = finalOutcome(r.judgement.verdict, r.judgement.confidence);
+    outcome = finalOutcome(r.judgement.verdict, r.judgement.confidence, level);
     confidence = r.judgement.confidence;
     critique = r.judgement.critique;
-    if (outcome === "insufficient" && r.judgement.verdict !== "insufficient") {
-      critique = `${critique} The call wasn’t certain enough to score — retake with the activity clearly in frame.`;
+    if (outcome === "insufficient") {
+      requested = r.judgement.missing || "Retake with the activity clearly in frame.";
+      if (r.judgement.verdict !== "insufficient") critique = `${critique} The call wasn’t certain enough to score at ${level} level.`;
     }
-    raw = { ...(r.raw as object), observed: r.judgement.observed, verdict: r.judgement.verdict };
+    raw = { ...(r.raw as object), observed: r.judgement.observed, verdict: r.judgement.verdict, missing: r.judgement.missing, notes };
   } catch (e) {
     outcome = "error";
     // Say only what is true: the proof is kept, nothing is deducted while it waits, and the
@@ -67,6 +76,7 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, imageBa
     p_proof_id: proofId, p_outcome: outcome, p_critique: critique, p_confidence: confidence, p_model: model, p_raw: raw,
   });
   if (applyErr) throw new Error(`apply_verdict: ${applyErr.message}`);
+  await db.from("proofs").update({ requested_evidence: requested }).eq("id", proofId);
   const a = applied as { points_delta: number; streak: number; total_points: number; target_status: string; already_settled: boolean };
 
   if (outcome === "verified" && !a.already_settled) {
@@ -90,6 +100,8 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, imageBa
     total_points: a.total_points,
     target_status: a.target_status,
     already_settled: a.already_settled,
+    level,
+    requested_evidence: requested,
   };
 }
 

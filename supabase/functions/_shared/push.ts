@@ -1,7 +1,7 @@
 // Expo push notifications. Copy is direct and respectful — never degrading.
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.118.0";
 
-export type Kind = "reminder" | "window_open" | "verified" | "missed" | "milestone" | "arena_up" | "excused";
+export type Kind = "reminder" | "window_open" | "verified" | "missed" | "milestone" | "arena_up" | "excused" | "appeal" | "heads_up" | "last_call" | "weekly_report" | "nudge" | "partner_missed" | "achievement";
 
 export const copy = {
   reminder: (title: string, mins: number, opens: string, closes: string) => ({
@@ -27,6 +27,37 @@ export const copy = {
   arena_up: (rank: number) => ({
     title: `You moved up to #${rank}`,
     body: "Hold it until midnight UTC.",
+  }),
+  heads_up: (title: string, due: string, misses: number) => ({
+    title: `Heads-up: ${title} at ${due}`,
+    body: `You’ve missed it ${misses} of the last 7 times. Decide now where and how you’ll do it.`,
+  }),
+  last_call: (title: string, closes: string) => ({
+    title: `Last call: ${title}`,
+    body: `The window closes at ${closes}. Nothing submitted yet.`,
+  }),
+  nudge: (from: string) => ({
+    title: `${from} nudged you`,
+    body: "Your partner is watching. Go get today’s proof.",
+  }),
+  partner_missed: (name: string, title: string) => ({
+    title: `${name} missed a target`,
+    body: `${title} — the window closed without proof. A nudge for tomorrow might help.`,
+  }),
+  achievement: (title: string) => ({
+    title: `Achievement unlocked: ${title}`,
+    body: "Earned on your record. See it in Profile › Achievements.",
+  }),
+  weekly_report: () => ({
+    title: "Your weekly report is ready",
+    body: "What you kept, what slipped, and where to aim this week.",
+  }),
+  appeal: (title: string, overturned: boolean, delta: number) => (overturned
+    ? { title: `Appeal won. +${delta}`, body: `${title}: the second review verified your proof. Penalty reversed, streak restored.` }
+    : { title: "Appeal reviewed: verdict stands", body: `${title}: the second review reached the same decision. Open the app for the reason.` }),
+  appeal_unavailable: (title: string) => ({
+    title: "Appeal couldn’t be reviewed",
+    body: `${title}: the AI review was unavailable, so the original verdict stands.`,
   }),
   excused: (title: string) => ({
     title: "Verification failed on our side",

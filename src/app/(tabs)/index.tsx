@@ -68,6 +68,12 @@ export default function Home() {
 
           <ScoreCard score={room?.score ?? null} onPress={() => router.push('/discipline')} />
 
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <QuickLink icon="Sparkle" title="Coach" caption="Ask anything" onPress={() => router.push('/coach')} />
+            <QuickLink icon="Doc" title="Report" caption="Mondays" onPress={() => router.push('/reports')} />
+            <QuickLink icon="Profile" title="Partners" caption="Stay honest" onPress={() => router.push('/partners')} />
+          </View>
+
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
             <MiniStat label="Today" value={`${done}/${list.length}`} caption={failed ? `${failed} failed · ${open} open` : `${open} open`} />
             <MiniStat label="This week" value={room?.week.success_rate == null ? '—' : `${room.week.success_rate}%`} caption={`${room?.week.verified ?? 0} of ${room?.week.settled ?? 0} verified`} />
@@ -183,7 +189,19 @@ export default function Home() {
   );
 }
 
-const REASON: Record<string, string> = { verified: 'verified', rejected: '— rejected', expired: '— late', missed: '— window missed', challenge_bonus: '— challenge completed' };
+function QuickLink({ icon, title, caption, onPress }: { icon: 'Sparkle' | 'Doc' | 'Profile'; title: string; caption: string; onPress: () => void }) {
+  return (
+    <Tap onPress={onPress} accessibilityLabel={`${title}. ${caption}`} style={{ flex: 1 }}>
+      <Card style={{ padding: 14, gap: 6 }}>
+        <Icon name={icon} size={20} tint={color.icon.primary} />
+        <T variant="bodyStrong" numberOfLines={1}>{title}</T>
+        <T variant="caption" tone="tertiary" numberOfLines={1}>{caption}</T>
+      </Card>
+    </Tap>
+  );
+}
+
+const REASON: Record<string, string> = { verified: 'verified', rejected: '— rejected', expired: '— late', missed: '— window missed', challenge_bonus: '— challenge completed', appeal_reversal: '— appeal won' };
 
 /** The one thing to do next. Open window → countdown to close + camera. Otherwise → countdown to open. */
 function NextTarget({ target, now, tz, anyHabits }: { target: Target | null; now: number; tz?: string; anyHabits: boolean }) {

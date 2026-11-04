@@ -53,7 +53,7 @@ export default function EditHabit() {
       title={archived ? 'Archived commitment' : 'Edit commitment'}
       submitLabel="Save changes"
       initial={{ title: h.title, proof_hint: h.proof_hint, target_time: h.target_time, weekdays: h.weekdays, is_active: h.is_active, reminder_minutes: h.reminder_minutes,
-        category: h.category, custom_category: h.custom_category, description: h.description, notes: h.notes }}
+        category: h.category, custom_category: h.custom_category, description: h.description, notes: h.notes, verification_level: h.verification_level }}
       onSubmit={async (v) => { await api.updateHabit(h.id, v); router.back(); }}
       onClose={() => router.back()}
       note="Time and day changes apply to windows that haven’t opened yet. Settled scores never change."

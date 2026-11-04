@@ -1,7 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
-import { Avatar, SectionHeader, StatTile } from '@/components/Blocks';
+import { Avatar, SectionHeader, StatTile, ToggleRow } from '@/components/Blocks';
 import { Button } from '@/components/Button';
 import { Card, Divider } from '@/components/Card';
 import { Field } from '@/components/Field';
@@ -10,7 +10,8 @@ import { Screen } from '@/components/Screen';
 import { MessagePanel } from '@/components/StatePanel';
 import { Tap } from '@/components/Tap';
 import { T } from '@/components/Text';
-import { api } from '@/data';
+import { api, type NotifyPrefs } from '@/data';
+import { router } from 'expo-router';
 import { config } from '@/lib/config';
 import { confirmDestructive, notify } from '@/lib/dialog';
 import { haptics } from '@/lib/haptics';
@@ -35,7 +36,7 @@ function Row({ icon, label, value, onPress, danger }: { icon: IconName; label: s
 }
 
 export default function Profile() {
-  const { profile, refreshProfile, refreshPremium, signOut } = useApp();
+  const { profile, refreshProfile, refreshPremium, signOut, premium } = useApp();
   const tz = profile?.timezone;
   const q = useLoad(async () => {
     const [stats, ent, events] = await Promise.all([api.getStats(), api.getEntitlement(), api.getRecentEvents(3)]);
@@ -57,6 +58,13 @@ export default function Profile() {
       if (r === 'denied') notify('Notifications are off', 'Turn them on in Settings › NoExcuse › Notifications to get reminders before each window.');
     }
     setBusy(null);
+  }
+
+  async function setPref(k: keyof NotifyPrefs, on: boolean) {
+    if (!profile) return;
+    const next = { ...profile.notify_prefs, [k]: on };
+    await api.updateProfile({ notify_prefs: next }).then(() => haptics.selection()).catch(() => haptics.error());
+    void refreshProfile();
   }
 
   async function saveName() {
@@ -93,8 +101,9 @@ export default function Profile() {
 
   const s = q.data?.stats;
   const ent = q.data?.ent;
-  const subLine = !ent?.is_active ? 'Inactive' : ent.period_type === 'trial' ? 'Premium · free trial' : 'Premium';
-  const renew = ent?.expires_at ? `${ent.will_renew === false ? 'Ends' : 'Renews'} ${new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date(ent.expires_at))}` : '';
+  const subLine = !premium ? 'Free plan' : ent?.period_type === 'trial' ? 'Premium · free trial' : 'Premium';
+  const renew = !premium ? 'Upgrade for unlimited commitments, challenges, coach and more'
+    : ent?.expires_at ? `${ent.will_renew === false ? 'Ends' : 'Renews'} ${new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date(ent.expires_at))}` : '';
 
   return (
     <Screen tabBar refreshing={q.refreshing} onRefresh={() => q.reload()}>
@@ -112,7 +121,7 @@ export default function Profile() {
         </View>
       </View>
 
-      <Tap onPress={() => manageSubscription()} accessibilityLabel={`Subscription: ${subLine}. ${renew}`}>
+      <Tap onPress={() => (premium ? manageSubscription() : router.push('/paywall'))} accessibilityLabel={`Subscription: ${subLine}. ${renew}`}>
         <Card tone="accent" style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 }}>
           <Icon name="Shield" size={22} tint={color.accent.glow} />
           <View style={{ flex: 1, gap: 2 }}>
@@ -160,6 +169,34 @@ export default function Profile() {
             </View>
           )}
         </>
+      )}
+
+      <View style={{ gap: 12 }}>
+        <SectionHeader title="Coaching" />
+        <Card padding={0} style={{ gap: 0 }}>
+          <Row icon="Sparkle" label="Coach" value={premium ? '' : 'Premium'} onPress={() => router.push('/coach')} />
+          <Divider />
+          <Row icon="Doc" label="Weekly report" value={premium ? '' : 'Premium'} onPress={() => router.push('/reports')} />
+          <Divider />
+          <Row icon="Profile" label="Partners" onPress={() => router.push('/partners')} />
+          <Divider />
+          <Row icon="Arena" label="Achievements" onPress={() => router.push('/achievements')} />
+          <Divider />
+          <Row icon="ArrowUp" label="Share your record" onPress={() => router.push('/share')} />
+        </Card>
+      </View>
+
+      {push && profile && (
+        <View style={{ gap: 12 }}>
+          <SectionHeader title="What to notify" />
+          <Card style={{ gap: 4, paddingVertical: 8 }}>
+            <ToggleRow title="Reminders" subtitle="Before each window opens" value={profile.notify_prefs.reminders} onChange={(v) => setPref('reminders', v)} />
+            <ToggleRow title="Heads-up" subtitle={premium ? 'An hour ahead for commitments you’ve been missing' : 'Premium'} value={premium && profile.notify_prefs.heads_up} disabled={!premium} onChange={(v) => setPref('heads_up', v)} />
+            <ToggleRow title="Last call" subtitle={premium ? '5 minutes before a window closes, if nothing is submitted' : 'Premium'} value={premium && profile.notify_prefs.last_call} disabled={!premium} onChange={(v) => setPref('last_call', v)} />
+            <ToggleRow title="Weekly report" subtitle="Monday morning" value={profile.notify_prefs.weekly_report} onChange={(v) => setPref('weekly_report', v)} />
+            <ToggleRow title="Partners" subtitle="Nudges and partner activity" value={profile.notify_prefs.partners} onChange={(v) => setPref('partners', v)} />
+          </Card>
+        </View>
       )}
 
       <View style={{ gap: 12 }}>

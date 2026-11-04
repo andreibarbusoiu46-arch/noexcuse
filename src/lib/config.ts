@@ -14,6 +14,7 @@ export const config = {
   offeringId: process.env.EXPO_PUBLIC_REVENUECAT_OFFERING ?? 'default',
   termsUrl: process.env.EXPO_PUBLIC_TERMS_URL ?? 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
   privacyUrl: process.env.EXPO_PUBLIC_PRIVACY_URL ?? '',
+  siteUrl: process.env.EXPO_PUBLIC_SITE_URL ?? 'https://noexcuse.vercel.app',
   /** Demo mode: fixture data, no backend, no purchases. For design review and Expo Go only. */
   demo: process.env.EXPO_PUBLIC_DEMO === '1',
 } as const;

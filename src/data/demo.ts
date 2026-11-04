@@ -1,6 +1,6 @@
 // Demo mode (EXPO_PUBLIC_DEMO=1): fixture data shaped exactly like the live API.
 // No backend, no AI, no purchases — for design review and Expo Go only. Never ships with this flag on.
-import type { Challenge, Challenges, ChallengeTemplate, Discipline, WarRoom, Api, ArenaRow, Habit, HabitInput, Profile, ScoreEvent, Target, VerdictResult } from './types';
+import type { Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, Challenge, Challenges, ChallengeTemplate, Discipline, Habit, HabitInput, Profile, ScoreEvent, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
 const MIN = 60_000;
 const at = (offsetMin: number) => new Date(Date.now() + offsetMin * MIN).toISOString();
@@ -12,16 +12,17 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let seq = 100;
 const id = () => `demo-${++seq}`;
 
-const profile: Profile = { id: 'demo-me', display_name: 'Andrei', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, total_points: 1250 };
+const profile: Profile = { id: 'demo-me', display_name: 'Andrei', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, total_points: 1250,
+  notify_prefs: { reminders: true, heads_up: true, last_call: true, weekly_report: true, partners: true } };
 
 const habits: Habit[] = [
-  { id: 'h-shower', category: 'health', custom_category: null, description: null, notes: null, archived_at: null, title: 'Cold shower — 3 min', proof_hint: 'Me under the running shower, timer visible on my phone.', target_time: hhmm(-180), weekdays: [1, 2, 3, 4, 5, 6, 7], is_active: true, reminder_minutes: 10, current_streak: 12, longest_streak: 21 },
-  { id: 'h-run', category: 'fitness', custom_category: null, description: null, notes: null, archived_at: null, title: 'Morning run — 5 km', proof_hint: 'Outdoor track or road, with my watch showing the distance.', target_time: hhmm(5), weekdays: [1, 2, 3, 4, 5, 6], is_active: true, reminder_minutes: 10, current_streak: 12, longest_streak: 12 },
-  { id: 'h-work', category: 'productivity', custom_category: null, description: null, notes: null, archived_at: null, title: 'Deep work — 2 hours', proof_hint: 'Desk with the focus timer on screen.', target_time: hhmm(170), weekdays: [1, 2, 3, 4, 5], is_active: true, reminder_minutes: 10, current_streak: 4, longest_streak: 9 },
-  { id: 'h-read', category: 'education', custom_category: null, description: null, notes: null, archived_at: null, title: 'Read 20 pages', proof_hint: 'The open book with the page number and a clock in frame.', target_time: hhmm(860), weekdays: [1, 2, 3, 4, 5, 6, 7], is_active: true, reminder_minutes: 10, current_streak: 0, longest_streak: 6 },
-  { id: 'h-gym', category: 'fitness', custom_category: null, description: null, notes: null, archived_at: null, title: 'Gym — upper body', proof_hint: null, target_time: '18:00:00', weekdays: [2, 4], is_active: false, reminder_minutes: 10, current_streak: 0, longest_streak: 3 },
+  { id: 'h-shower', category: 'health', custom_category: null, description: null, notes: null, archived_at: null, verification_level: 'standard', title: 'Cold shower — 3 min', proof_hint: 'Me under the running shower, timer visible on my phone.', target_time: hhmm(-180), weekdays: [1, 2, 3, 4, 5, 6, 7], is_active: true, reminder_minutes: 10, current_streak: 12, longest_streak: 21 },
+  { id: 'h-run', category: 'fitness', custom_category: null, description: null, notes: null, archived_at: null, verification_level: 'strict', title: 'Morning run — 5 km', proof_hint: 'Outdoor track or road, with my watch showing the distance.', target_time: hhmm(5), weekdays: [1, 2, 3, 4, 5, 6], is_active: true, reminder_minutes: 10, current_streak: 12, longest_streak: 12 },
+  { id: 'h-work', category: 'productivity', custom_category: null, description: null, notes: null, archived_at: null, verification_level: 'standard', title: 'Deep work — 2 hours', proof_hint: 'Desk with the focus timer on screen.', target_time: hhmm(170), weekdays: [1, 2, 3, 4, 5], is_active: true, reminder_minutes: 10, current_streak: 4, longest_streak: 9 },
+  { id: 'h-read', category: 'education', custom_category: null, description: null, notes: null, archived_at: null, verification_level: 'standard', title: 'Read 20 pages', proof_hint: 'The open book with the page number and a clock in frame.', target_time: hhmm(860), weekdays: [1, 2, 3, 4, 5, 6, 7], is_active: true, reminder_minutes: 10, current_streak: 0, longest_streak: 6 },
+  { id: 'h-gym', category: 'fitness', custom_category: null, description: null, notes: null, archived_at: null, verification_level: 'standard', title: 'Gym — upper body', proof_hint: null, target_time: '18:00:00', weekdays: [2, 4], is_active: false, reminder_minutes: 10, current_streak: 0, longest_streak: 3 },
 ];
-const habitRef = (h: Habit) => ({ id: h.id, title: h.title, proof_hint: h.proof_hint, current_streak: h.current_streak, is_active: h.is_active });
+const habitRef = (h: Habit) => ({ id: h.id, title: h.title, proof_hint: h.proof_hint, current_streak: h.current_streak, is_active: h.is_active, verification_level: h.verification_level });
 
 const targets: Target[] = [
   { id: 't-shower', habit_id: 'h-shower', local_date: '', due_at: at(-180), status: 'verified', settled_at: at(-173), habit: habitRef(habits[0]) },
@@ -30,6 +31,24 @@ const targets: Target[] = [
   { id: 't-read', habit_id: 'h-read', local_date: '', due_at: at(860), status: 'pending', settled_at: null, habit: habitRef(habits[3]) },
   { id: 't-read-y', habit_id: 'h-read', local_date: '', due_at: at(-580), status: 'missed', settled_at: at(-565), habit: habitRef(habits[3]) },
 ];
+
+const demoAppeals: Record<string, Appeal> = {};
+const coach: CoachMessage[] = [];
+// Demo partner — fixture only, clearly labelled as demo data in the UI build.
+const demoPartners: Partners = {
+  partners: [{ id: 'demo-partner', display_name: 'Demo partner', total_points: 940, score: { score: 68, provisional: false }, streak: 5,
+    week: { settled: 12, verified: 10 }, since: at(-14 * 1440), nudged_today: false,
+    today: [{ title: 'Gym — legs', due_at: at(-120), state: 'verified' }, { title: 'No sugar', due_at: at(240), state: 'pending' }] }],
+  invites: [], max_partners: 5, can_invite: true,
+};
+const monday = (() => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7) - 7); return d.toISOString().slice(0, 10); })();
+const demoReport = {
+  id: 'r1', week_start: monday, created_at: new Date().toISOString(),
+  data: { week_start: monday, week_end: monday, settled: 23, verified: 20, missed: 2, rejected: 1, excused: 0, success_rate: 87, previous_success_rate: 79,
+    points: 800, score_start: 70, score_end: 74, best: { title: 'Cold shower — 3 min', verified: 7, settled: 7 }, worst: { title: 'Read 20 pages', verified: 4, settled: 7 },
+    best_day: 'Tuesday', hardest_day: 'Saturday', commitments: [{ title: 'Cold shower — 3 min', verified: 7, settled: 7 }, { title: 'Morning run — 5 km', verified: 6, settled: 6 }, { title: 'Read 20 pages', verified: 4, settled: 7 }, { title: 'Deep work — 2 hours', verified: 3, settled: 3 }],
+    challenges_completed: 0, challenges_failed: 0, longest_streak: 12 },
+};
 
 const events: ScoreEvent[] = [
   { id: 5, target_id: 't-shower', delta: 50, reason: 'verified', streak_after: 12, created_at: at(-173), habit: { title: 'Cold shower — 3 min' } },
@@ -104,9 +123,46 @@ export const demoApi: Api = {
     await sleep(2600);
     const t = targets.find((x) => x.id === 't-run')!;
     if (t.status === 'pending') { t.status = 'verified'; profile.total_points += 50; habits[1].current_streak += 1; }
-    return { proof_id: id(), outcome: 'verified', verified: true, points_delta: 50, streak: habits[1].current_streak, total_points: profile.total_points, received_at: new Date().toISOString(),
+    return { proof_id: id(), outcome: 'verified', verified: true, points_delta: 50, streak: habits[1].current_streak, total_points: profile.total_points, received_at: new Date().toISOString(), level: habits[1].verification_level, requested_evidence: null,
       critique: 'Running shoes, an outdoor track and a watch showing 5.02 km are visible. Target met inside the window.' };
   },
+  getTargetReview: async (tid): Promise<TargetReview> => {
+    const t = targets.find((x) => x.id === tid);
+    if (!t || t.status === 'pending') return { proof: null, appeal: null, appealUntil: null };
+    if (t.status === 'rejected') {
+      return { proof: { id: `p-${tid}`, outcome: 'rejected', critique: 'Only a desk and a laptop are visible; nothing shows the run.', judged_at: at(-60), level: 'standard', requested_evidence: null },
+        appeal: demoAppeals[tid] ?? null, appealUntil: demoAppeals[tid] ? null : at(47 * 60) };
+    }
+    return { proof: null, appeal: null, appealUntil: null };
+  },
+  appealProof: async (proofId, note): Promise<AppealResult> => {
+    await sleep(2200);
+    const tid = proofId.replace(/^p-/, '');
+    demoAppeals[tid] = { id: id(), status: 'upheld', note, critique: 'The second review reached the same decision: the photos show a desk, not a run.', created_at: new Date().toISOString(), decided_at: new Date().toISOString() };
+    return { appeal_id: demoAppeals[tid].id, status: 'upheld', critique: demoAppeals[tid].critique, points_delta: 0 };
+  },
+  getCoachMessages: async () => coach.slice(),
+  askCoach: async (message) => {
+    await sleep(1800);
+    coach.push({ id: coach.length + 1, role: 'user', content: message, created_at: new Date().toISOString() });
+    const reply = 'Demo mode: the coach answers from your real data once you sign in. In this demo, Read 20 pages is your weakest commitment — missed yesterday at its 20:00 window.\nNext: move Read 20 pages to 21:00 and put the book on your pillow.';
+    coach.push({ id: coach.length + 1, role: 'coach', content: reply, created_at: new Date().toISOString() });
+    return { reply, remaining: 19 };
+  },
+  getWeeklyReports: async (): Promise<WeeklyReports> => ({ locked: false, reports: [demoReport] }),
+  getPlan: async (): Promise<Plan> => ({ premium: true, free_max_commitments: 2, active_commitments: habits.filter((h) => h.is_active && !h.archived_at).length }),
+  getAchievements: async (): Promise<Achievement[]> => [
+    ['first_proof', 'First proof', 'Your first verified target.', at(-60 * 24 * 40)], ['streak_7', 'One week straight', 'A 7-day streak on one commitment.', at(-60 * 24 * 30)],
+    ['perfect_week', 'Perfect week', 'A Monday-to-Sunday week with at least 5 targets, all verified.', at(-60 * 24 * 9)], ['comeback', 'Comeback', 'Verified the next target after a miss.', at(-60 * 24 * 12)],
+    ['points_1000', '1,000 points', 'Reach 1,000 total points.', at(-60 * 24 * 3)], ['challenge_done', 'Challenge complete', 'Finish a challenge.', null],
+    ['score_80', 'Disciplined', 'A Discipline Score of 80 or more (not provisional).', null], ['streak_30', 'Thirty days', 'A 30-day streak on one commitment.', null],
+  ].map(([key, title, description, unlocked_at]) => ({ key: key as string, title: title as string, description: description as string, unlocked_at: unlocked_at as string | null })),
+  getPartners: async (): Promise<Partners> => ({ ...demoPartners, partners: demoPartners.partners.map((p) => ({ ...p })) }),
+  createPartnerInvite: async () => { const inv = { code: 'K7QD3MPA', expires_at: at(7 * 1440) }; demoPartners.invites = [inv]; return inv; },
+  acceptPartnerInvite: async () => { throw new Error('Demo mode: invite codes work once you sign in.'); },
+  revokePartnerInvite: async (code) => { demoPartners.invites = demoPartners.invites.filter((i) => i.code !== code); return true; },
+  removePartner: async (pid) => { demoPartners.partners = demoPartners.partners.filter((p) => p.id !== pid); return true; },
+  nudgePartner: async (pid) => { const p = demoPartners.partners.find((x) => x.id === pid); if (!p || p.nudged_today) return false; p.nudged_today = true; return true; },
   refreshEntitlement: async () => ({ premium: true }),
   savePushToken: async () => {},
   deletePushTokens: async () => {},

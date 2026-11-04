@@ -67,6 +67,14 @@
           "color": "#FFFFFF"
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "NoExcuse lets you attach a screenshot from your tracking app as extra evidence at Strict and Elite verification. Only the image you pick is uploaded.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "experiments": {

@@ -17,12 +17,15 @@ import { haptics } from '@/lib/haptics';
 import { useLoad } from '@/lib/hooks';
 import { formatTime } from '@/lib/time';
 import { color, radius } from '@/theme/tokens';
+import { Upsell } from '@/components/Upsell';
+import { useApp } from '@/providers/AppProvider';
 
 const toDate = (hhmmss: string) => { const [h, m] = hhmmss.split(':').map(Number); const d = new Date(); d.setHours(h, m, 0, 0); return d; };
 
 export default function StartChallenge() {
   const { template } = useLocalSearchParams<{ template: string }>();
   const custom = template === 'custom';
+  const { premium } = useApp();
   const q = useLoad(async () => {
     const [ch, habits] = await Promise.all([api.getChallenges(), api.getHabits()]);
     const busyHabits = new Set(ch.mine.filter((c) => c.status === 'active').map((c) => c.habit_id));
@@ -65,7 +68,7 @@ export default function StartChallenge() {
     try {
       const h = await api.createHabit({
         title: t.habit_title, proof_hint: t.proof_hint, target_time: t.habit_time ?? '07:00:00', weekdays: t.habit_weekdays ?? [1, 2, 3, 4, 5, 6, 7],
-        is_active: true, reminder_minutes: 10, category: t.category, custom_category: null, description: null, notes: null,
+        is_active: true, reminder_minutes: 10, category: t.category, custom_category: null, description: null, notes: null, verification_level: 'standard',
       });
       await start(h.id, 'create');
     } catch (e) {
@@ -76,7 +79,7 @@ export default function StartChallenge() {
   return (
     <Screen>
       <BackHeader overline={custom ? 'Your rules' : t ? `${t.duration_days} days · ${categoryLabel(t.category, null)}` : 'Challenge'} title={custom ? 'Custom challenge' : t?.title ?? 'Challenge'} />
-      {q.loading && !q.data ? <LoadingPanel label="Loading…" /> : q.error && !q.data ? (
+      {!premium ? <Upsell title="Challenges are part of Premium." body="Finish a challenge for a one-time bonus of 10 points per required day." /> : q.loading && !q.data ? <LoadingPanel label="Loading…" /> : q.error && !q.data ? (
         <MessagePanel kind="error" icon="Alert" title="Couldn’t load." body="Check your connection and try again." action="Try again" onAction={() => q.reload()} />
       ) : !custom && !t ? (
         <MessagePanel kind="empty" icon="Target" title="Challenge not found." body="Pick one from the list." action="All challenges" onAction={() => router.navigate('/challenges')} />

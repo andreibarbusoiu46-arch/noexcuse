@@ -1,9 +1,10 @@
+import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, useWindowDimensions, View } from 'react-native';
 import { Badge } from '@/components/Badge';
 import { Mark } from '@/components/Brand';
-import { Button } from '@/components/Button';
+import { Button, IconButton } from '@/components/Button';
 import { Divider } from '@/components/Card';
 import { Glass } from '@/components/Glass';
 import { Icon } from '@/components/Icon';
@@ -17,10 +18,12 @@ import { buy, loadPlan, paywallAvailable, restore, type Plan } from '@/lib/purch
 import { useApp } from '@/providers/AppProvider';
 import { color, radius } from '@/theme/tokens';
 
-const BENEFITS = ['Live proof camera + AI verification', 'Points, streaks and the daily Arena', 'Unlimited habits and smart reminders', 'Recovery plans after a missed target'];
+const FREE = ['2 active commitments', 'Live proof + AI verification (Standard)', 'Points, streaks, Discipline Score and the Arena'];
+const BENEFITS = ['Unlimited commitments', 'Strict and Elite verification', 'Challenges with bonus points', 'Appeals: a second AI review', 'AI coach and weekly reports', 'Smart reminders and partner invites'];
 
 export default function Paywall() {
-  const { refreshPremium, signOut } = useApp();
+  const { refreshPremium, premium } = useApp();
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const [plan, setPlan] = useState<Plan | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'unavailable' | 'error'>(() => (paywallAvailable() ? 'loading' : 'unavailable'));
   const [busy, setBusy] = useState<'buy' | 'restore' | null>(null);
@@ -45,7 +48,7 @@ export default function Paywall() {
     }
     await api.refreshEntitlement().catch(() => null);
     const ok = await refreshPremium();
-    if (ok) haptics.success();
+    if (ok) { haptics.success(); close(); }
   }
 
   async function onBuy() {
@@ -83,7 +86,6 @@ export default function Paywall() {
         </Tap>
         <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel="Terms of Use"><T variant="caption" tone="secondary">Terms of Use</T></Tap>
         {config.privacyUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link" accessibilityLabel="Privacy Policy"><T variant="caption" tone="secondary">Privacy Policy</T></Tap> : null}
-        <Tap onPress={signOut} accessibilityLabel="Sign out"><T variant="caption" tone="tertiary">Sign out</T></Tap>
       </View>
     </>
   );
@@ -94,7 +96,7 @@ export default function Paywall() {
       background={<Summit top={40} height={260} />}
       footer={
         <>
-          {state === 'ready' && <Button label={cta} onPress={onBuy} loading={busy === 'buy'} disabled={busy === 'restore'} />}
+          {state === 'ready' && !premium && <Button label={cta} onPress={onBuy} loading={busy === 'buy'} disabled={busy === 'restore'} />}
           {state === 'loading' && <View style={{ height: 56, justifyContent: 'center' }}><ActivityIndicator color={color.text.secondary} /></View>}
           {state === 'error' && <Button kind="glass" label="Couldn’t load the plan — retry" icon="Retry" onPress={() => { setState('loading'); setAttempt((n) => n + 1); }} />}
           {state === 'unavailable' && (
@@ -108,12 +110,20 @@ export default function Paywall() {
         </>
       }
     >
-      <View style={{ height: compact ? 24 : 70 }} />
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: compact ? 0 : 20 }}>
+        <IconButton icon="Close" label="Close" onPress={close} />
+      </View>
       <Mark />
       <View style={{ gap: 6 }}>
         <T variant="overline" tone="accent">NoExcuse Premium</T>
         <T variant="h1" accessibilityRole="header">Unlock Your Discipline</T>
       </View>
+      {premium && (
+        <View style={{ padding: 14, borderRadius: radius.md, backgroundColor: color.surface.glass }}>
+          <T variant="bodyStrong">Premium is active on this account.</T>
+        </View>
+      )}
+      <T variant="caption" tone="tertiary">Free keeps: {FREE.join(' · ')}.</T>
       <View style={{ gap: 10 }}>
         {BENEFITS.map((b) => (
           <View key={b} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>

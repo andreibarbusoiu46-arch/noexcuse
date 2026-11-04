@@ -1,8 +1,8 @@
 import { callFunction, supabase } from '@/lib/supabase';
-import type { Api, ArenaRow, CaptureSession, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, VerdictResult, WarRoom } from './types';
+import type { Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
-const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, proof_hint, current_streak, is_active)';
-const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
+const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, proof_hint, current_streak, is_active, verification_level)';
+const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, verification_level, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
 
 async function uid(): Promise<string> {
   const { data } = await supabase.auth.getSession();
@@ -12,13 +12,14 @@ async function uid(): Promise<string> {
 }
 
 function must<T>(res: { data: T | null; error: { message: string } | null }): T {
-  if (res.error) throw new Error(res.error.message);
+  // Server-enforced plan limits arrive as "premium_required: <reason>"; show only the reason.
+  if (res.error) throw new Error(res.error.message.replace(/^premium_required: /, ''));
   return res.data as T;
 }
 
 export const liveApi: Api = {
   async getProfile() {
-    return must(await supabase.from('profiles').select('id, display_name, timezone, total_points').eq('id', await uid()).single()) as Profile;
+    return must(await supabase.from('profiles').select('id, display_name, timezone, total_points, notify_prefs').eq('id', await uid()).single()) as Profile;
   },
   async updateProfile(patch) {
     must(await supabase.from('profiles').update(patch).eq('id', await uid()));
@@ -88,7 +89,37 @@ export const liveApi: Api = {
     } satisfies MissedDetail;
   },
   startProof: (targetId) => callFunction<CaptureSession>('start-proof', { target_id: targetId }),
-  verifyProof: (sessionId, imageBase64) => callFunction<VerdictResult>('verify-proof', { session_id: sessionId, image_base64: imageBase64 }),
+  verifyProof: (sessionId, images) => callFunction<VerdictResult>('verify-proof', { session_id: sessionId, images }),
+  async getTargetReview(targetId) {
+    const proof = (must(
+      await supabase.from('proofs').select('id, outcome, critique, judged_at, level, requested_evidence').eq('target_id', targetId)
+        .neq('outcome', 'processing').order('created_at', { ascending: false }).limit(1),
+    ) as TargetReview['proof'][])[0] ?? null;
+    const appeal = (must(
+      await supabase.from('appeals').select('id, status, note, critique, created_at, decided_at').eq('target_id', targetId).maybeSingle(),
+    ) as Appeal | null) ?? null;
+    const hours = (must(await supabase.from('app_config').select('value').eq('key', 'appeal_window_hours').maybeSingle()) as { value: number } | null)?.value ?? 48;
+    const appealUntil = proof?.outcome === 'rejected' && proof.judged_at && !appeal
+      ? new Date(new Date(proof.judged_at).getTime() + hours * 3_600_000).toISOString() : null;
+    return { proof, appeal, appealUntil };
+  },
+  appealProof: (proofId, note) => callFunction<AppealResult>('appeal-proof', { proof_id: proofId, note }),
+  async getCoachMessages(limit) {
+    const rows = must(await supabase.from('coach_messages').select('id, role, content, created_at').order('created_at', { ascending: false }).limit(limit)) as CoachMessage[];
+    return rows.reverse();
+  },
+  askCoach: (message) => callFunction<{ reply: string; remaining: number }>('coach', { message }),
+  async getWeeklyReports() {
+    return must(await supabase.rpc('get_weekly_reports', { p_limit: 12 })) as WeeklyReports;
+  },
+  async getPartners() { return must(await supabase.rpc('get_partners')) as Partners; },
+  async getPlan() { return must(await supabase.rpc('get_plan')) as Plan; },
+  async getAchievements() { return must(await supabase.rpc('get_achievements')) as Achievement[]; },
+  async createPartnerInvite() { return must(await supabase.rpc('create_partner_invite')) as { code: string; expires_at: string }; },
+  async acceptPartnerInvite(code) { return must(await supabase.rpc('accept_partner_invite', { p_code: code })) as { partner_id: string; display_name: string }; },
+  async revokePartnerInvite(code) { return must(await supabase.rpc('revoke_partner_invite', { p_code: code })) as boolean; },
+  async removePartner(id) { return must(await supabase.rpc('remove_partner', { p_partner: id })) as boolean; },
+  async nudgePartner(id) { return must(await supabase.rpc('nudge_partner', { p_partner: id })) as boolean; },
   refreshEntitlement: () => callFunction<{ premium: boolean }>('refresh-entitlement', {}),
   async savePushToken(token, platform) {
     must(await supabase.from('push_tokens').upsert({ token, platform, user_id: await uid(), updated_at: new Date().toISOString() }));

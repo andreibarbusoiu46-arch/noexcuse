@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { LoadingPanel, MessagePanel } from '@/components/StatePanel';
 import { T } from '@/components/Text';
 import { api, type Habit, type Target } from '@/data';
+import { notify } from '@/lib/dialog';
 import { haptics } from '@/lib/haptics';
 import { useLoad, useNow } from '@/lib/hooks';
 import { habitCard } from '@/lib/status';
@@ -19,17 +20,18 @@ import { color } from '@/theme/tokens';
 type Filter = 'today' | 'all' | 'paused';
 
 export default function Habits() {
-  const { profile } = useApp();
+  const { profile, premium } = useApp();
   const tz = profile?.timezone;
   const now = useNow(30_000);
   const [filter, setFilter] = useState<Filter>('today');
   const q = useLoad(async () => {
-    const [habits, targets] = await Promise.all([
+    const [habits, targets, plan] = await Promise.all([
       api.getHabits(),
       api.getTargets(new Date(Date.now() - 12 * 3600_000).toISOString(), new Date(Date.now() + 48 * 3600_000).toISOString()),
+      api.getPlan().catch(() => null),
     ]);
-    return { habits, targets };
-  });
+    return { habits, targets, plan };
+  }, [premium]);
 
   // Archived commitments keep their history (open them from the habit detail) but are not listed here.
   const habits = (q.data?.habits ?? []).filter((h) => !h.archived_at);
@@ -43,11 +45,16 @@ export default function Habits() {
     : filter === 'today' ? active.filter((h) => (q.data?.targets ?? []).some((t) => t.habit_id === h.id && localDay(t.due_at, tz) === today))
     : habits;
 
+  const freeMax = q.data?.plan?.free_max_commitments ?? 2;
+  const atFreeLimit = !premium && active.length >= freeMax;
+
   async function toggle(h: Habit, on: boolean) {
     haptics.medium();
-    await api.updateHabit(h.id, { is_active: on }).catch(() => haptics.error());
+    await api.updateHabit(h.id, { is_active: on }).catch((e: Error) => { haptics.error(); notify('Can’t activate', e.message); });
     void q.reload({ silent: true });
   }
+
+  const create = () => (atFreeLimit ? router.push('/paywall') : router.push('/habit/new'));
 
   return (
     <Screen tabBar refreshing={q.refreshing} onRefresh={() => q.reload()}>
@@ -56,8 +63,13 @@ export default function Habits() {
           <T variant="overline" tone="tertiary">{active.length} active · {habits.length - active.length} paused</T>
           <T variant="h1" accessibilityRole="header">Commitments</T>
         </View>
-        <IconButton icon="Plus" label="New habit" onPress={() => router.push('/habit/new')} />
+        <IconButton icon="Plus" label="New commitment" onPress={create} />
       </View>
+      {!premium && (
+        <T variant="caption" tone={atFreeLimit ? 'secondary' : 'tertiary'}>
+          Free plan: {Math.min(active.length, freeMax)} of {freeMax} active commitments.{atFreeLimit ? ' Pause one to add another, or go Premium for unlimited.' : ''}
+        </T>
+      )}
       <Segmented value={filter} onChange={setFilter} options={[{ key: 'today', label: 'Today' }, { key: 'all', label: 'All' }, { key: 'paused', label: 'Paused' }]} />
 
       {q.loading && !q.data ? (
@@ -65,7 +77,7 @@ export default function Habits() {
       ) : q.error && !q.data ? (
         <MessagePanel kind="error" icon="Alert" title="Couldn’t load habits." body="Check your connection and try again." action="Try again" onAction={() => q.reload()} />
       ) : habits.length === 0 ? (
-        <MessagePanel kind="empty" icon="Target" title="No habits yet." body="Create one target with a time and days. That’s your first commitment." action="Create a habit" onAction={() => router.push('/habit/new')} />
+        <MessagePanel kind="empty" icon="Target" title="No commitments yet." body="Pick a time and the days. That’s your first commitment." action="Create a commitment" onAction={create} />
       ) : shown.length === 0 ? (
         <MessagePanel kind="empty" icon={filter === 'paused' ? 'Minus' : 'Check'} title={filter === 'paused' ? 'Nothing paused.' : 'Nothing scheduled today.'} body={filter === 'paused' ? 'Paused habits keep their history and score nothing.' : 'Check “All” to see your full schedule.'} />
       ) : (

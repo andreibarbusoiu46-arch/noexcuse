@@ -47,7 +47,7 @@ export default function RootLayout() {
 }
 
 function Navigator({ fontsReady }: { fontsReady: boolean }) {
-  const { ready, session, premium } = useApp();
+  const { ready, session } = useApp();
   const signedIn = !!session;
   const show = ready && fontsReady;
 
@@ -55,13 +55,14 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
     if (show) SplashScreen.hideAsync().catch(() => {});
   }, [show]);
 
-  useNotificationRouting(signedIn && premium);
+  useNotificationRouting(signedIn);
 
   if (!show) return null;
   const sheet = { presentation: 'formSheet' as const, sheetAllowedDetents: [0.94], sheetGrabberVisible: true, sheetCornerRadius: 34, contentStyle: { backgroundColor: color.surface.card } };
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg.base }, animation: Platform.OS === 'ios' ? 'default' : 'fade' }}>
-      <Stack.Protected guard={signedIn && premium}>
+      {/* Free and Premium use the same app; Premium features check the plan on the server. */}
+      <Stack.Protected guard={signedIn}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="habit/new" options={sheet} />
         <Stack.Screen name="habit/[id]" options={sheet} />
@@ -71,9 +72,13 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="discipline" />
         <Stack.Screen name="challenge/[id]" />
         <Stack.Screen name="challenge/start" />
-      </Stack.Protected>
-      <Stack.Protected guard={signedIn && !premium}>
-        <Stack.Screen name="paywall" />
+        <Stack.Screen name="appeal/[targetId]" />
+        <Stack.Screen name="coach" />
+        <Stack.Screen name="reports" />
+        <Stack.Screen name="partners" />
+        <Stack.Screen name="share" />
+        <Stack.Screen name="achievements" />
+        <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="onboarding" />

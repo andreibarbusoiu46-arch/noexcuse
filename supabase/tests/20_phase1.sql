@@ -34,6 +34,9 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('cccccccc-0000-0000-0000-000000000003', 'c@test', '{"display_name":"Cara","timezone":"Europe/Bucharest"}'),
   ('dddddddd-0000-0000-0000-000000000004', 'd@test', '{"display_name":"Dan","timezone":"Europe/Bucharest"}'),
   ('eeeeeeee-0000-0000-0000-000000000005', 'e@test', '{"display_name":"Eva","timezone":"Europe/Bucharest"}');
+-- Challenges and extra commitments are Premium since Phase 5.
+insert into public.entitlements (user_id, is_active, expires_at)
+select id, true, now() + interval '30 days' from auth.users where email in ('c@test', 'd@test', 'e@test');
 
 -- ---------- points come from app_config ----------
 select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004');
@@ -42,7 +45,7 @@ values ('dddddddd-0000-0000-0000-000000000004', 'Workout — 30 min',
         ((now() at time zone 'Europe/Bucharest') + interval '2 hours')::time, '{1,2,3,4,5,6,7}', 'fitness');
 select pg_temp.ok((select count(*) = 2 from public.targets), 'commitment with category creates today + tomorrow');
 select pg_temp.ok((select category = 'fitness' from public.habits), 'category stored');
-select pg_temp.ok((select count(*) = 3 from public.app_config), 'clients can read the points configuration');
+select pg_temp.ok((select count(*) >= 3 from public.app_config), 'clients can read the points configuration');
 select pg_temp.expect_error($$update public.app_config set value = 1000 where key = 'points_verified'$$, 'permission denied');
 
 select pg_temp.as_service();

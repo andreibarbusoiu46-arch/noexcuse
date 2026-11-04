@@ -11,11 +11,14 @@ import { T } from '@/components/Text';
 import { ChallengeRow } from '@/components/WarRoom';
 import { api } from '@/data';
 import { useLoad } from '@/lib/hooks';
+import { useApp } from '@/providers/AppProvider';
+import { Upsell } from '@/components/Upsell';
 import { color } from '@/theme/tokens';
 
 const ENDED = { completed: { label: 'Completed', tone: 'success' }, failed: { label: 'Failed', tone: 'danger' }, abandoned: { label: 'Abandoned', tone: 'neutral' } } as const;
 
 export default function ChallengesTab() {
+  const { premium } = useApp();
   const q = useLoad(() => api.getChallenges());
   const d = q.data;
   const active = (d?.mine ?? []).filter((c) => c.status === 'active');
@@ -32,6 +35,7 @@ export default function ChallengesTab() {
         <MessagePanel kind="error" icon="Alert" title="Challenges didn’t load." body="Check your connection and try again." action="Try again" onAction={() => q.reload()} />
       ) : (
         <>
+          {!premium && <Upsell title="Challenges are part of Premium." body="Put one commitment on the line for 7–30 days. Finish it for a one-time bonus of 10 points per required day." />}
           {active.length > 0 && (
             <View style={{ gap: 12 }}>
               <SectionHeader title="Active" />
@@ -55,7 +59,7 @@ export default function ChallengesTab() {
               {(d?.templates ?? []).map((t, i) => (
                 <View key={t.id}>
                   {i > 0 && <Divider />}
-                  <Tap onPress={() => router.push({ pathname: '/challenge/start', params: { template: t.id } })} accessibilityLabel={`${t.title}, ${t.duration_days} days. ${t.tagline}`}>
+                  <Tap onPress={() => (premium ? router.push({ pathname: '/challenge/start', params: { template: t.id } }) : router.push('/paywall'))} accessibilityLabel={`${t.title}, ${t.duration_days} days. ${t.tagline}`}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 }}>
                       <View style={{ flex: 1, gap: 3 }}>
                         <T variant="bodyStrong">{t.title}</T>
@@ -68,7 +72,7 @@ export default function ChallengesTab() {
                 </View>
               ))}
               <Divider />
-              <Tap onPress={() => router.push({ pathname: '/challenge/start', params: { template: 'custom' } })} accessibilityLabel="Custom challenge: choose the name, length and misses">
+              <Tap onPress={() => (premium ? router.push({ pathname: '/challenge/start', params: { template: 'custom' } }) : router.push('/paywall'))} accessibilityLabel="Custom challenge: choose the name, length and misses">
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 }}>
                   <View style={{ flex: 1, gap: 3 }}>
                     <T variant="bodyStrong">Custom challenge</T>

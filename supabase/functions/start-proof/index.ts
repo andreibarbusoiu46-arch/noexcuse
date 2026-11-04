@@ -1,6 +1,7 @@
 // POST { target_id } → issues a short-lived capture session when the in-app camera opens.
 // Proof can only be submitted against a fresh session (≤ 3 min), inside the target's window.
-import { adminClient, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
+// Free and Premium: the level of verification is decided in verify-proof.
+import { adminClient, fail, json, requireUser, withCors } from "../_shared/http.ts";
 import { CAPTURE_MAX_AGE_SECONDS, classifyWindow, windowBounds } from "../_shared/rules.ts";
 
 Deno.serve(withCors(async (req) => {
@@ -11,7 +12,7 @@ Deno.serve(withCors(async (req) => {
 
   const body = await req.json().catch(() => ({})) as { target_id?: string };
   if (!body.target_id) return fail(400, "bad_request", "target_id is required.");
-  if (!(await hasPremium(db, user.id))) return fail(402, "premium_required", "An active NoExcuse Premium subscription is required.");
+  // Free accounts verify too (Standard level, max 2 active commitments — enforced in the database).
 
   const { data: target } = await db.from("targets").select("id, user_id, due_at, status").eq("id", body.target_id).maybeSingle();
   if (!target || target.user_id !== user.id) return fail(404, "not_found", "Target not found.");

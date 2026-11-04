@@ -1,26 +1,35 @@
-# NoExcuse — status (Oct 22, 2026)
+# NoExcuse — status (Nov 4, 2026)
 
-Read README.md first: structure, product rules, setup steps, checks.
+## Live
+- Web app + landing: https://noexcuse.vercel.app (deploys from `main`).
+- Supabase project `ibsrtuyrflvprmjuuoqb`: all migrations in `supabase/migrations` applied; Edge Functions
+  `start-proof`, `verify-proof`, `appeal-proof`, `coach`, `cron-tick` (every minute), `delete-account`,
+  `refresh-entitlement`, `revenuecat-webhook`, `ai-health` (diagnostic; returns only status codes).
+- Functions are deployed as `deno bundle --minify` builds of the sources in `supabase/functions`.
 
-## Done
-- **Figma:** file “NoExcuse — iOS App” (Foundations, Components, Screens), built Oct 21.
-- **Database:** migrations for schema, RLS, scoring, scheduling, Arena and stats. Tested on Postgres 16 (`npm run test:db`): 40 checks pass, plus 13 checks that must fail (permissions, invalid input, late proof).
-- **Edge functions:** start-proof, verify-proof, refresh-entitlement, revenuecat-webhook, cron-tick and delete-account. All type-check, and 14 Deno unit tests pass.
-- **App (Expo SDK 58):** all screens A–I with every state.
-  - Native Liquid Glass with a fallback, NativeTabs, haptics on every tap.
-  - Live camera (no gallery) and the RevenueCat paywall with live price and trial eligibility.
-  - Push routing, account deletion, and the 3D emblem (React Three Fiber).
-  - TypeScript, lint and the iOS production bundle all pass.
-  - Checked visually in a demo web build at 320, 390 and 820 pt widths. The full proof flow was clicked through: camera → preview → submit → verdict → Home updates.
+## What the product does
+- Phase 0: verification retries every minute; after 5 failures or 24 h the target is excused (no penalty).
+- Phase 1: War Room, Discipline Score (45/25/20/10), append-only points ledger, commitment details/archive, Challenges.
+- Phase 2: verification levels (Standard 1 live photo; Strict 2 live + optional screenshot; Elite 2 live + required
+  screenshot), duplicate detection (SHA-256 + dHash), "needs more evidence" with the exact next capture,
+  one AI re-review appeal per rejection (+150 compensating ledger row if overturned).
+- Phase 3: AI coach (grounded in a server snapshot, 20 messages/day), weekly reports (Monday 06:00 local),
+  smart reminders (heads-up for often-missed commitments, last call), notification preferences.
+- Phase 4: accountability partners (invite codes, nudges, partner-missed alerts), share card image.
+- Phase 5: free plan enforced in the database (2 active commitments, Standard only, no challenges),
+  achievements (13), paywall as a modal instead of a gate.
 
-## Next (needs the owner's accounts)
-1. Supabase project: `db push`, auth providers, secrets, deploy functions, run `supabase/sql/schedule_cron.sql`.
-2. App Store Connect: subscription €9.99 with a 3-day free trial; RevenueCat entitlement `premium`, offering `default`, webhook.
-3. `eas init` (projectId for push), APNs key, `eas build --profile development`, then test on an iOS 26 iPhone.
-4. Tune `OPENAI_MODEL` and the prompt on 20–30 real proof photos (verified, rejected and borderline).
-5. Publish the privacy policy URL and set the bundle id if it isn't `app.noexcuse.ios`.
+Free: 2 active commitments, Standard verification, points, Discipline Score, War Room, Arena, achievements,
+share card, joining a partner's circle. Premium (€9.99/month): everything else.
 
-## Notes
-- If the network blocks the Expo API, install packages with `EXPO_OFFLINE=1 npx expo install …`.
-- Demo mode: `EXPO_PUBLIC_DEMO=1`. On web, `?gate=signedout` or `?gate=paywall` previews those screens. It works in Expo Go and never talks to the backend.
-- `expo-doctor`: 18/20 checks pass here. The other 2 need the Expo API, which this environment can't reach.
+## Needs the owner
+1. OpenAI: the key is set, but the account has no credit (`credit_balance_exhausted`). Add credit at
+   platform.openai.com → Billing. Until then every proof is saved and retried, then excused without penalty.
+2. RevenueCat + App Store Connect: create the €9.99 monthly product and the `premium` entitlement, then set
+   `REVENUECAT_SECRET_KEY`, `REVENUECAT_WEBHOOK_AUTH` (Supabase secrets) and `EXPO_PUBLIC_REVENUECAT_IOS_KEY` (app build).
+3. Optional: Supabase Auth → enable leaked password protection; `EXPO_ACCESS_TOKEN` secret for push.
+
+## Tests
+- Database: `PGHOST=... PGPORT=... PGUSER=postgres bash supabase/tests/run.sh` (phases 0–5).
+- Functions: `cd supabase/functions && deno test --allow-env --no-lock --node-modules-dir=none tests`.
+- App: `npx tsc --noEmit && npx eslint src`.
