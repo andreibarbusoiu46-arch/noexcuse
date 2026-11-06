@@ -45,7 +45,7 @@ export function ScoreCard({ score, onPress }: { score: DisciplineScore | null; o
 
 export function MiniStat({ label, value, caption }: { label: string; value: string; caption?: string }) {
   return (
-    <View style={{ flex: 1, minWidth: 140, backgroundColor: color.surface.card, borderColor: color.border.hairline, borderWidth: 1, borderRadius: radius.lg, padding: 14, gap: 4 }}
+    <View style={{ flex: 1, minWidth: 96, backgroundColor: color.surface.card, borderColor: color.border.hairline, borderWidth: 1, borderRadius: radius.lg, padding: 14, gap: 4 }}
       accessible accessibilityLabel={`${label}: ${value}${caption ? `, ${caption}` : ''}`}>
       <T variant="overline" tone="tertiary" numberOfLines={1}>{label}</T>
       <T variant="h2" numberOfLines={1} adjustsFontSizeToFit>{value}</T>

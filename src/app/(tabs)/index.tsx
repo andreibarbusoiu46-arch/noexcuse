@@ -75,9 +75,11 @@ export default function Home() {
             <QuickLink icon="Profile" title={t.home.partners} caption={t.home.partnersCaption} onPress={() => router.push('/partners')} />
           </View>
 
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
             <MiniStat label={t.home.today} value={`${done}/${list.length}`} caption={failed ? t.home.failedOpen(failed, open) : t.home.openN(open)} />
             <MiniStat label={t.home.thisWeek} value={room?.week.success_rate == null ? '—' : `${room.week.success_rate}%`} caption={t.home.verifiedOf(room?.week.verified ?? 0, room?.week.settled ?? 0)} />
+          </View>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
             <MiniStat label={t.home.streak} value={String(room?.streak ?? 0)} caption={t.home.days} />
             <MiniStat label={t.home.points} value={fmtNumber(room?.total_points ?? 0)} caption={d?.me ? t.home.rankToday(d.me.rank) : t.home.total} />
           </View>

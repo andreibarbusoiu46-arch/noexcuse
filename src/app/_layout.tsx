@@ -94,6 +94,10 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="discipline" />
         <Stack.Screen name="challenge/[id]" />
         <Stack.Screen name="challenge/start" />
+        <Stack.Screen name="challenge/preview" />
+        <Stack.Screen name="challenge/custom" />
+        <Stack.Screen name="challenge/generate" />
+        <Stack.Screen name="settings" />
         <Stack.Screen name="appeal/[targetId]" />
         <Stack.Screen name="coach" />
         <Stack.Screen name="reports" />

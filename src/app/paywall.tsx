@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { t } from '@/i18n';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, useWindowDimensions, View } from 'react-native';
@@ -18,8 +19,6 @@ import { buy, loadPlan, paywallAvailable, restore, type Plan } from '@/lib/purch
 import { useApp } from '@/providers/AppProvider';
 import { color, radius } from '@/theme/tokens';
 
-const FREE = ['2 active commitments', 'Live proof + AI verification (Standard)', 'Points, streaks, Discipline Score and the Arena'];
-const BENEFITS = ['Unlimited commitments', 'Strict and Elite verification', 'Challenges with bonus points', 'Appeals: a second AI review', 'AI coach and weekly reports', 'Smart reminders and partner invites'];
 
 export default function Paywall() {
   const { refreshPremium, premium } = useApp();
@@ -43,7 +42,7 @@ export default function Paywall() {
   async function finish(premiumOnDevice: boolean) {
     if (!premiumOnDevice) {
       haptics.warning();
-      setMessage({ tone: 'secondary', text: 'No active subscription found for this Apple ID.' });
+      setMessage({ tone: 'secondary', text: t.paywall.noSub });
       return;
     }
     await api.refreshEntitlement().catch(() => null);
@@ -56,7 +55,7 @@ export default function Paywall() {
     setBusy('buy'); setMessage(null);
     const r = await buy(plan);
     if (r.ok) await finish(r.premium);
-    else if (!r.cancelled) { haptics.error(); setMessage({ tone: 'danger', text: r.message }); }
+    else if (!r.cancelled) { haptics.error(); setMessage({ tone: 'danger', text: r.message || t.paywall.buyFailed }); }
     setBusy(null);
   }
 
@@ -64,7 +63,7 @@ export default function Paywall() {
     setBusy('restore'); setMessage(null);
     const r = await restore();
     if (r.ok) await finish(r.premium);
-    else { haptics.error(); setMessage({ tone: 'danger', text: r.message }); }
+    else { haptics.error(); setMessage({ tone: 'danger', text: r.message || t.paywall.restoreFailed }); }
     setBusy(null);
   }
 
@@ -72,20 +71,18 @@ export default function Paywall() {
   const compact = height < 700;
   const price = plan?.priceString ?? '€9.99';
   const trial = plan?.trialDays ?? null;
-  const cta = trial ? `Start ${trial}-day free trial` : `Subscribe for ${price}/month`;
-  const terms = trial
-    ? `${trial} days free, then ${price}/month. Auto-renews monthly until cancelled. Cancel anytime in Settings › Apple ID › Subscriptions at least 24 hours before the trial ends to avoid being charged.`
-    : `${price}/month, billed to your Apple ID. Auto-renews monthly until cancelled. Cancel anytime in Settings › Apple ID › Subscriptions at least 24 hours before renewal.`;
+  const cta = trial ? t.paywall.ctaTrial(trial) : t.paywall.cta(price);
+  const terms = trial ? t.paywall.termsTrial(trial, price) : t.paywall.terms(price);
 
   const legalBlock = (
     <>
       {state === 'ready' && <T variant="caption" tone="tertiary" align="center">{terms}</T>}
       <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', columnGap: 18, rowGap: 6 }}>
-        <Tap onPress={onRestore} disabled={busy !== null || !paywallAvailable()} accessibilityLabel="Restore purchases">
-          <T variant="caption" tone="secondary">{busy === 'restore' ? 'Restoring…' : 'Restore purchases'}</T>
+        <Tap onPress={onRestore} disabled={busy !== null || !paywallAvailable()} accessibilityLabel={t.paywall.restore}>
+          <T variant="caption" tone="secondary">{busy === 'restore' ? t.paywall.restoring : t.paywall.restore}</T>
         </Tap>
-        <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel="Terms of Use"><T variant="caption" tone="secondary">Terms of Use</T></Tap>
-        {config.privacyUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link" accessibilityLabel="Privacy Policy"><T variant="caption" tone="secondary">Privacy Policy</T></Tap> : null}
+        <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel={t.settings.terms}><T variant="caption" tone="secondary">{t.settings.terms}</T></Tap>
+        {config.privacyUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link" accessibilityLabel={t.settings.privacyPolicy}><T variant="caption" tone="secondary">{t.settings.privacyPolicy}</T></Tap> : null}
       </View>
     </>
   );
@@ -98,34 +95,34 @@ export default function Paywall() {
         <>
           {state === 'ready' && !premium && <Button label={cta} onPress={onBuy} loading={busy === 'buy'} disabled={busy === 'restore'} />}
           {state === 'loading' && <View style={{ height: 56, justifyContent: 'center' }}><ActivityIndicator color={color.text.secondary} /></View>}
-          {state === 'error' && <Button kind="glass" label="Couldn’t load the plan — retry" icon="Retry" onPress={() => { setState('loading'); setAttempt((n) => n + 1); }} />}
+          {state === 'error' && <Button kind="glass" label={t.paywall.loadFail} icon="Retry" onPress={() => { setState('loading'); setAttempt((n) => n + 1); }} />}
           {state === 'unavailable' && (
             <>
-              <T variant="bodySmall" tone="secondary" align="center">{Platform.OS === 'web' ? 'Subscriptions are bought in the iPhone app. On the website, Premium is turned on for test accounts.' : 'Subscriptions aren’t available in this build. Install the TestFlight or App Store version to subscribe.'}</T>
-              <Button kind="glass" label="Check again" icon="Retry" onPress={async () => { const ok = await refreshPremium(); if (!ok) setMessage({ tone: 'secondary', text: 'Premium isn’t active on this account yet.' }); }} />
+              <T variant="bodySmall" tone="secondary" align="center">{Platform.OS === 'web' ? t.paywall.web : t.paywall.noStore}</T>
+              <Button kind="glass" label={t.paywall.checkAgain} icon="Retry" onPress={async () => { const ok = await refreshPremium(); if (!ok) setMessage({ tone: 'secondary', text: t.paywall.notYet }); }} />
             </>
           )}
-          {compact && state === 'ready' && <T variant="caption" tone="secondary" align="center">{trial ? `${trial} days free, then ${price}/month · cancel anytime` : `${price}/month · cancel anytime`}</T>}
+          {compact && state === 'ready' && <T variant="caption" tone="secondary" align="center">{trial ? t.paywall.shortTrial(trial, price) : t.paywall.short(price)}</T>}
           {!compact && legalBlock}
         </>
       }
     >
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: compact ? 0 : 20 }}>
-        <IconButton icon="Close" label="Close" onPress={close} />
+        <IconButton icon="Close" label={t.common.close} onPress={close} />
       </View>
       <Mark />
       <View style={{ gap: 6 }}>
         <T variant="overline" tone="accent">NoExcuse Premium</T>
-        <T variant="h1" accessibilityRole="header">Unlock Your Discipline</T>
+        <T variant="h1" accessibilityRole="header">{t.paywall.title}</T>
       </View>
       {premium && (
         <View style={{ padding: 14, borderRadius: radius.md, backgroundColor: color.surface.glass }}>
-          <T variant="bodyStrong">Premium is active on this account.</T>
+          <T variant="bodyStrong">{t.paywall.active}</T>
         </View>
       )}
-      <T variant="caption" tone="tertiary">Free keeps: {FREE.join(' · ')}.</T>
+      <T variant="caption" tone="tertiary">{t.paywall.freeKeeps(t.paywall.free.join(' · '))}</T>
       <View style={{ gap: 10 }}>
-        {BENEFITS.map((b) => (
+        {t.paywall.benefits.map((b) => (
           <View key={b} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: color.accent.soft, alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="Check" size={14} tint={color.accent.glow} />
@@ -137,21 +134,21 @@ export default function Paywall() {
       <Glass variant="regular" fallback={color.surface.card} border={color.border.accent} style={{ borderRadius: radius.xl, padding: 18, gap: 12, overflow: 'hidden' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ gap: 2 }}>
-            <T variant="bodyStrong">Monthly</T>
+            <T variant="bodyStrong">{t.paywall.monthly}</T>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
               <T variant="h2">{price}</T>
-              <T variant="caption" tone="secondary">/ month</T>
+              <T variant="caption" tone="secondary">{t.paywall.perMonth}</T>
             </View>
           </View>
-          {trial ? <Badge tone="accent" label={`${trial} days free`} /> : null}
+          {trial ? <Badge tone="accent" label={t.paywall.daysFree(trial)} /> : null}
         </View>
         {trial ? (
           <>
             <Divider />
-            {[['Today', 'Full access. You pay nothing today.'], [`Day ${trial + 1}`, `${price}/month begins unless you cancel before then.`]].map(([d, t]) => (
+            {[[t.paywall.today, t.paywall.todayBody], [t.paywall.dayN(trial + 1), t.paywall.dayNBody(price)]].map(([d, body]) => (
               <View key={d} style={{ flexDirection: 'row', gap: 10 }}>
-                <T variant="caption" tone="accent" style={{ width: 48 }}>{d}</T>
-                <T variant="caption" tone="secondary" style={{ flex: 1 }}>{t}</T>
+                <T variant="caption" tone="accent" style={{ width: 56 }}>{d}</T>
+                <T variant="caption" tone="secondary" style={{ flex: 1 }}>{body}</T>
               </View>
             ))}
           </>

@@ -14,7 +14,7 @@ export function Mark({ size = 56 }: { size?: number }) {
             <Stop offset="1" stopColor={palette.silver200} />
           </LinearGradient>
         </Defs>
-        <Rect x="0.5" y="0.5" width="55" height="55" rx="16" fill="url(#m)" stroke="rgba(255,255,255,0.16)" />
+        <Rect x="0.5" y="0.5" width="55" height="55" rx="16" fill="url(#m)" stroke={color.border.strong} />
         <Path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke={palette.obsidian950} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </Svg>
     </View>

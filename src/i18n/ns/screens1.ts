@@ -30,6 +30,8 @@ export const en = {
     code: 'Code', errorA11y: (e: string) => `Error: ${e}. Tap to dismiss.`,
   },
   arena: {
+    rowA11y: (r: number, who: string, p: number, s: number) => `Rank ${r}, ${who}, ${p} points, ${s}-day streak`,
+    placeA11y: (r: number, who: string, p: number) => `Place ${r}: ${who}, ${p} points`,
     resets: (c: string) => `Today · resets in ${c}`, title: 'Arena', ranked: (n: string) => `${n} ranked`,
     loading: 'Loading the Arena…', failTitle: 'Arena didn’t load.', failBody: 'Check your connection. Your score is safe on the server.',
     emptyTitle: 'No rankings yet today.', emptyBody: 'Submit your first verified proof to enter today’s Arena.', goHome: 'Go to Home',
@@ -95,6 +97,8 @@ export const ro: typeof en = {
     code: 'Cod', errorA11y: (e: string) => `Eroare: ${e}. Atinge pentru a închide.`,
   },
   arena: {
+    rowA11y: (r: number, who: string, p: number, s: number) => `Locul ${r}, ${who}, ${p} puncte, serie de ${s}`,
+    placeA11y: (r: number, who: string, p: number) => `Locul ${r}: ${who}, ${p} puncte`,
     resets: (c: string) => `Azi · se resetează în ${c}`, title: 'Arena', ranked: (n: string) => `${n} în clasament`,
     loading: 'Se încarcă Arena…', failTitle: 'Arena nu s-a încărcat.', failBody: 'Verifică conexiunea. Scorul tău e în siguranță pe server.',
     emptyTitle: 'Încă nu există clasament azi.', emptyBody: 'Trimite prima dovadă verificată ca să intri în Arena de azi.', goHome: 'Mergi la Acasă',

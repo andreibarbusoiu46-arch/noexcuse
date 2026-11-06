@@ -70,6 +70,8 @@ export interface Habit {
   reminder_minutes: number;
   current_streak: number;
   longest_streak: number;
+  /** Set when the commitment belongs to a challenge plan. */
+  challenge_id?: string | null;
 }
 
 export type HabitInput = Pick<Habit, 'title' | 'proof_hint' | 'target_time' | 'weekdays' | 'is_active' | 'reminder_minutes' | 'category' | 'custom_category' | 'description' | 'notes' | 'verification_level'>;

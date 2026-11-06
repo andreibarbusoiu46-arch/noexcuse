@@ -2,7 +2,7 @@
 // No backend, no AI, no purchases — for design review and Expo Go only. Never ships with this flag on.
 import { ApiError } from '@/lib/supabase';
 import { demoTemplates } from './demoTemplates';
-import type { Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, Challenge, Challenges, ChallengeTemplate, Discipline, Habit, HabitInput, Profile, ScoreEvent, Target, TargetReview, VerdictResult, WarRoom } from './types';
+import type { ChallengeDetail, Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, Challenge, Challenges, ChallengeTemplate, Discipline, Habit, HabitInput, Profile, ScoreEvent, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
 const MIN = 60_000;
 const at = (offsetMin: number) => new Date(Date.now() + offsetMin * MIN).toISOString();
@@ -192,7 +192,34 @@ export const demoApi: Api = {
   }),
   getChallenges: async (): Promise<Challenges> => ({ templates, mine: challenges, bonus_per_day: 10,
     stats: { active: challenges.filter((c) => c.status === 'active').length, completed: 0, failed: 0, abandoned: challenges.filter((c) => c.status === 'abandoned').length, completion_rate: null, bonus_earned: 0 } }),
-  getChallengeDetail: async () => null,
+  // Demo fixture: the calendar is derived from the challenge's own progress numbers above.
+  getChallengeDetail: async (cid) => {
+    const c = challenges.find((x) => x.id === cid);
+    if (!c) return null;
+    const h = habits.find((x) => x.id === c.habit_id)!;
+    const today = new Date().toISOString().slice(0, 10);
+    const days: ChallengeDetail['days'] = [];
+    let done = 0;
+    for (let d = new Date(`${c.start_date}T12:00:00Z`); d.toISOString().slice(0, 10) <= c.end_date; d = new Date(d.getTime() + 86_400_000)) {
+      const day = d.toISOString().slice(0, 10);
+      const scheduled = c.weekdays.includes(((d.getUTCDay() + 6) % 7) + 1);
+      const past = day < today;
+      const lost = past && scheduled && done === 4 && !days.some((x) => x.state === 'lost');
+      if (past && scheduled && !lost) done++;
+      days.push({ day, targets: scheduled ? 1 : 0, ok: past && scheduled && !lost ? 1 : 0, bad: lost ? 1 : 0,
+        state: day === today ? 'today' : !past ? 'upcoming' : lost ? 'lost' : scheduled ? 'done' : 'upcoming' });
+    }
+    const { habit_title: _ht, objective_count: _oc, ...rest } = c;
+    return {
+      ...rest, streak: 5,
+      objectives: [{ habit_id: h.id, title: h.title, time: h.target_time.slice(0, 5), weekdays: c.weekdays, verification_level: h.verification_level, proof_hint: h.proof_hint, is_active: true, verified: c.progress.done, failed: c.progress.lost }],
+      days,
+      evidence: targets.filter((x) => x.habit_id === h.id && x.status !== 'pending').map((x) => ({
+        target_id: x.id, due_at: x.due_at, title: h.title, status: x.status, outcome: x.status === 'verified' ? 'verified' : x.status === 'rejected' ? 'rejected' : null,
+        level: h.verification_level, critique: x.status === 'verified' ? 'Treadmill display shows 5.0 km; runner visible.' : null, requested_evidence: null, appeal: null,
+      })),
+    };
+  },
   startChallengePlan: async () => { throw new ApiError('demo', 'Demo mode: starting plans needs a signed-in account.', 400); },
   // No fake AI: the generator only runs against the real server.
   generateChallenge: async () => { throw new ApiError('ai_unavailable', 'Demo mode: the AI generator only runs with a signed-in account.', 503); },

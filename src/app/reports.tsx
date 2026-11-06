@@ -87,9 +87,11 @@ function ReportView({ data: x }: { data: WeeklyReportData }) {
           {t.reports.verifiedOf(x.verified, x.settled)}{diff == null ? '' : t.reports.vsPrev(diff >= 0, x.previous_success_rate ?? 0)}
         </T>
       </Card>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
         <MiniStat label={t.reports.points} value={`${x.points > 0 ? '+' : x.points < 0 ? '−' : ''}${Math.abs(x.points)}`} caption={t.reports.thisWeek} />
         <MiniStat label={t.reports.score} value={x.score_end == null ? '—' : String(x.score_end)} caption={scoreDiff == null ? t.reports.discipline : t.reports.scoreMove(scoreDiff)} />
+      </View>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
         <MiniStat label={t.reports.missed} value={String(x.missed + x.rejected)} caption={x.rejected ? t.reports.rejectedN(x.rejected) : t.reports.targets} />
         <MiniStat label={t.reports.streak} value={String(x.longest_streak)} caption={t.reports.bestCurrent} />
       </View>

@@ -76,14 +76,14 @@ export type PurchaseResult = { ok: true; premium: boolean } | { ok: false; cance
 
 export async function buy(plan: Plan): Promise<PurchaseResult> {
   if (config.demo) return { ok: true, premium: true };
-  if (!plan.pkg) return { ok: false, cancelled: false, message: 'No plan available.' };
+  if (!plan.pkg) return { ok: false, cancelled: false, message: '' }; // callers show their own translated fallback
   try {
     const { customerInfo } = await Purchases.purchasePackage(plan.pkg);
     return { ok: true, premium: hasPremium(customerInfo) };
   } catch (e) {
     const err = e as { code?: string; userCancelled?: boolean; message?: string };
     const cancelled = err.code === Purchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR || err.userCancelled === true;
-    return { ok: false, cancelled, message: cancelled ? '' : err.message ?? 'The purchase didn’t go through.' };
+    return { ok: false, cancelled, message: cancelled ? '' : err.message ?? '' };
   }
 }
 
@@ -93,7 +93,7 @@ export async function restore(): Promise<PurchaseResult> {
     const info = await Purchases.restorePurchases();
     return { ok: true, premium: hasPremium(info) };
   } catch (e) {
-    return { ok: false, cancelled: false, message: (e as Error).message ?? 'Restore failed.' };
+    return { ok: false, cancelled: false, message: (e as Error).message ?? '' };
   }
 }
 

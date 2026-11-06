@@ -15,6 +15,13 @@ const DB: [RegExp, () => string][] = [
   [/already has an active challenge/, () => t.domain.errors.alreadyChallenge],
   [/must be active/, () => t.domain.errors.mustBeActive],
   [/too many active challenge objectives/, () => t.domain.errors.tooManyObjectives],
+  [/title must be 1–60/, () => t.domain.errors.planTitle],
+  [/needs a title of 1–80/, () => t.domain.errors.planObjTitle],
+  [/allowed misses must/, () => t.domain.errors.planMisses],
+  [/no objective is scheduled/, () => t.domain.errors.planNoDays],
+  [/needs 1–5 objectives/, () => t.domain.errors.planCount],
+  [/does not match the category/, () => t.domain.errors.planDuration],
+  [/elite challenges allow no misses/, () => t.domain.errors.planElite],
 ];
 
 /** A message the user can read, in their language. */
