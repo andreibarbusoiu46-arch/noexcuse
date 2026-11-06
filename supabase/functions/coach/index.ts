@@ -1,6 +1,7 @@
 // POST { message } → the coach's reply, grounded in the user's own data (Premium, daily limit).
 import { askCoach, type CoachTurn } from "../_shared/coach.ts";
-import { adminClient, env, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
+import { adminClient, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
+import { recordUsage } from "../_shared/llm.ts";
 
 Deno.serve(withCors(async (req) => {
   if (req.method !== "POST") return fail(405, "method_not_allowed", "POST only.");
@@ -30,11 +31,11 @@ Deno.serve(withCors(async (req) => {
   try {
     const { data: prof } = await db.from("profiles").select("language").eq("id", user.id).maybeSingle();
     const replyLanguage = prof?.language === "ro" ? "Romanian" : "English";
-    reply = await askCoach({ ...(context as object), reply_language: replyLanguage }, history, message, {
-      apiKey: env("OPENAI_API_KEY"), model: Deno.env.get("OPENAI_COACH_MODEL") ?? env("OPENAI_MODEL", "gpt-5-mini"),
-      reasoningEffort: Deno.env.get("OPENAI_COACH_REASONING_EFFORT") ?? "low",
-    });
-  } catch (_e) {
+    const out = await askCoach({ ...(context as object), reply_language: replyLanguage }, history, message);
+    reply = out.reply;
+    await recordUsage(db, { userId: user.id, feature: "coach", result: out.result });
+  } catch (e) {
+    await recordUsage(db, { userId: user.id, feature: "coach", error: e });
     return fail(503, "coach_unavailable", "The coach is unavailable right now. Your message wasn’t counted — try again in a moment.");
   }
   // Only an answered exchange is stored (and counted toward the daily limit).

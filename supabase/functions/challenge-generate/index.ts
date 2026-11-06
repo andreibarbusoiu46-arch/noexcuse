@@ -1,7 +1,8 @@
 // POST { goal, minutes_per_day, difficulty, duration_days? } → a challenge plan for the user to review.
 // Nothing is created here: the user approves the plan in the app, which then calls start_challenge_plan.
 import { DIFFICULTIES, type Difficulty, generatePlan, validatePlan } from "../_shared/challengeai.ts";
-import { adminClient, env, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
+import { adminClient, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
+import { LlmError, recordUsage } from "../_shared/llm.ts";
 
 const DAILY_LIMIT = 10;
 
@@ -31,11 +32,12 @@ Deno.serve(withCors(async (req) => {
   const language = prof?.language === "ro" ? "ro" : "en";
   let plan;
   try {
-    plan = await generatePlan({ goal, minutesPerDay: minutes, difficulty, durationDays: duration, language, premiumLevels: premium }, {
-      apiKey: env("OPENAI_API_KEY"), model: Deno.env.get("OPENAI_CHALLENGE_MODEL") ?? env("OPENAI_MODEL", "gpt-5-mini"),
-      reasoningEffort: Deno.env.get("OPENAI_CHALLENGE_REASONING_EFFORT") ?? "low",
-    });
-  } catch (_e) {
+    const out = await generatePlan({ goal, minutesPerDay: minutes, difficulty, durationDays: duration, language, premiumLevels: premium });
+    plan = out.plan;
+    await recordUsage(db, { userId: user.id, feature: "generate", result: out.result });
+  } catch (e) {
+    await recordUsage(db, { userId: user.id, feature: "generate", error: e });
+    if (e instanceof LlmError && e.code === "invalid_output") return fail(422, "ai_invalid", "The generated plan didn’t pass our rules. Try again or rephrase your goal.");
     return fail(503, "ai_unavailable", "The generator is unavailable right now. Try again in a moment.");
   }
   await db.from("audit_log").insert({ user_id: user.id, action: "challenge_generated", data: { goal: goal.slice(0, 200) } });

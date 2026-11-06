@@ -144,6 +144,14 @@ export const en = {
     premiumTitle: 'Creating invites is part of Premium.', premiumBody: 'You can still join a Premium member’s circle with their code.',
     haveCode: 'Have a code?', codeLabel: 'Partner code', codePlaceholder: '8 characters', join: 'Join', joined: (n: string) => `You and ${n} are now partners.`,
   },
+  aiUsage: {
+    settingsRow: 'AI usage (internal)', overline: 'Internal', title: 'AI usage', loading: 'Loading usage…', failTitle: 'Couldn’t load usage.',
+    days: (n: number) => `Last ${n} days`, calls: 'Calls', ok: 'Succeeded', errors: 'Errors', tokens: 'Tokens', cost: 'Est. cost',
+    latency: 'Avg. latency', input: 'Input', output: 'Output', thinking: 'Thinking', byFeature: 'By feature', byModel: 'By model',
+    errorTypes: 'Errors by type', daily: 'Per day', none: 'No AI calls in this period.', unpriced: (n: number) => `${n} call(s) on models without a price — not in the estimate.`,
+    note: 'Counts and tokens only. No prompts, images or answers are stored. Cost is an estimate from published prices.',
+    feature: { verify: 'Verification', appeal: 'Appeals', coach: 'Coach', generate: 'Challenge generator', selftest: 'Self-test' } as Record<string, string>,
+  },
 };
 
 export const ro: typeof en = {
@@ -296,5 +304,13 @@ export const ro: typeof en = {
     create: 'Creează cod de invitație', created: (c: string) => `Codul ${c} — valabil 7 zile, o singură folosire.`,
     premiumTitle: 'Invitațiile fac parte din Premium.', premiumBody: 'Te poți alătura totuși cercului unui membru Premium cu codul lui.',
     haveCode: 'Ai un cod?', codeLabel: 'Codul partenerului', codePlaceholder: '8 caractere', join: 'Alătură-te', joined: (n: string) => `Tu și ${n} sunteți acum parteneri.`,
+  },
+  aiUsage: {
+    settingsRow: 'Consum AI (intern)', overline: 'Intern', title: 'Consum AI', loading: 'Se încarcă consumul…', failTitle: 'Nu am putut încărca consumul.',
+    days: (n: number) => `Ultimele ${n} zile`, calls: 'Apeluri', ok: 'Reușite', errors: 'Erori', tokens: 'Tokeni', cost: 'Cost estimat',
+    latency: 'Latență medie', input: 'Intrare', output: 'Ieșire', thinking: 'Gândire', byFeature: 'Pe funcție', byModel: 'Pe model',
+    errorTypes: 'Erori pe tip', daily: 'Pe zi', none: 'Niciun apel AI în perioada asta.', unpriced: (n: number) => `${n} apel(uri) pe modele fără preț — nu sunt în estimare.`,
+    note: 'Doar numere și tokeni. Nu se stochează prompturi, imagini sau răspunsuri. Costul e o estimare din prețurile publicate.',
+    feature: { verify: 'Verificare', appeal: 'Contestații', coach: 'Coach', generate: 'Generator provocări', selftest: 'Auto-test' } as Record<string, string>,
   },
 };

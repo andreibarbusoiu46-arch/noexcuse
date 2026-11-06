@@ -50,6 +50,9 @@ export interface WeeklyReports { locked: boolean; count?: number; reports: Weekl
 export type Level = 'standard' | 'strict' | 'elite';
 export type EvidenceKind = 'live' | 'screenshot';
 
+import type { Activity } from '@/shared/activity';
+export type { Activity } from '@/shared/activity';
+
 export type Category = 'fitness' | 'health' | 'education' | 'productivity' | 'business' | 'personal' | 'lifestyle' | 'custom';
 
 export interface Habit {
@@ -72,9 +75,11 @@ export interface Habit {
   longest_streak: number;
   /** Set when the commitment belongs to a challenge plan. */
   challenge_id?: string | null;
+  /** What kind of evidence to ask for; null = detected from the title. */
+  activity?: Activity | null;
 }
 
-export type HabitInput = Pick<Habit, 'title' | 'proof_hint' | 'target_time' | 'weekdays' | 'is_active' | 'reminder_minutes' | 'category' | 'custom_category' | 'description' | 'notes' | 'verification_level'>;
+export type HabitInput = Pick<Habit, 'title' | 'proof_hint' | 'target_time' | 'weekdays' | 'is_active' | 'reminder_minutes' | 'category' | 'custom_category' | 'description' | 'notes' | 'verification_level'> & { activity?: Activity | null };
 
 export interface Target {
   id: string;
@@ -83,7 +88,7 @@ export interface Target {
   due_at: string;
   status: TargetStatus;
   settled_at: string | null;
-  habit: Pick<Habit, 'id' | 'title' | 'proof_hint' | 'current_streak' | 'is_active' | 'verification_level'>;
+  habit: Pick<Habit, 'id' | 'title' | 'proof_hint' | 'current_streak' | 'is_active' | 'verification_level' | 'activity'> & { category?: Category };
 }
 
 export interface ScoreEvent {
@@ -279,6 +284,24 @@ export interface CaptureSession {
   server_time: string;
 }
 
+/** The AI's structured analysis of one submission (validated and adjusted by the server). */
+export interface ProofAnalysis {
+  status: 'VERIFIED' | 'NEEDS_MORE_EVIDENCE' | 'REJECTED';
+  confidence: number;
+  summary: string;
+  evidence: { image: number; kind: EvidenceKind; shows: string; relevant: boolean; concerns: string }[];
+  requirements: { id: string; label: string; kind: EvidenceKind; required: boolean; satisfied: boolean; image: number | null; note: string }[];
+  missing: string[];
+  consistency: string;
+  explanation: string;
+  next_action: string;
+  activity: Activity;
+  level: Level;
+  model_status: string;
+  provider?: string;
+  model?: string;
+}
+
 export interface VerdictResult {
   proof_id: string;
   outcome: Exclude<ProofOutcome, 'processing'>;
@@ -293,6 +316,18 @@ export interface VerdictResult {
   level?: Level;
   /** When more evidence is needed: exactly what to capture next. */
   requested_evidence?: string | null;
+  /** Per-requirement and per-image analysis; null when the AI didn't run (expired, error). */
+  analysis?: ProofAnalysis | null;
+}
+
+/** Internal AI usage overview (admins only). Costs are estimates from public prices. */
+export interface AiUsageOverview {
+  since: string;
+  totals: { calls: number; ok: number; errors: number; input_tokens: number; output_tokens: number; thinking_tokens: number; total_tokens: number; est_cost_usd: number; unpriced_calls: number; avg_latency_ms: number | null };
+  by_feature: { feature: string; calls: number; errors: number; total_tokens: number }[];
+  by_model: { model: string; provider: string | null; calls: number; total_tokens: number; est_cost_usd: number | null }[];
+  errors: { status: string; count: number; last_at: string }[];
+  daily: { day: string; calls: number; errors: number; total_tokens: number }[];
 }
 
 export interface EvidenceImage { kind: EvidenceKind; base64: string }
@@ -303,7 +338,7 @@ export interface AppealResult { appeal_id: string; status: AppealStatus; critiqu
 
 /** The latest judged proof of a target and its appeal, if any. */
 export interface TargetReview {
-  proof: { id: string; outcome: ProofOutcome; critique: string | null; judged_at: string | null; level: Level; requested_evidence: string | null } | null;
+  proof: { id: string; outcome: ProofOutcome; critique: string | null; judged_at: string | null; level: Level; requested_evidence: string | null; analysis?: ProofAnalysis | null } | null;
   appeal: Appeal | null;
   /** Until when an appeal can be filed (rejected proofs only). */
   appealUntil: string | null;
@@ -378,4 +413,7 @@ export interface Api {
   archiveHabit(id: string): Promise<void>;
   /** Settled and upcoming targets of one commitment, newest first. */
   getHabitHistory(id: string, limit: number): Promise<Target[]>;
+  /** Whether this account may see the internal AI usage overview. */
+  isAdmin(): Promise<boolean>;
+  getAiUsage(days: number): Promise<AiUsageOverview>;
 }

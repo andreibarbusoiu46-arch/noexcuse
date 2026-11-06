@@ -13,7 +13,7 @@ export default function NewHabit() {
     <HabitForm
       title={t.form.newTitle}
       submitLabel={t.form.create}
-      initial={{ title: '', proof_hint: '', target_time: nextRoundHour(), weekdays: [1, 2, 3, 4, 5], is_active: true, reminder_minutes: 10, category: 'personal', custom_category: null, description: null, notes: null, verification_level: 'standard' }}
+      initial={{ title: '', proof_hint: '', target_time: nextRoundHour(), weekdays: [1, 2, 3, 4, 5], is_active: true, reminder_minutes: 10, category: 'personal', custom_category: null, description: null, notes: null, verification_level: 'standard', activity: null }}
       onSubmit={async (v) => { await api.createHabit(v); router.back(); }}
       onClose={() => router.back()}
       note={t.form.newNote}

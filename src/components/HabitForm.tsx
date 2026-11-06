@@ -14,6 +14,8 @@ import { haptics } from '@/lib/haptics';
 import { formatTime, windowOf } from '@/lib/time';
 import { color, radius, scheme } from '@/theme/tokens';
 import { DayChips, ToggleRow } from './Blocks';
+import { ACTIVITIES, detectActivity } from '@/shared/activity';
+import { EvidenceChecklist } from './Evidence';
 import { Button, IconButton } from './Button';
 import { Tap } from './Tap';
 import { Field } from './Field';
@@ -131,6 +133,23 @@ export function HabitForm({ title, initial, submitLabel, onSubmit, onClose, note
             })}
           </View>
           <T variant="caption" tone="tertiary">{t.form.levelHelp}</T>
+        </View>
+        <View style={{ gap: 8 }}>
+          <T variant="overline" tone="tertiary">{t.form.activity}</T>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }} accessibilityRole="radiogroup">
+            {([null, ...ACTIVITIES] as const).map((a) => {
+              const on = (v.activity ?? null) === a;
+              const label = a === null ? t.domain.activity.auto : t.domain.activity[a];
+              return (
+                <Tap key={a ?? 'auto'} haptic="selection" onPress={() => set('activity', a)} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={label}
+                  style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.full, backgroundColor: on ? color.accent.primary : color.surface.glass, borderWidth: 1, borderColor: on ? color.accent.primary : color.border.hairline }}>
+                  <T variant="caption" tone={on ? 'onLight' : 'secondary'}>{label}</T>
+                </Tap>
+              );
+            })}
+          </View>
+          {!v.activity && <T variant="caption" tone="tertiary">{t.proof.activityAuto(t.domain.activity[detectActivity(v.title, v.category, v.proof_hint)])}</T>}
+          <EvidenceChecklist activity={v.activity ?? detectActivity(v.title, v.category, v.proof_hint)} level={premium ? v.verification_level : 'standard'} />
         </View>
         <View style={{ gap: 8 }}>
           <Field label={t.form.notes} value={v.notes ?? ''} onChangeText={(x) => set('notes', x)} placeholder={t.form.notesPlaceholder} multiline maxLength={1000} style={{ minHeight: 64, textAlignVertical: 'top' }} />

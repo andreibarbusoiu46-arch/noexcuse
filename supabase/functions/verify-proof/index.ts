@@ -2,7 +2,7 @@
 // → checks the evidence against the commitment's level, refuses reused evidence, stores it,
 //   asks the AI, applies the score.
 // Response: { verified, critique, outcome, points_delta, streak, total_points, proof_id, requested_evidence, ... }
-import type { EvidenceImage } from "../_shared/ai.ts";
+import type { EngineImage as EvidenceImage } from "../_shared/engine.ts";
 import { checkDuplicates, hashEvidence } from "../_shared/evidence.ts";
 import { adminClient, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
 import { checkCaptureSession, checkEvidence, classifyWindow, effectiveLevel, looksLikeJpegBase64 } from "../_shared/rules.ts";
@@ -61,6 +61,11 @@ Deno.serve(withCors(async (req) => {
   const state = classifyWindow(new Date(target.due_at), receivedAt);
   if (state === "early") return fail(425, "window_not_open", "The window hasn’t opened yet.");
 
+  // Cost control: attempts per target and AI analyses per user per day (checked before any work).
+  const { data: limit } = await db.rpc("ai_limits_check", { p_user: user.id, p_target: target.id });
+  if (limit === "target_attempts") return fail(429, "target_attempts", "You’ve used every submission for this target.");
+  if (limit === "daily_limit") return fail(429, "verify_daily_limit", "You’ve reached the limit of AI analyses for the last 24 hours. Try again later.");
+
   const level = effectiveLevel(target.habit.verification_level, premium);
   const ev = checkEvidence(level, images.map((i) => i.kind));
   if (!ev.ok) return fail(422, "evidence_incomplete", ev.message);
@@ -68,6 +73,8 @@ Deno.serve(withCors(async (req) => {
   // Fingerprint everything and refuse evidence that was already used — before the session is spent,
   // so the user can still capture something new.
   const hashed = await hashEvidence(images);
+  // A file that only starts like a JPEG but can't be decoded is refused before anything is stored.
+  if (hashed.some((h) => h.dhash === null)) return fail(415, "unsupported", "Evidence must be valid JPEG images.");
   const dup = await checkDuplicates(db, user.id, target.id, hashed);
   if (!dup.ok) return fail(409, "duplicate_evidence", dup.message);
 
@@ -106,7 +113,7 @@ Deno.serve(withCors(async (req) => {
       p_proof_id: proofId, p_outcome: "expired", p_critique: critique, p_confidence: null, p_model: null, p_raw: null,
     });
     if (error) return fail(500, "server_error", "Could not apply the verdict.");
-    return json(200, { proof_id: proofId, outcome: "expired", verified: false, critique, received_at: receivedAt, level, requested_evidence: null, ...a });
+    return json(200, { proof_id: proofId, outcome: "expired", verified: false, critique, received_at: receivedAt, level, requested_evidence: null, analysis: null, ...a });
   }
 
   try {
@@ -114,7 +121,7 @@ Deno.serve(withCors(async (req) => {
     return json(200, { ...result, received_at: receivedAt });
   } catch (_e) {
     // Proof is stored as "processing"; cron-tick will retry it. No penalty.
-    return json(202, { proof_id: proofId, outcome: "error", verified: false, points_delta: 0, received_at: receivedAt, level, requested_evidence: null,
+    return json(202, { proof_id: proofId, outcome: "error", verified: false, points_delta: 0, received_at: receivedAt, level, requested_evidence: null, analysis: null,
       critique: ro
         ? "Verificarea întârzie. Dovada ta e salvată și nu se scade nimic. Reîncercăm curând; dacă tot nu poate fi verificată, obiectivul e scuzat."
         : "Verification is delayed. Your proof is saved and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused." });

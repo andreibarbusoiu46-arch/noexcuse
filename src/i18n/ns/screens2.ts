@@ -86,6 +86,10 @@ export const en = {
     savedRecheck: 'Your proof is saved with the time it reached the server. It will be re-checked automatically — if we can’t, there’s no penalty.',
     appeal: 'Appeal — ask for a second AI review', appealPremium: 'Appeal (Premium)', comeback: 'Plan the comeback',
     serverClock: 'Times are checked on the server, not your phone clock.', captureNext: 'Capture next',
+    evidenceNeeded: 'Evidence needed', evidenceReview: 'Evidence check', reqLive: 'Live photo', reqShot: 'Screenshot', reqOptional: 'optional',
+    reqMissing: 'Missing', reqOk: 'Done', perImage: 'What the AI saw', imageN: (i: number) => `Image ${i}`, consistency: 'Consistency',
+    confidence: (p: number) => `AI confidence ${p}%`, nextAction: 'What to do next',
+    activityAuto: (a: string) => `Detected: ${a}`,
   },
   missed: {
     failTitle: 'Couldn’t load this result.', points: 'Points', streak: 'Streak', reset: 'Reset', comeback: 'Plan the comeback',
@@ -229,6 +233,10 @@ export const ro: typeof en = {
     savedRecheck: 'Dovada e salvată cu ora la care a ajuns pe server. Va fi reverificată automat — dacă nu reușim, nu ești penalizat.',
     appeal: 'Contestă — cere o a doua analiză AI', appealPremium: 'Contestă (Premium)', comeback: 'Planifică revenirea',
     serverClock: 'Orele sunt verificate pe server, nu după ceasul telefonului.', captureNext: 'Capturează în continuare',
+    evidenceNeeded: 'Dovezi necesare', evidenceReview: 'Verificarea dovezilor', reqLive: 'Fotografie live', reqShot: 'Captură de ecran', reqOptional: 'opțional',
+    reqMissing: 'Lipsește', reqOk: 'Bifat', perImage: 'Ce a văzut AI-ul', imageN: (i: number) => `Imaginea ${i}`, consistency: 'Consistență',
+    confidence: (p: number) => `Încrederea AI ${p}%`, nextAction: 'Ce faci mai departe',
+    activityAuto: (a: string) => `Detectat: ${a}`,
   },
   missed: {
     failTitle: 'Rezultatul nu s-a încărcat.', points: 'Puncte', streak: 'Serie', reset: 'Resetată', comeback: 'Planifică revenirea',

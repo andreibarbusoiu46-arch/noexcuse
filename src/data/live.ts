@@ -1,8 +1,8 @@
 import { callFunction, supabase } from '@/lib/supabase';
-import type { Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, ChallengeDetail, ChallengePlan, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
+import type { AiUsageOverview, Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, ChallengeDetail, ChallengePlan, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
-const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, proof_hint, current_streak, is_active, verification_level)';
-const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, verification_level, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
+const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, category, activity, proof_hint, current_streak, is_active, verification_level)';
+const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, verification_level, activity, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
 
 async function uid(): Promise<string> {
   const { data } = await supabase.auth.getSession();
@@ -92,7 +92,7 @@ export const liveApi: Api = {
   verifyProof: (sessionId, images) => callFunction<VerdictResult>('verify-proof', { session_id: sessionId, images }),
   async getTargetReview(targetId) {
     const proof = (must(
-      await supabase.from('proofs').select('id, outcome, critique, judged_at, level, requested_evidence').eq('target_id', targetId)
+      await supabase.from('proofs').select('id, outcome, critique, judged_at, level, requested_evidence, analysis').eq('target_id', targetId)
         .neq('outcome', 'processing').order('created_at', { ascending: false }).limit(1),
     ) as TargetReview['proof'][])[0] ?? null;
     const appeal = (must(
@@ -109,6 +109,12 @@ export const liveApi: Api = {
     return rows.reverse();
   },
   askCoach: (message) => callFunction<{ reply: string; remaining: number }>('coach', { message }),
+  async isAdmin() {
+    return must(await supabase.rpc('is_admin')) === true;
+  },
+  async getAiUsage(days) {
+    return must(await supabase.rpc('get_ai_usage_overview', { p_days: days })) as AiUsageOverview;
+  },
   async getWeeklyReports() {
     return must(await supabase.rpc('get_weekly_reports', { p_limit: 12 })) as WeeklyReports;
   },

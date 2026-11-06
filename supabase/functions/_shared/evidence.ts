@@ -2,7 +2,7 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.118.0";
 import { decodeBase64, encodeBase64 } from "./b64.ts";
 import { dhashFromJpeg, sha256Hex } from "./dhash.ts";
-import type { EvidenceImage } from "./ai.ts";
+import type { EngineImage as EvidenceImage } from "./engine.ts";
 import { type EvidenceKind, LIVE_FLAG_DISTANCE, SCREENSHOT_DUP_DISTANCE } from "./rules.ts";
 
 export interface HashedEvidence extends EvidenceImage { bytes: Uint8Array; sha256: string; dhash: string | null }

@@ -145,6 +145,8 @@ export const demoApi: Api = {
     coach.push({ id: coach.length + 1, role: 'coach', content: reply, created_at: new Date().toISOString() });
     return { reply, remaining: 19 };
   },
+  isAdmin: async () => false,
+  getAiUsage: async () => { throw new ApiError('demo', 'Demo mode: the usage overview needs a signed-in admin account.', 403); },
   getWeeklyReports: async (): Promise<WeeklyReports> => ({ locked: false, reports: [demoReport] }),
   getPlan: async (): Promise<Plan> => ({ premium: true, free_max_commitments: 2, active_commitments: habits.filter((h) => h.is_active && !h.archived_at).length }),
   getAchievements: async (): Promise<Achievement[]> => [

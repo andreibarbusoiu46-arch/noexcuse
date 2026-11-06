@@ -14,6 +14,9 @@ import { Glow, Screen } from '@/components/Screen';
 import { Tap } from '@/components/Tap';
 import { T } from '@/components/Text';
 import { VerdictCard, type VerdictState } from '@/components/Verdict';
+import { AnalysisPanel, EvidenceChecklist } from '@/components/Evidence';
+import { activityOf, requirementsFor } from '@/shared/activity';
+import { lang } from '@/i18n';
 import { api, type CaptureSession, type EvidenceKind, type Level, type Target, type VerdictResult } from '@/data';
 import { level as levelInfo } from '@/lib/levels';
 import { errorText } from '@/lib/errors';
@@ -154,8 +157,11 @@ export default function Proof() {
   }
   if (phase.k === 'capture') {
     const step = live.length;
+    // Each live photo has its own requirement (e.g. "you training", then "the equipment").
+    const liveReqs = target ? requirementsFor(activityOf(target.habit), level).filter((q) => q.kind === 'live') : [];
+    const label = liveReqs[step]?.label[lang()] ?? req.steps[step] ?? '';
     return <Capture target={target} tz={tz} onShot={onShot}
-      step={req.live > 1 ? t.proof.photoStep(step + 1, req.live, req.steps[step] ?? '') : null} />;
+      step={req.live > 1 ? t.proof.photoStep(step + 1, req.live, label) : label || null} />;
   }
   if (phase.k === 'review') {
     return <Review target={target} tz={tz} level={level} shots={shots} notice={notice}
@@ -336,6 +342,10 @@ function Review({ target, tz, level, shots, notice, onRetakeAll, onAddScreenshot
         <Badge tone="accent" label={t.domain.levelBadge(req.label)} />
         <T variant="caption" tone="tertiary" style={{ flex: 1 }}>{req.summary}</T>
       </View>
+      {target && (
+        <EvidenceChecklist activity={activityOf(target.habit)} level={level}
+          have={{ live: shots.length - screenshots, screenshots }} />
+      )}
       {req.screenshotsMax > 0 && screenshots < req.screenshotsMax && (
         <Button kind="glass" icon="Plus" loading={picking}
           label={missingShot ? t.proof.addShotRequired : t.proof.addShot} onPress={pick} />
@@ -448,7 +458,9 @@ function Result({ r, target, premium, onRetake }: { r: VerdictResult; target: Ta
           <T variant="bodyStrong" tone={r.outcome === 'verified' ? 'primary' : 'secondary'}>{streakLine}</T>
         </View>
         <VerdictCard state={s} critique={r.critique} points={points} streak={streak} />
-        {r.outcome === 'insufficient' && r.requested_evidence ? (
+        {r.analysis && r.outcome !== 'error' && r.outcome !== 'expired' ? (
+          <AnalysisPanel a={r.analysis} />
+        ) : r.outcome === 'insufficient' && r.requested_evidence ? (
           <View style={{ alignSelf: 'stretch', padding: 16, borderRadius: 20, gap: 4, backgroundColor: color.status.warningSoft }} accessible>
             <T variant="overline" tone="warning">{t.proof.captureNext}</T>
             <T variant="bodySmall">{r.requested_evidence}</T>

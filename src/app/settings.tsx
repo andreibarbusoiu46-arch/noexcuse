@@ -62,6 +62,7 @@ export default function Settings() {
   const { profile, session, premium, refreshProfile, refreshPremium, signOut } = useApp();
   const prefs = usePrefs();
   const ent = useLoad(() => api.getEntitlement());
+  const admin = useLoad(() => api.isAdmin().catch(() => false));
   const [push, setPush] = useState<boolean | null>(null);
   const [name, setName] = useState(profile?.display_name ?? '');
   const [pw, setPw] = useState({ open: false, a: '', b: '' });
@@ -257,6 +258,12 @@ export default function Settings() {
         </Card>
         <T variant="caption" tone="tertiary">{t.settings.privacyNote}</T>
       </View>
+
+      {admin.data ? (
+        <Card padding={0} style={{ gap: 0 }}>
+          <SettingsRow icon="Sparkle" label={t.aiUsage.settingsRow} onPress={() => router.push('/ai-usage')} />
+        </Card>
+      ) : null}
 
       {/* Subscription */}
       <View style={{ gap: 12 }}>

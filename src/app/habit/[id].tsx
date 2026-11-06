@@ -48,7 +48,7 @@ export default function EditHabit() {
       title={archived ? t.form.archivedTitle : t.form.editTitle}
       submitLabel={t.common.saveChanges}
       initial={{ title: h.title, proof_hint: h.proof_hint, target_time: h.target_time, weekdays: h.weekdays, is_active: h.is_active, reminder_minutes: h.reminder_minutes,
-        category: h.category, custom_category: h.custom_category, description: h.description, notes: h.notes, verification_level: h.verification_level }}
+        category: h.category, custom_category: h.custom_category, description: h.description, notes: h.notes, verification_level: h.verification_level, activity: h.activity ?? null }}
       onSubmit={async (v) => { await api.updateHabit(h.id, v); router.back(); }}
       onClose={() => router.back()}
       note={t.form.editNote}
