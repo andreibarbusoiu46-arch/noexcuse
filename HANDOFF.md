@@ -70,6 +70,17 @@
   off-screen / hidden tab; still frame with Reduce Motion; pre-rendered stills (`hero-still-wide/tall.webp`, regenerate
   with `?still`) when WebGL is missing. `#stage[data-state][data-tier]` shows what is running.
 
+- Accounts: email + password sign-up (name, strength rules ≥10 chars with letters and a number, confirm), e-mail
+  verification (Supabase "Confirm email" on: no session until the link is opened), resend with a 60 s cool-down,
+  sign-in with generic errors (no account enumeration), "keep me signed in" on the web (session in localStorage vs
+  sessionStorage), forgot password → `/reset-password` (other devices signed out after the change), e-mail links and
+  OAuth land on `/auth/callback` (expired-link recovery), e-mail code sign-in kept for existing accounts, Google/Apple
+  buttons shown only when enabled in Supabase Auth. Settings: verification status, secure e-mail change, password
+  change re-checks the current password, sign out of all devices, deletion that lists what is deleted, requires
+  typing a word, cancels a Stripe subscription first and removes photos. Getting-started guide on Home.
+  `auth-selftest` (cron secret) runs 39 checks against the real Supabase Auth.
+  Dashboard settings required: Site URL + redirect URLs, custom SMTP, password policy, providers (see the report).
+
 Free: 2 active commitments, Standard verification, points, Discipline Score, War Room, Arena, achievements,
 share card, joining a partner's circle. Premium (€9.99/month): everything else.
 
