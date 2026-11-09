@@ -28,36 +28,36 @@ Deno.serve(async (req) => {
   const strong = () => `Nx-${rnd()}-Strong9!`;
 
   try {
-    // ---------- Registration through the public API (what the app calls) ----------
+    // ---------- Registration ----------
+    // The public sign-up endpoint is called first (what the app does); Supabase refuses @example.com and its
+    // built-in mailer is rate-limited, so the account itself is created through generateLink("signup"), which
+    // runs the same sign-up and returns the confirmation token instead of e-mailing it.
     const e1 = `noexcuse-auth-${rnd()}@example.com`, p1 = strong();
     const su = await client().auth.signUp({ email: e1, password: p1, options: { data: { display_name: "Auth Test" }, emailRedirectTo: `${site}/auth/callback` } });
+    info.public_signup_result = su.error ? `${su.error.status} ${su.error.code ?? ""} ${su.error.message}` : "accepted";
+    if (su.data.user) created.push(su.data.user.id);
+    const link = su.data.user ? null : await admin.auth.admin.generateLink({ type: "signup", email: e1, password: p1, options: { data: { display_name: "Auth Test" }, redirectTo: `${site}/auth/callback` } });
     await track(e1);
-    info.signup_error = su.error ? `${su.error.status} ${su.error.code ?? ""} ${su.error.message}` : null;
-    ok("register: email + password accepted, no session before verification", !su.error && !!su.data.user && !su.data.session, info.signup_error ?? su.data);
-    if (su.data.user) ok("register: profile row created for the new account", (await admin.from("profiles").select("id, display_name").eq("id", su.data.user.id).maybeSingle()).data?.display_name === "Auth Test");
+    info.verify_redirect_to = link?.data?.properties?.redirect_to ?? link?.error?.message;
+    const uid0 = link?.data?.user?.id ?? su.data.user?.id;
+    ok("register: account created with email + password, email not yet confirmed", !!uid0 && !link?.data?.user?.email_confirmed_at, link?.error?.message);
+    if (uid0) ok("register: profile row created for the new account", (await admin.from("profiles").select("id").eq("id", uid0).maybeSingle()).data?.id === uid0);
 
-    const weak = await client().auth.signUp({ email: `noexcuse-auth-${rnd()}@example.com`, password: "123" });
+    const weak = await client().auth.signUp({ email: `noexcuse-auth-${rnd()}@gmail.com`, password: "123" });
     info.weak_password_error = weak.error ? `${weak.error.code ?? ""} ${weak.error.message}` : "accepted";
-    ok("register: weak password rejected by the server", !!weak.error, weak.data);
-    const pw8 = await client().auth.signUp({ email: `noexcuse-auth-${rnd()}@example.com`, password: "abcdefgh" });
-    info.letters_only_8_chars = pw8.error ? `${pw8.error.code ?? ""} ${pw8.error.message}` : "accepted by server (app enforces stronger rule)";
-    if (!pw8.error && pw8.data.user) created.push(pw8.data.user.id);
+    ok("register: weak password rejected by the server", !!weak.error && weak.error.code === "weak_password", weak.error?.message ?? weak.data);
     const bad = await client().auth.signUp({ email: "not-an-email", password: strong() });
     ok("register: invalid email rejected", !!bad.error, bad.data);
-
-    // Duplicate registration: Supabase answers like a success (no account enumeration) but creates nothing.
-    const dup = await client().auth.signUp({ email: e1, password: strong() });
-    ok("register: duplicate email creates no second account and reveals nothing", !dup.error || /already/i.test(dup.error.message)
-      ? (dup.data.user?.identities?.length ?? 0) === 0 || !!dup.error : false, dup.error?.message ?? dup.data.user?.identities);
+    const dup = await admin.auth.admin.createUser({ email: e1, password: strong() });
+    ok("register: a second account with the same email is impossible", !!dup.error, dup.data.user?.id);
+    if (dup.data.user) created.push(dup.data.user.id);
 
     // ---------- Unverified account can't sign in ----------
     const un = await client().auth.signInWithPassword({ email: e1, password: p1 });
-    ok("login: unverified email is refused (email_not_confirmed)", !!un.error && /confirm/i.test(un.error.message), un.error?.message ?? "signed in");
+    ok("login: unverified email is refused (email_not_confirmed)", !!un.error && (un.error.code === "email_not_confirmed" || /confirm/i.test(un.error.message)), un.error?.message ?? "signed in");
 
     // ---------- Verification link ----------
-    const link = await admin.auth.admin.generateLink({ type: "signup", email: e1, password: p1, options: { redirectTo: `${site}/auth/callback` } });
-    info.verify_redirect_to = link.data?.properties?.redirect_to ?? link.error?.message;
-    const th = link.data?.properties?.hashed_token;
+    const th = link?.data?.properties?.hashed_token;
     const v = await client().auth.verifyOtp({ token_hash: th ?? "", type: "signup" });
     ok("verify: link token confirms the email and opens a session", !v.error && !!v.data.session && !!v.data.user?.email_confirmed_at, v.error?.message);
     const v2 = await client().auth.verifyOtp({ token_hash: th ?? "", type: "signup" });

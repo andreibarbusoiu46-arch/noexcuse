@@ -166,6 +166,7 @@ export const demoApi: Api = {
   savePushToken: async () => {},
   deletePushTokens: async () => {},
   deleteAccount: async () => {},
+  getStarted: async () => ({ habits: habits.length, challenges: challenges.length, proofs: 3, verified: 2, points: 1250 }),
   getWarRoom: async (): Promise<WarRoom> => {
     const today = targets.filter((t) => t.status !== 'missed' || t.id !== 't-read-y').filter((t) => t.id !== 't-read-y');
     return {

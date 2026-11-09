@@ -142,6 +142,17 @@ export const liveApi: Api = {
     await callFunction('delete-account', {});
     await supabase.auth.signOut();
   },
+  async getStarted() {
+    const head = { count: 'exact' as const, head: true };
+    const [h, c, p, v, prof] = await Promise.all([
+      supabase.from('habits').select('id', head),
+      supabase.from('challenges').select('id', head),
+      supabase.from('proofs').select('id', head),
+      supabase.from('targets').select('id', head).eq('status', 'verified'),
+      supabase.from('profiles').select('total_points').maybeSingle(),
+    ]);
+    return { habits: h.count ?? 0, challenges: c.count ?? 0, proofs: p.count ?? 0, verified: v.count ?? 0, points: (prof.data?.total_points as number | undefined) ?? 0 };
+  },
   async getWarRoom() {
     return must(await supabase.rpc('get_war_room')) as WarRoom;
   },

@@ -422,6 +422,8 @@ export interface Api {
   deletePushTokens(): Promise<void>;
   deleteAccount(): Promise<void>;
   getWarRoom(): Promise<WarRoom>;
+  /** First-steps progress, counted from the account's real data. */
+  getStarted(): Promise<{ habits: number; challenges: number; proofs: number; verified: number; points: number }>;
   getDiscipline(): Promise<Discipline>;
   getChallenges(): Promise<Challenges>;
   /** Starts a challenge on one of the user's active commitments. Template id, or a custom definition. */

@@ -10,12 +10,14 @@ import { Button } from '@/components/Button';
 import { Card, Divider } from '@/components/Card';
 import { Field } from '@/components/Field';
 import { Icon, type IconName } from '@/components/Icon';
+import { PasswordField } from '@/components/PasswordField';
 import { PhotoEditor } from '@/components/PhotoEditor';
 import { Screen } from '@/components/Screen';
 import { Tap } from '@/components/Tap';
 import { T } from '@/components/Text';
 import { api, type NotifyPrefs } from '@/data';
 import { LANGS, locale, t } from '@/i18n';
+import { authError, authUrl, isEmail, passwordStrength } from '@/lib/auth';
 import { config } from '@/lib/config';
 import { confirmDestructive, notify } from '@/lib/dialog';
 import { errorText } from '@/lib/errors';
@@ -67,7 +69,9 @@ export default function Settings() {
   const [push, setPush] = useState<boolean | null>(null);
   const [name, setName] = useState(profile?.display_name ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
-  const [pw, setPw] = useState({ open: false, a: '', b: '' });
+  const [pw, setPw] = useState({ open: false, cur: '', a: '', b: '' });
+  const [mail, setMail] = useState({ open: false, value: '', sent: '' });
+  const [del, setDel] = useState({ open: false, typed: '' });
   const [busy, setBusy] = useState<string | null>(null);
   useEffect(() => { pushPermissionGranted().then(setPush).catch(() => setPush(false)); }, []);
 
@@ -100,13 +104,33 @@ export default function Settings() {
     await refreshProfile();
   });
 
-  const pwProblem = pw.a.length < 8 ? t.settings.pwShort : pw.a !== pw.b ? t.settings.pwMismatch : null;
+  const user = session?.user;
+  const hasPassword = user?.user_metadata?.has_password === true;
+  const strength = passwordStrength(pw.a, email);
+  const pwProblem = !strength.ok ? strength.problems.join(' · ') : pw.a !== pw.b ? t.auth.mismatch : hasPassword && !pw.cur ? t.auth.current : null;
   const savePassword = () => run('pw', async () => {
-    const { error } = await supabase.auth.updateUser({ password: pw.a });
-    if (error) throw new Error(error.message);
+    // Re-check the current password (a stolen, unlocked session alone can't change it).
+    if (pw.cur) {
+      const { error: e1 } = await supabase.auth.signInWithPassword({ email, password: pw.cur });
+      if (e1) throw new Error(e1.code === 'invalid_credentials' ? t.auth.currentWrong : authError(e1));
+    }
+    const { error } = await supabase.auth.updateUser({ password: pw.a, data: { has_password: true } });
+    if (error) throw new Error(authError(error));
+    await supabase.auth.signOut({ scope: 'others' }).catch(() => null);
     haptics.success();
-    setPw({ open: false, a: '', b: '' });
-    notify(t.settings.pwDone, t.settings.pwDoneBody);
+    setPw({ open: false, cur: '', a: '', b: '' });
+    notify(t.settings.pwDone, t.auth.passwordSaved);
+  });
+
+  const pendingEmail = mail.sent || user?.new_email || '';
+  const changeEmail = () => run('mail', async () => {
+    const v = mail.value.trim().toLowerCase();
+    if (!isEmail(v)) throw new Error(t.auth.err.badEmail);
+    if (v === email) return;
+    const { error } = await supabase.auth.updateUser({ email: v }, { emailRedirectTo: authUrl('/auth/callback') });
+    if (error) throw new Error(authError(error));
+    haptics.success();
+    setMail({ open: false, value: '', sent: v });
   });
 
   const signOutAll = () => run('all', async () => {
@@ -154,9 +178,9 @@ export default function Settings() {
     await saveJson(`noexcuse-${new Date().toISOString().slice(0, 10)}.json`, data);
   });
 
+  const delWord = t.settings.delWord;
   const deleteAccount = () => run('del', async () => {
-    const ok = await confirmDestructive(t.settings.delAccountTitle, t.settings.delAccountBody, t.settings.delete);
-    if (!ok) return;
+    if (del.typed.trim().toUpperCase() !== delWord) return;
     haptics.heavy();
     await api.deleteAccount();
   });
@@ -182,20 +206,33 @@ export default function Settings() {
         <SectionHeader title={t.settings.account} />
         <Card style={{ gap: 14 }}>
           <Field label={t.settings.name} value={name} onChangeText={setName} maxLength={40} returnKeyType="done" onSubmitEditing={saveName} onBlur={saveName} />
-          <View style={{ gap: 2 }}>
+          <View style={{ gap: 4 }}>
             <T variant="overline" tone="tertiary">{t.settings.email}</T>
-            <T selectable>{email || '—'}</T>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <T selectable>{email || '—'}</T>
+              {email ? <T variant="caption" tone={user?.email_confirmed_at ? 'success' : 'warning'}>{user?.email_confirmed_at ? `✓ ${t.auth.verifiedBadge}` : t.auth.unverified}</T> : null}
+            </View>
+            {pendingEmail ? <T variant="caption" tone="warning">{t.auth.emailPending(pendingEmail)}</T> : null}
           </View>
           <T variant="caption" tone="tertiary">{t.settings.nameNote}</T>
         </Card>
         <Card padding={0} style={{ gap: 0 }}>
+          <SettingsRow icon="Doc" label={t.auth.changeEmail} value={mail.open ? '' : t.settings.change} onPress={() => setMail((x) => ({ ...x, open: !x.open }))} />
+          {mail.open && (
+            <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 10 }}>
+              <Field label={t.auth.newEmail} value={mail.value} onChangeText={(value) => setMail((x) => ({ ...x, value }))} autoCapitalize="none" autoComplete="email" keyboardType="email-address" placeholder="you@example.com" onSubmitEditing={changeEmail} />
+              <Button label={t.auth.sendConfirm} loading={busy === 'mail'} disabled={!isEmail(mail.value) || config.demo} onPress={changeEmail} />
+            </View>
+          )}
+          <Divider />
           <SettingsRow icon="Lock" label={t.settings.password} value={pw.open ? '' : t.settings.change} onPress={() => setPw((x) => ({ ...x, open: !x.open }))} />
           {pw.open && (
             <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 10 }}>
-              <T variant="caption" tone="tertiary">{t.settings.pwNote}</T>
-              <Field label={t.settings.newPassword} value={pw.a} onChangeText={(a) => setPw((x) => ({ ...x, a }))} secureTextEntry autoComplete="new-password" textContentType="newPassword" />
-              <Field label={t.settings.repeatPassword} value={pw.b} onChangeText={(b) => setPw((x) => ({ ...x, b }))} secureTextEntry autoComplete="new-password" textContentType="newPassword" />
-              {!!pw.a && pwProblem && <T variant="caption" tone="danger">{pwProblem}</T>}
+              <PasswordField label={t.auth.current} value={pw.cur} onChangeText={(cur) => setPw((x) => ({ ...x, cur }))} mode="current" />
+              {!hasPassword && <T variant="caption" tone="tertiary">{t.auth.currentHint}</T>}
+              <PasswordField label={t.settings.newPassword} value={pw.a} onChangeText={(a) => setPw((x) => ({ ...x, a }))} mode="new" email={email} />
+              <PasswordField label={t.settings.repeatPassword} value={pw.b} onChangeText={(b) => setPw((x) => ({ ...x, b }))} mode="confirm" />
+              {!!pw.b && pw.a !== pw.b && <T variant="caption" tone="danger">{t.auth.mismatch}</T>}
               <Button label={t.settings.savePassword} loading={busy === 'pw'} disabled={!!pwProblem || config.demo} onPress={savePassword} />
             </View>
           )}
@@ -324,7 +361,18 @@ export default function Settings() {
 
       <View style={{ gap: 12 }}>
         <Button kind="ghost" label={t.settings.signOut} icon="Logout" onPress={() => { void signOut(); }} />
-        <Button kind="danger" label={t.settings.delAccount} icon="Trash" loading={busy === 'del'} onPress={deleteAccount} />
+        <Button kind="danger" label={t.settings.delAccount} icon="Trash" onPress={() => setDel((x) => ({ open: !x.open, typed: '' }))} />
+        {del.open && (
+          <Card style={{ gap: 12, borderColor: color.status.danger, borderWidth: 1 }}>
+            <T variant="bodyStrong" tone="danger">{t.settings.delAccountTitle}</T>
+            <T variant="bodySmall" tone="secondary">{t.settings.delWhat}</T>
+            {t.settings.delList.map((x) => <T key={x} variant="caption" tone="secondary">• {x}</T>)}
+            <T variant="caption" tone="tertiary">{t.settings.delKeep}</T>
+            <Button kind="glass" label={busy === 'export' ? t.settings.preparing : t.settings.export} onPress={exportData} disabled={!!busy} />
+            <Field label={t.settings.delType(delWord)} value={del.typed} onChangeText={(typed) => setDel((x) => ({ ...x, typed }))} autoCapitalize="characters" autoCorrect={false} />
+            <Button kind="danger" label={t.settings.delConfirm} icon="Trash" loading={busy === 'del'} disabled={del.typed.trim().toUpperCase() !== delWord || !!busy} onPress={deleteAccount} />
+          </Card>
+        )}
         {config.demo && <T variant="caption" tone="warning" align="center">{t.settings.demo}</T>}
       </View>
     </Screen>

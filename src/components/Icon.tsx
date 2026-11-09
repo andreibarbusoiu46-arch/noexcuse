@@ -9,7 +9,7 @@ const SF: Record<IconName, SFSymbol> = {
   Bolt: 'bolt.fill', Clock: 'clock', ChevronRight: 'chevron.right', ChevronLeft: 'chevron.left', Close: 'xmark',
   Check: 'checkmark', Retry: 'arrow.clockwise', Sparkle: 'sparkles', Plus: 'plus', Lock: 'lock', NoGallery: 'nosign',
   ArrowUp: 'arrow.up', ArrowDown: 'arrow.down', Minus: 'minus', Settings: 'slider.horizontal.3', Shield: 'checkmark.shield',
-  Alert: 'exclamationmark.triangle', EyeOff: 'eye.slash', Flash: 'bolt.fill', FlashOff: 'bolt.slash', Flip: 'arrow.triangle.2.circlepath.camera',
+  Alert: 'exclamationmark.triangle', EyeOff: 'eye.slash', Eye: 'eye', Flash: 'bolt.fill', FlashOff: 'bolt.slash', Flip: 'arrow.triangle.2.circlepath.camera',
   Bell: 'bell', Target: 'scope', Trash: 'trash', Logout: 'rectangle.portrait.and.arrow.right', Globe: 'globe', Doc: 'doc.text',
 };
 
@@ -37,6 +37,7 @@ const PATHS: Record<IconName, string[]> = {
   Settings: ['M4 7h10M18 7h2M4 17h4M12 17h8', 'M16 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM10 15a2 2 0 1 1 0 4 2 2 0 0 1 0-4z'],
   Shield: ['M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6z', 'm9 12 2 2 4-4'],
   Alert: ['M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z', 'M12 9v4M12 17h.01'],
+  Eye: ['M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z', 'M12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z'],
   EyeOff: ['M3 3l18 18', 'M10.6 6.1A10 10 0 0 1 12 6c5.5 0 9 6 9 6a17 17 0 0 1-2.6 3.3M6.6 7.6A17 17 0 0 0 3 12s3.5 6 9 6a9 9 0 0 0 4.4-1.1'],
   Flash: ['M7 2h10l-3 7h5L9 22l2-9H6z'],
   FlashOff: ['M7 2h10l-3 7h5L9 22l2-9H6z', 'M3 3l18 18'],
@@ -52,7 +53,7 @@ const PATHS: Record<IconName, string[]> = {
 export type IconName =
   | 'Home' | 'Habits' | 'Arena' | 'Profile' | 'Camera' | 'Flame' | 'Bolt' | 'Clock' | 'ChevronRight' | 'ChevronLeft'
   | 'Close' | 'Check' | 'Retry' | 'Sparkle' | 'Plus' | 'Lock' | 'NoGallery' | 'ArrowUp' | 'ArrowDown' | 'Minus'
-  | 'Settings' | 'Shield' | 'Alert' | 'EyeOff' | 'Flash' | 'FlashOff' | 'Flip' | 'Bell' | 'Target' | 'Trash' | 'Logout' | 'Globe' | 'Doc';
+  | 'Settings' | 'Shield' | 'Alert' | 'EyeOff' | 'Eye' | 'Flash' | 'FlashOff' | 'Flip' | 'Bell' | 'Target' | 'Trash' | 'Logout' | 'Globe' | 'Doc';
 
 export function Icon({ name, size = 24, tint = color.icon.primary }: { name: IconName; size?: number; tint?: string }) {
   const fallback = (

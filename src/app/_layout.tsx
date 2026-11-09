@@ -110,6 +110,9 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="achievements" />
         <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       </Stack.Protected>
+      {/* E-mail links and OAuth land here whether or not a session exists yet. */}
+      <Stack.Screen name="auth/callback" />
+      <Stack.Screen name="reset-password" />
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="sign-in" />

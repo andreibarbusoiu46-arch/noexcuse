@@ -109,6 +109,10 @@ export const en = {
     nothingToRestoreBody: 'No active subscription was found for this Apple ID.', restoreFailed: 'Restore failed. Try again.',
     signOut: 'Sign out', delAccount: 'Delete account', delAccountTitle: 'Delete account?',
     delAccountBody: 'This permanently deletes your commitments, proofs, photos, points and Arena history. Cancel your subscription separately in Settings › Apple ID › Subscriptions.',
+    delWhat: 'Deleting your account is permanent and can’t be undone. Right away we delete:',
+    delList: ['Your login (email, password, sign-in methods)', 'Profile, photo, username and settings', 'Commitments, challenges, schedules and history', 'Evidence photos and AI analyses', 'Points, streaks, Arena standing, partners and coach chats', 'A web subscription (Stripe) is cancelled immediately — no further charges'],
+    delKeep: 'An App Store subscription must be cancelled in your iPhone’s Settings › Apple ID › Subscriptions. Payment records Stripe must keep by law stay with Stripe. Download your data first if you want a copy.',
+    delWord: 'DELETE', delType: (w: string) => `Type ${w} to confirm`, delConfirm: 'Delete my account permanently',
     demo: 'Demo mode — fixture data, nothing is saved.',
   },
   paywall: {
@@ -201,6 +205,16 @@ export const en = {
     freeBody: 'You’re on the free plan: 2 commitments, Standard verification, points and the Arena.',
     iosWeb: 'This subscription is billed by Stripe and managed from the web version of NoExcuse.',
   },
+  started: {
+    overline: (d: number, n: number) => `Getting started · ${d} of ${n}`, title: 'Your first week with NoExcuse', dismiss: 'Hide the guide', done: 'done',
+    steps: {
+      habit: { title: 'Create your first commitment', body: 'Pick what you’ll do, the exact time and the days. That time opens a 30-minute proof window.' },
+      challenge: { title: 'Start or join a challenge', body: 'A 7- or 30-day plan with rules and a bonus when you finish. Optional, but it keeps you honest.' },
+      proof: { title: 'Submit live proof', body: 'When the window opens, take the photo with the in-app camera. Gallery photos don’t count as primary proof.' },
+      ai: { title: 'Get verified by AI', body: 'The AI checks the photo against your commitment. Unsure? You’re asked for more evidence — never penalised for its doubt.' },
+      points: { title: 'Earn points, climb the Arena', body: 'Verified proof earns points and builds your streak; missed windows cost points. See where you stand.' },
+    },
+  },
 };
 
 export const ro: typeof en = {
@@ -292,6 +306,10 @@ export const ro: typeof en = {
     delEvidenceTitle: 'Ștergi toate fotografiile-dovadă?', delEvidenceBody: 'Fotografiile dispar definitiv. Rezultatele, punctele și seriile rămân. Fotografiile încă necesare unei verificări în curs sau unei contestații deschise se păstrează până se încheie.',
     delEvidenceDone: 'Dovezi șterse', delEvidenceDoneBody: (n: number) => (n === 0 ? 'Nu era nicio fotografie de șters.' : `Au fost șterse fotografiile de la ${n === 1 ? 'o dovadă' : `${n} dovezi`}.`),
     export: 'Exportă datele mele (JSON)', preparing: 'Se pregătește…',
+    delWhat: 'Ștergerea contului e definitivă și nu poate fi anulată. Ștergem imediat:',
+    delList: ['Datele de autentificare (email, parolă, metode de login)', 'Profilul, poza, numele de utilizator și setările', 'Angajamentele, provocările, programul și istoricul', 'Fotografiile-dovadă și analizele AI', 'Punctele, seriile, locul din Arenă, partenerii și conversațiile cu coach-ul', 'Un abonament web (Stripe) se anulează imediat — fără alte plăți'],
+    delKeep: 'Un abonament din App Store se anulează din Setări iPhone › Apple ID › Abonamente. Înregistrările de plată pe care Stripe trebuie să le păstreze legal rămân la Stripe. Descarcă-ți datele înainte, dacă vrei o copie.',
+    delWord: 'STERGE', delType: (w: string) => `Scrie ${w} ca să confirmi`, delConfirm: 'Șterge-mi contul definitiv',
     signOutAll: 'Deconectează-te de pe toate dispozitivele', signingOut: 'Se deconectează…', signOutAllTitle: 'Te deconectezi peste tot?', signOutAllBody: 'Toate dispozitivele conectate la acest cont vor trebui să se autentifice din nou.',
     terms: 'Termeni de utilizare', privacyPolicy: 'Politica de confidențialitate',
     privacyNote: 'Datele tale stau în baza de date găzduită în UE și sunt folosite doar ca să funcționeze NoExcuse. Dovezile sunt trimise la AI doar pentru verificare.',
@@ -410,5 +428,15 @@ export const ro: typeof en = {
     manageOnIphone: 'Abonamentul a fost cumpărat din aplicația de iPhone. Îl gestionezi din Setări iPhone › Apple ID › Abonamente.',
     freeBody: 'Ești pe planul gratuit: 2 angajamente, verificare Standard, puncte și Arena.',
     iosWeb: 'Abonamentul e facturat prin Stripe și se gestionează din versiunea web NoExcuse.',
+  },
+  started: {
+    overline: (d: number, n: number) => `Primii pași · ${d} din ${n}`, title: 'Prima ta săptămână cu NoExcuse', dismiss: 'Ascunde ghidul', done: 'gata',
+    steps: {
+      habit: { title: 'Creează primul angajament', body: 'Alege ce faci, ora exactă și zilele. Ora deschide o fereastră de dovadă de 30 de minute.' },
+      challenge: { title: 'Începe sau alătură-te unei provocări', body: 'Un plan de 7 sau 30 de zile, cu reguli și bonus la final. Opțional, dar te ține pe drum.' },
+      proof: { title: 'Trimite dovada live', body: 'Când se deschide fereastra, fă poza cu camera din aplicație. Pozele din galerie nu contează ca dovadă principală.' },
+      ai: { title: 'Verificare cu AI', body: 'AI-ul compară poza cu angajamentul. Dacă nu e sigur, îți cere mai multe dovezi — nu ești penalizat pentru îndoiala lui.' },
+      points: { title: 'Câștigă puncte, urcă în Arenă', body: 'Dovezile verificate aduc puncte și serie; ferestrele ratate costă puncte. Vezi unde ești.' },
+    },
   },
 };

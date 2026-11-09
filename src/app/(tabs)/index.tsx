@@ -22,6 +22,7 @@ import { countdown, dayLabel, formatTime, localDay, longDate, nextActionable, ph
 import { useApp } from '@/providers/AppProvider';
 import { Avatar } from '@/components/Avatar';
 import { WarRoomIntel } from '@/components/Intel';
+import { GettingStarted } from '@/components/GettingStarted';
 import { levelOf } from '@/lib/level';
 import { color, radius } from '@/theme/tokens';
 
@@ -83,6 +84,7 @@ export default function Home() {
         <MessagePanel kind="error" icon="Alert" title={t.home.failTitle} body={t.home.failBody} action={t.common.tryAgain} onAction={() => q.reload()} />
       ) : (
         <>
+          {profile ? <GettingStarted userId={profile.id} /> : null}
           <WarRoomIntel room={room} dayKey={`${profile?.id ?? ''}:${localDay(now, tz)}`} />
 
           <DayProgress done={done} total={list.length} failed={failed} />
