@@ -45,6 +45,8 @@ Deno.serve(async (req) => {
         snap.user_id = cus.metadata?.user_id ?? null;
       }
       const { error } = await db.rpc("stripe_upsert_subscription", { p: snap });
+      // A customer whose NoExcuse account was deleted: nothing to update, and retrying won't change that.
+      if (error && /unknown customer/.test(error.message)) return json(200, { ignored: "unknown_customer" });
       if (error) throw new Error(error.message);
     }
     return json(200, { received: true });
