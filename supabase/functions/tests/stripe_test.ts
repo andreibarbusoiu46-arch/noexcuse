@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { formEncode, snapshot, verifyStripeSignature } from "../_shared/stripe.ts";
+import { formEncode, liveKeyBlocked, snapshot, stripeKey, verifyStripeSignature } from "../_shared/stripe.ts";
 
 async function sign(secret: string, t: number, body: string) {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
@@ -31,4 +31,13 @@ Deno.test("stripe: snapshot reads the period from the item on newer API versions
     items: { data: [{ price: { id: "price_1" }, current_period_start: 10, current_period_end: 20 }] }, metadata: { user_id: "u1" },
     latest_invoice: { status: "paid" } }, 99);
   assert.deepEqual([s.current_period_start, s.current_period_end, s.price_id, s.user_id, s.latest_invoice_status, s.event_created], [10, 20, "price_1", "u1", "paid", 99]);
+});
+
+Deno.test("stripe: live keys stay off until live payments are approved", () => {
+  const env = (o: Record<string, string>) => (n: string) => o[n];
+  assert.equal(stripeKey(env({ STRIPE_SECRET_KEY: "rk_live_abc" })), null);
+  assert.equal(liveKeyBlocked(env({ STRIPE_SECRET_KEY: "rk_live_abc" })), true);
+  assert.equal(stripeKey(env({ STRIPE_SECRET_KEY: "sk_live_abc", STRIPE_LIVE_APPROVED: "true" })), "sk_live_abc");
+  assert.equal(stripeKey(env({ STRIPE_SECRET_KEY: "sk_test_abc" })), "sk_test_abc");
+  assert.equal(stripeKey(env({ STRIPE_SECRET_KEY: "pk_test_abc" })), null);
 });

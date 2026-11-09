@@ -34,10 +34,18 @@ export function formEncode(obj: Record<string, unknown>, prefix = ""): string {
   return out.join("&");
 }
 
-export function stripeKey(): string | null {
-  const k = Deno.env.get("STRIPE_SECRET_KEY")?.trim();
-  return k && /^(sk|rk)_(test|live)_/.test(k) ? k : null;
+/**
+ * The Stripe key, or null when payments must stay off. Live keys (real money) are refused unless the owner
+ * has explicitly approved going live by setting STRIPE_LIVE_APPROVED=true; until then only test keys work.
+ */
+export function stripeKey(env: (n: string) => string | undefined = (n) => Deno.env.get(n)): string | null {
+  const k = env("STRIPE_SECRET_KEY")?.trim();
+  if (!k || !/^(sk|rk)_(test|live)_/.test(k)) return null;
+  if (/^(sk|rk)_live_/.test(k) && env("STRIPE_LIVE_APPROVED") !== "true") return null;
+  return k;
 }
+export const liveKeyBlocked = (env: (n: string) => string | undefined = (n) => Deno.env.get(n)) =>
+  /^(sk|rk)_live_/.test(env("STRIPE_SECRET_KEY")?.trim() ?? "") && env("STRIPE_LIVE_APPROVED") !== "true";
 export const isLiveKey = (k: string) => /^(sk|rk)_live_/.test(k);
 
 export async function stripe<T = Record<string, unknown>>(

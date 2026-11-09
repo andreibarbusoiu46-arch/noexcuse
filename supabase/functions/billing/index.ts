@@ -9,7 +9,7 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.118.0";
 import { adminClient, env, fail, json, requireUser, withCors } from "../_shared/http.ts";
 import { isInternal } from "../_shared/internal.ts";
-import { fetchSnapshot, isLiveKey, PRICE_LOOKUP_KEY, stripe, StripeError, stripeKey, TRIAL_DAYS, WEBHOOK_EVENTS } from "../_shared/stripe.ts";
+import { fetchSnapshot, isLiveKey, liveKeyBlocked, PRICE_LOOKUP_KEY, stripe, StripeError, stripeKey, TRIAL_DAYS, WEBHOOK_EVENTS } from "../_shared/stripe.ts";
 
 const APP_URL = () => (Deno.env.get("APP_URL") ?? "https://noexcuse.vercel.app").replace(/\/$/, "");
 type Price = { id: string; unit_amount: number; currency: string; recurring?: { interval: string }; product?: { name?: string } | string };
@@ -120,6 +120,7 @@ Deno.serve(withCors(async (req) => {
 
   if (body.action === "setup") {
     if (!(await isInternal(req, db))) return fail(401, "unauthorized", "Internal only.");
+    if (liveKeyBlocked()) return fail(503, "live_key_blocked", "STRIPE_SECRET_KEY is a LIVE key. Use a test key (sk_test_…), or set STRIPE_LIVE_APPROVED=true once live payments are approved.");
     if (!key) return fail(503, "billing_not_configured", "STRIPE_SECRET_KEY is not set.");
     try { return json(200, await setup(db, key)); } catch (e) {
       return fail(502, "stripe_error", e instanceof StripeError ? `${e.status} ${e.code ?? ""} ${e.message}` : String(e));
