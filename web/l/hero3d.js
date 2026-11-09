@@ -143,23 +143,24 @@ try {
   const rim = new THREE.DirectionalLight(0xffffff, 3.2); rim.position.set(-4, 2, -3); scene.add(rim);
   const top = new THREE.SpotLight(0xffffff, 40, 30, 0.5, 0.8); top.position.set(0, 9, 5); scene.add(top);
 
-  let baseY = 0, halfHCache = 1, summitY = 0, fitCache = 1;
+  let baseY = 0, halfHCache = 1, summitY = 0, fitCache = 1, narrow = false;
   function layout() {
     const w = stage.clientWidth, h = stage.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-    const narrow = w <= 760;
+    narrow = w <= 760;
     const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
     const halfW = halfH * camera.aspect; halfHCache = halfH;
-    // A large dial rising from the bottom edge like a horizon, clear of the headline.
-    // Phones: the stage is one screen tall, so the dial's upper arc and the summit sit under the buttons.
-    const fit = narrow ? (halfW * 1.1) / 2.6 : Math.min(halfW * 0.9, halfH * 0.95) / 2.6;
+    // Desktop/tablet: a large dial rising from the bottom edge like a horizon, clear of the headline.
+    // Phones: the stage is its own block between the headline and the copy, so the whole dial is shown,
+    // centred, as large as the block allows (arc and its glow included), with the summit in front.
+    const fit = narrow ? Math.min(halfW, halfH) / 2.95 : Math.min(halfW * 0.9, halfH * 0.95) / 2.6;
     fitCache = fit;
-    baseY = narrow ? -halfH - fit * 0.35 : -halfH - fit * 0.78;
-    summitY = narrow ? 1.25 : 1.45;
+    baseY = narrow ? -0.04 * halfH : -halfH - fit * 0.78;
+    summitY = narrow ? 0.05 : 1.45;
     rig.scale.setScalar(fit);
     rig.position.y = baseY;
-    glow.position.y = baseY + summitY * fit; glow.scale.setScalar(fit * 1.1);
+    glow.position.y = baseY + summitY * fit; glow.scale.setScalar(fit * (narrow ? 0.95 : 1.1));
     if (reduce || STILL || !running) frame(0);
   }
 
@@ -183,9 +184,9 @@ try {
     const secs = now.getSeconds() + now.getMilliseconds() / 1000;
     hand.rotation.z = reduce || STILL ? -Math.PI / 3 : -(secs / 60) * Math.PI * 2;
     const drift = reduce || STILL ? 0 : Math.sin(t * 0.18) * 0.06;
-    rig.rotation.x = -0.18 + cur.y * 0.22 + scroll * 0.5;
+    rig.rotation.x = (narrow ? -0.12 : -0.18) + cur.y * 0.22 + scroll * (narrow ? 0.35 : 0.5);
     rig.rotation.y = cur.x * 0.32 + drift;
-    rig.position.y = baseY + scroll * halfHCache * 0.6 + (reduce || STILL ? 0 : Math.sin(t * 0.5) * 0.03 * fitCache);
+    rig.position.y = baseY + (narrow ? 0 : scroll * halfHCache * 0.6) + (reduce || STILL ? 0 : Math.sin(t * 0.5) * 0.03 * fitCache);
     summitGroup.rotation.y = reduce || STILL ? -0.35 : -0.5 + Math.sin(t * 0.22) * 0.55 + cur.x * 0.4;
     summitGroup.rotation.x = 0.1 + (reduce || STILL ? 0 : Math.sin(t * 0.6) * 0.05);
     summitGroup.position.y = summitY + (reduce || STILL ? 0 : Math.sin(t * 0.8) * 0.06);
@@ -193,26 +194,40 @@ try {
     renderer.render(scene, camera);
   }
 
-  let visible = true, running = false, last = performance.now(), samples = 0, slow = 0, stalled = false;
+  // Quality tiers, chosen from the measured frame time (unclamped) over ~60 frames:
+  //   0 full → 1 pixel ratio 1× (under 30 fps) → 2 lighter glass, no transmission pass (still under 30 fps)
+  //   → 3 a still frame (under ~15 fps even then). The same object at every tier; never hidden.
+  let visible = true, running = false, last = performance.now(), samples = 0, slow = 0, stalled = false, tier = 0;
+  const setState = (st) => { stage.dataset.state = st; stage.dataset.tier = String(tier); };
+  function lighterGlass() {
+    // Smoked glass: plain alpha blending over the lit panel instead of a second (transmission) render pass.
+    const smoked = new THREE.MeshPhysicalMaterial({ color: 0x3a3a42, metalness: 0, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03,
+      envMapIntensity: 2.6, specularIntensity: 1, transparent: true, opacity: 0.62, depthWrite: false });
+    summit.material = smoked; glass.dispose();
+    core.material.opacity = 0.1;
+  }
   function loop() {
-    if (!visible || document.hidden || reduce || STILL || stalled) { running = false; return; }
-    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!visible || document.hidden || reduce || STILL || stalled) { running = false; setState(stalled ? 'still-lowfps' : 'paused'); return; }
+    const now = performance.now(), raw = (now - last) / 1000, dt = Math.min(0.05, raw); last = now;
     frame(dt);
-    // Adaptive quality: drop to 1× pixels under 30 fps; still under ~20 fps after that → hold a still frame.
-    samples++; slow += dt;
+    samples++; slow += Math.min(raw, 0.5); // a background-tab gap must not count as slowness
     if (samples === 60) {
       const avg = slow / 60;
-      if (avg > 1 / 30 && renderer.getPixelRatio() > 1) { renderer.setPixelRatio(1); layout(); samples = 0; slow = 0; }
-      else if (avg > 1 / 20) { stalled = true; frame(0); }
+      if (avg > 1 / 30 && tier === 0 && renderer.getPixelRatio() > 1) { tier = 1; renderer.setPixelRatio(1); layout(); }
+      else if (avg > 1 / 30 && tier <= 1) { tier = 2; lighterGlass(); }
+      else if (avg > 1 / 15 && tier === 2) { tier = 3; stalled = true; frame(0); }
+      samples = 0; slow = 0;
+      setState(stalled ? 'still-lowfps' : 'animating');
     }
     requestAnimationFrame(loop);
   }
-  function start() { if (!running && !reduce && !STILL && !stalled) { running = true; last = performance.now(); requestAnimationFrame(loop); } }
+  function start() { if (!running && !reduce && !STILL && !stalled) { running = true; last = performance.now(); samples = 0; slow = 0; setState('animating'); requestAnimationFrame(loop); } }
 
   layout(); new ResizeObserver(layout).observe(stage);
   new IntersectionObserver((e) => { visible = e[0].isIntersecting; if (visible) start(); }).observe(stage);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) start(); });
   frame(0);
+  if (reduce || STILL) setState('still-reduced-motion');
   stage.classList.add('live');
   start();
   reveal();

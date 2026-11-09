@@ -73,11 +73,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; }
 .stage canvas { display: block; width: 100%; height: 100%; }
 .stage-fallback { position: absolute; inset: 0; background: #000 url(/l/hero-still-wide.webp) center bottom / cover no-repeat; }
 .stage.live .stage-fallback { display: none; }
-@media (max-width: 760px) {
-  /* Phones: the 3D stage is one screen tall, so the dial rises under the buttons on the first screen. */
-  .stage { bottom: auto; height: 100svh; }
-  .stage-fallback { background-image: url(/l/hero-still-tall.webp); }
-}
 .still-ready .hero-copy, .still-ready .nav, .still-ready .hero::after { visibility: hidden; }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(120% 70% at 50% 0%, rgba(0,0,0,.92) 18%, transparent 60%), linear-gradient(0deg, #000 0%, transparent 22%); }
 .hero-copy { text-align: center; padding-top: clamp(120px, 15vh, 168px); display: flex; flex-direction: column; align-items: center; }
@@ -85,6 +80,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; }
 @media (min-width: 761px) { .hero h1 .line > span { white-space: nowrap; } }
 .hero h1 .line { display: block; overflow: hidden; padding: 0 .04em .12em; margin-bottom: -.1em; }
 .hero h1 .line > span { display: block; }
+/* The metal gradient is clipped to the glyphs; extend its box under the baseline so g / p keep their tails. */
+.hero h1 .metal { padding-bottom: .16em; margin-bottom: -.16em; }
 .hero .lede { margin-top: 26px; max-width: 33em; }
 .hero .cta-row { justify-content: center; margin-top: 34px; }
 .hero .fine { margin-top: 18px; font-size: 14px; color: var(--graphite); }
@@ -386,12 +383,22 @@ footer a:hover { color: var(--paper); }
   .nav { top: 10px; }
   .nav-bar { height: 54px; padding-left: 14px; }
   .nav .btn { min-height: 40px; padding: 0 16px; font-size: 14px; }
-  .hero { min-height: auto; }
-  .hero-copy { padding-top: 112px; text-align: left; align-items: flex-start; }
-  .hero h1 { font-size: clamp(46px, 13.4vw, 64px); }
-  .hero .cta-row, .final .cta-row { justify-content: flex-start; }
-  .hero .cta-row .btn { flex: 1 1 100%; }
-  .stage { position: relative; inset: auto; order: 2; height: 62vw; min-height: 260px; margin-top: 8px; -webkit-mask: linear-gradient(transparent, #000 12%, #000 80%, transparent); mask: linear-gradient(transparent, #000 12%, #000 80%, transparent); }
+  /* Phone hero = one composed screen: headline → the 3D dial (whole, centred) → copy → buttons.
+     The copy's children join the hero's flex column so the stage can sit between them; the stage takes
+     whatever height the first screen has left (never less than 240 px, never more than 420 px). */
+  .hero { min-height: 100svh; padding-top: 100px; padding-bottom: 20px; }
+  .hero-copy { display: contents; }
+  .hero-copy > * { width: 100%; padding-left: var(--gutter); padding-right: var(--gutter); text-align: left; }
+  .hero h1 { order: 1; font-size: clamp(40px, 11.6vw, 58px); }
+  .hero h1 .line { padding-bottom: .2em; margin-bottom: -.18em; } /* room for descenders (g, p) under the reveal mask */
+  .stage { position: relative; inset: auto; order: 2; flex: 1 1 auto; min-height: 240px; max-height: 420px; margin: 6px 0 2px;
+    -webkit-mask: linear-gradient(transparent, #000 18%, #000 82%, transparent); mask: linear-gradient(transparent, #000 18%, #000 82%, transparent); }
+  .stage-fallback { background: #000 url(/l/hero-still-tall.webp) center / contain no-repeat; }
+  .hero .lede { order: 3; margin-top: 0; font-size: 16px; line-height: 1.5; }
+  .hero .cta-row { order: 4; margin-top: 18px; display: grid; grid-template-columns: 1fr; gap: 10px; justify-content: stretch; }
+  .hero .fine { order: 5; margin-top: 12px; font-size: 13px; }
+  .final .cta-row { justify-content: flex-start; }
+  .hero .cta-row .btn { width: 100%; min-height: 52px; }
   .hero::after { background: linear-gradient(0deg, #000 0%, transparent 14%); }
   .scroll-cue { display: none; }
 

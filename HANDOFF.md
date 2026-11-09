@@ -63,9 +63,12 @@
   subscription from Stripe. Premium = active App Store entitlement OR Stripe status trialing/active (`has_premium`).
   The 3-day trial is offered once per account. Only `STRIPE_SECRET_KEY` is needed (test key `sk_test_…` first).
 - Landing hero: three.js r170 from jsDelivr (`web/l/hero3d.js`): silver dial, a light arc that fills with the visitor's
-  elapsed day, glass summit lit from behind (transmission only refracts opaque objects). Pixel ratio capped and adaptive,
-  pauses off-screen / hidden tab, still frame with Reduce Motion, pre-rendered stills (`hero-still-*.webp`, regenerate
-  with `?still`) when WebGL is missing.
+  elapsed day, glass summit lit from behind (transmission only refracts opaque objects). ≥761 px: the dial rises from the
+  bottom like a horizon behind the copy. Phones: the copy's children join the hero's flex column (`display: contents`) so
+  the stage sits between the headline and the text and shows the whole dial, centred (240–420 px tall).
+  Quality tiers from measured frame time: 1× pixels → smoked glass without the transmission pass → still frame; pauses
+  off-screen / hidden tab; still frame with Reduce Motion; pre-rendered stills (`hero-still-wide/tall.webp`, regenerate
+  with `?still`) when WebGL is missing. `#stage[data-state][data-tier]` shows what is running.
 
 Free: 2 active commitments, Standard verification, points, Discipline Score, War Room, Arena, achievements,
 share card, joining a partner's circle. Premium (€9.99/month): everything else.
