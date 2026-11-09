@@ -92,7 +92,7 @@ export function GlassDock({ state, navigateToTab }: BottomTabBarProps) {
             if (r.name === 'index') {
               return (
                 <View key={r.key} onLayout={onItemLayout(r.name)} style={{ flex: 1.15, alignItems: 'center' }}>
-                  <Tap haptic="selection" onPress={() => go(r.key, r.name)} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={item.label()}
+                  <Tap haptic="selection" onPress={() => go(r.key, r.name)} accessibilityRole="tab" accessibilityState={{ selected: on }} aria-selected={on} accessibilityLabel={item.label()}
                     style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center',
                       backgroundColor: on ? color.accent.primary : color.surface.glassStrong, borderWidth: 1, borderColor: on ? color.accent.primary : color.border.strong,
                       ...(on ? { boxShadow: scheme() === 'light' ? '0 8px 22px rgba(17,17,19,0.25)' : '0 0 0 6px rgba(255,255,255,0.06), 0 10px 26px rgba(255,255,255,0.18)' } : null) } as object}>
@@ -103,7 +103,7 @@ export function GlassDock({ state, navigateToTab }: BottomTabBarProps) {
             }
             return (
               <View key={r.key} onLayout={onItemLayout(r.name)} style={{ flex: 1, alignItems: 'stretch' }}>
-                <Tap haptic="selection" onPress={() => go(r.key, r.name)} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={item.label()}
+                <Tap haptic="selection" onPress={() => go(r.key, r.name)} accessibilityRole="tab" accessibilityState={{ selected: on }} aria-selected={on} accessibilityLabel={item.label()}
                   style={{ height: 52, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
                   <Icon name={item.icon} size={21} tint={on ? color.icon.primary : color.icon.secondary} />
                   <T numberOfLines={1} style={{ fontFamily: on ? font.semibold : font.medium, fontSize: 10.5, lineHeight: 13, letterSpacing: 0.2,

@@ -106,10 +106,8 @@ export function PhotoEditor({ name, path, onChanged }: { name: string; path: str
         </View>
       ) : (
         <View style={{ gap: 10 }}>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1 }}><Button kind="glass" icon="Camera" label={t.photo.camera} onPress={() => pick('camera')} disabled={!!busy} /></View>
-            <View style={{ flex: 1 }}><Button kind="glass" icon="Plus" label={path ? t.photo.replace : t.photo.library} onPress={() => pick('library')} loading={busy === 'pick'} disabled={!!busy && busy !== 'pick'} /></View>
-          </View>
+          <Button kind="glass" icon="Camera" label={t.photo.camera} onPress={() => pick('camera')} disabled={!!busy} />
+          <Button kind="glass" icon="Plus" label={path ? t.photo.replace : t.photo.library} onPress={() => pick('library')} loading={busy === 'pick'} disabled={!!busy && busy !== 'pick'} />
           {path ? <Button kind="ghost" label={t.photo.remove} onPress={remove} loading={busy === 'remove'} disabled={!!busy && busy !== 'remove'} /> : null}
         </View>
       )}

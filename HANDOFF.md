@@ -5,7 +5,9 @@
 - Supabase project `ibsrtuyrflvprmjuuoqb`: all migrations in `supabase/migrations` applied; Edge Functions
   `start-proof`, `verify-proof`, `appeal-proof`, `coach`, `cron-tick` (every minute), `delete-account`,
   `refresh-entitlement`, `revenuecat-webhook`, `challenge-generate`, `privacy`, `ai-health` (diagnostic; returns only status codes),
-  `ai-selftest` (internal; runs the real verification engine on public test images, Vault cron secret required).
+  `ai-selftest` (internal; runs the real verification engine on public test images, Vault cron secret required),
+  `app-selftest` (internal; 40 end-to-end checks of tasks, photos and Arena as two throw-away confirmed users,
+  which it deletes at the end; call with the Vault cron secret).
 - Functions are deployed either as `deno bundle --minify` builds or as a one-line entry that imports the sources at a
   pinned commit of this repo (`supabase/functions/<name>/index.ts` at `<sha>`), so what runs is exactly what is committed.
 
