@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   const url = env("SUPABASE_URL");
   const anon = env("SUPABASE_ANON_KEY");
   const checks: Check[] = [];
-  const ok = (name: string, cond: boolean, detail?: unknown) => {
+  const ok = (name: string, cond: unknown, detail?: unknown) => {
     checks.push({ name, ok: !!cond, ...(cond ? {} : { detail: typeof detail === "string" ? detail : JSON.stringify(detail)?.slice(0, 300) }) });
   };
   const created: string[] = [];
