@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { router } from 'expo-router';
 import { fmtNumber, t } from '@/i18n';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Badge } from '@/components/Badge';
 import { IconTile, SectionHeader } from '@/components/Blocks';
 import { Button, IconButton } from '@/components/Button';
@@ -29,8 +30,20 @@ function greeting(now: number, tz?: string) {
   return t.home.greeting(h);
 }
 
+/** Visitors who tapped "Start your challenge" on the website see the trial offer once after signing up. */
+function useStartTrialIntent() {
+  const { ready, profile, premium } = useApp();
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !ready || !profile) return;
+    let intent: string | null = null;
+    try { intent = sessionStorage.getItem('noexcuse:start-trial'); sessionStorage.removeItem('noexcuse:start-trial'); } catch { /* storage blocked */ }
+    if (intent && !premium) router.push('/paywall');
+  }, [ready, profile, premium]);
+}
+
 export default function Home() {
   const { profile } = useApp();
+  useStartTrialIntent();
   const tz = profile?.timezone;
   const now = useNow(1000);
   const q = useLoad(async () => {

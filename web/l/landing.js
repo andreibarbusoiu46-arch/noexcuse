@@ -84,6 +84,10 @@
     if (i === 2) runVerification();
     if (i === 3) setOutcome(demo.outcome, true);
   }
+  // "Start your challenge" → after sign-up the app opens the trial offer once (see Home).
+  $$('a[href="/onboarding"]').forEach(function (a) {
+    a.addEventListener('click', function () { try { sessionStorage.setItem('noexcuse:start-trial', '1'); } catch (e) { /* private mode */ } });
+  });
   $$('[data-go]').forEach(function (b) { b.addEventListener('click', function () { goTo(+b.getAttribute('data-go')); }); });
 
   // Step 1 · Commit

@@ -280,6 +280,16 @@ export interface Entitlement {
   period_type: string | null;
   expires_at: string | null;
   will_renew: boolean | null;
+  /** stripe (web) or the App Store via RevenueCat. */
+  source?: 'stripe' | 'app_store' | 'play_store' | string;
+  /** Stripe status: trialing | active | past_due | unpaid | canceled | incomplete | … */
+  status?: string;
+  trial_end?: string | null;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
+  canceled_at?: string | null;
+  payment_failed?: boolean;
 }
 
 export interface CaptureSession {

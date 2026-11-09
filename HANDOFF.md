@@ -55,6 +55,18 @@
   and sections expanding from their place (fade only with Reduce Motion); WAR ROOM · Daily Intel (original library,
   picked from real progress, "Another" button).
 
+- Payments: web uses Stripe (Checkout + Customer Portal + webhook), the iPhone app uses Apple In-App Purchase via
+  RevenueCat (Apple requires IAP for digital subscriptions sold in App Store apps — Stripe is never shown there).
+  `billing` function (plan / checkout / portal / sync; `setup` with the cron secret creates the €9.99/month price with
+  lookup key `noexcuse_premium_monthly`, the portal settings and the webhook endpoint, and stores the webhook secret in
+  the Vault). `stripe-webhook` verifies signatures, processes each event once (`stripe_events`) and re-reads the
+  subscription from Stripe. Premium = active App Store entitlement OR Stripe status trialing/active (`has_premium`).
+  The 3-day trial is offered once per account. Only `STRIPE_SECRET_KEY` is needed (test key `sk_test_…` first).
+- Landing hero: three.js r170 from jsDelivr (`web/l/hero3d.js`): silver dial, a light arc that fills with the visitor's
+  elapsed day, glass summit lit from behind (transmission only refracts opaque objects). Pixel ratio capped and adaptive,
+  pauses off-screen / hidden tab, still frame with Reduce Motion, pre-rendered stills (`hero-still-*.webp`, regenerate
+  with `?still`) when WebGL is missing.
+
 Free: 2 active commitments, Standard verification, points, Discipline Score, War Room, Arena, achievements,
 share card, joining a partner's circle. Premium (€9.99/month): everything else.
 
@@ -71,6 +83,6 @@ template texts in `src/i18n/templates.ts`, and the server copy in `supabase/func
 in the `profiles.language` check constraint.
 
 ## Tests
-- Database: `PGHOST=... PGPORT=... PGUSER=postgres bash supabase/tests/run.sh` (phases 0–7 + AI, 267 checks).
+- Database: `PGHOST=... PGPORT=... PGUSER=postgres bash supabase/tests/run.sh` (phases 0–7 + AI + Stripe, 283 checks).
 - Functions: `cd supabase/functions && deno test --allow-env --no-lock --node-modules-dir=none tests`.
 - App: `npx tsc --noEmit && npx eslint src`.

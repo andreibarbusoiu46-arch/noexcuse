@@ -100,6 +100,7 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="challenge/custom" />
         <Stack.Screen name="challenge/generate" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="billing" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="appeal/[targetId]" />
         <Stack.Screen name="coach" />

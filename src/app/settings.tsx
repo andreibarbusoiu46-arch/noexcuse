@@ -316,14 +316,10 @@ export default function Settings() {
           {premium && <T variant="caption" tone="tertiary">{t.settings.billing}</T>}
         </Card>
         {!premium && <Button label={t.settings.upgrade} icon="Sparkle" onPress={() => router.push('/paywall')} />}
-        {purchasesAvailable() ? (
-          <Card padding={0} style={{ gap: 0 }}>
-            {premium && (<><SettingsRow icon="Shield" label={t.settings.manage} onPress={() => void manageSubscription()} /><Divider /></>)}
-            <SettingsRow icon="Retry" label={busy === 'restore' ? t.settings.restoring : t.settings.restore} chevron={false} onPress={onRestore} />
-          </Card>
-        ) : (
-          <T variant="caption" tone="tertiary">{t.settings.manageOnIphone}</T>
-        )}
+        <Card padding={0} style={{ gap: 0 }}>
+          <SettingsRow icon="Shield" label={t.settings.manage} onPress={() => router.push('/billing')} />
+          {purchasesAvailable() ? (<><Divider /><SettingsRow icon="Retry" label={busy === 'restore' ? t.settings.restoring : t.settings.restore} chevron={false} onPress={onRestore} /></>) : null}
+        </Card>
       </View>
 
       <View style={{ gap: 12 }}>

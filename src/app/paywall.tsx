@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { t } from '@/i18n';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
@@ -15,7 +15,7 @@ import { T } from '@/components/Text';
 import { api } from '@/data';
 import { config } from '@/lib/config';
 import { haptics } from '@/lib/haptics';
-import { buy, loadPlan, paywallAvailable, restore, type Plan } from '@/lib/purchases';
+import { buy, loadPlan, paywallAvailable, restore, stripeAvailable, type Plan } from '@/lib/purchases';
 import { useApp } from '@/providers/AppProvider';
 import { color, radius } from '@/theme/tokens';
 
@@ -27,6 +27,9 @@ export default function Paywall() {
   const [state, setState] = useState<'loading' | 'ready' | 'unavailable' | 'error'>(() => (paywallAvailable() ? 'loading' : 'unavailable'));
   const [busy, setBusy] = useState<'buy' | 'restore' | null>(null);
   const [message, setMessage] = useState<{ tone: 'danger' | 'secondary'; text: string } | null>(null);
+  const { checkout } = useLocalSearchParams<{ checkout?: string }>();
+  // Back from Stripe Checkout without paying.
+  const shown = message ?? (checkout === 'cancelled' ? { tone: 'secondary' as const, text: t.paywall.checkoutCancelled } : null);
 
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
@@ -72,14 +75,17 @@ export default function Paywall() {
   const price = plan?.priceString ?? '€9.99';
   const trial = plan?.trialDays ?? null;
   const cta = trial ? t.paywall.ctaTrial(trial) : t.paywall.cta(price);
-  const terms = trial ? t.paywall.termsTrial(trial, price) : t.paywall.terms(price);
+  const web = stripeAvailable();
+  const terms = web ? (trial ? t.paywall.webTermsTrial(trial, price) : t.paywall.webTerms(price))
+    : trial ? t.paywall.termsTrial(trial, price) : t.paywall.terms(price);
 
   const legalBlock = (
     <>
       {state === 'ready' && <T variant="caption" tone="tertiary" align="center">{terms}</T>}
+      {state === 'ready' && plan?.stripeMode === 'test' && <T variant="caption" tone="warning" align="center">{t.paywall.testMode}</T>}
       <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', columnGap: 18, rowGap: 6 }}>
-        <Tap onPress={onRestore} disabled={busy !== null || !paywallAvailable()} accessibilityLabel={t.paywall.restore}>
-          <T variant="caption" tone="secondary">{busy === 'restore' ? t.paywall.restoring : t.paywall.restore}</T>
+        <Tap onPress={onRestore} disabled={busy !== null || !paywallAvailable()} accessibilityLabel={web ? t.paywall.refresh : t.paywall.restore}>
+          <T variant="caption" tone="secondary">{busy === 'restore' ? t.paywall.restoring : web ? t.paywall.refresh : t.paywall.restore}</T>
         </Tap>
         <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel={t.settings.terms}><T variant="caption" tone="secondary">{t.settings.terms}</T></Tap>
         {config.privacyUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link" accessibilityLabel={t.settings.privacyPolicy}><T variant="caption" tone="secondary">{t.settings.privacyPolicy}</T></Tap> : null}
@@ -155,9 +161,9 @@ export default function Paywall() {
         ) : null}
       </Glass>
       {compact && <View style={{ gap: 10 }}>{legalBlock}</View>}
-      {message && (
-        <View style={{ padding: 14, borderRadius: radius.md, backgroundColor: message.tone === 'danger' ? color.status.dangerSoft : color.surface.glass }} accessibilityLiveRegion="assertive">
-          <T variant="bodySmall" tone={message.tone}>{message.text}</T>
+      {shown && (
+        <View style={{ padding: 14, borderRadius: radius.md, backgroundColor: shown.tone === 'danger' ? color.status.dangerSoft : color.surface.glass }} accessibilityLiveRegion="assertive">
+          <T variant="bodySmall" tone={shown.tone}>{shown.text}</T>
         </View>
       )}
     </Screen>

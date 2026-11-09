@@ -61,7 +61,8 @@ export const liveApi: Api = {
     return must(await supabase.rpc('get_my_stats')) as Stats;
   },
   async getEntitlement() {
-    return must(await supabase.from('entitlements').select('is_active, period_type, expires_at, will_renew').maybeSingle()) as Entitlement | null;
+    // Either store: the App Store (RevenueCat) or a web subscription (Stripe), decided on the server.
+    return (must(await supabase.rpc('get_entitlement')) as Entitlement | null) ?? null;
   },
   async getMissed(targetId) {
     const target = must(await supabase.from('targets').select(TARGET_SELECT).eq('id', targetId).single()) as unknown as Target;
