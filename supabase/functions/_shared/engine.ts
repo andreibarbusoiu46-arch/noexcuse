@@ -42,7 +42,7 @@ export interface Analysis {
 }
 
 const ACTIVITY_GUIDE: Record<Activity, string> = {
-  gym: `GYM: Look for a gym or training equipment and the person training or visibly just after a workout. A workout-app or watch summary can support duration, exercises or sets. A photo of equipment alone does not prove the person trained. Mirror selfies are fine.`,
+  gym: `GYM: The strongest evidence shows the person actively training (lifting, on a machine, mid-exercise). A selfie or mirror photo only counts if it also shows real signs of a workout (training clothes plus sweat/flushed skin, equipment in use, chalk, a loaded bar). A posed selfie in a gym, or a photo of equipment alone, does not prove a workout happened: use NEEDS_MORE_EVIDENCE and ask for a photo mid-exercise or of the workout record. A workout-app or watch summary can support duration, exercises or sets.`,
   running: `RUNNING: Look for the person running or right after a run (outdoors or treadmill). Read distance, duration and pace only from a visible display or app screenshot; never estimate them from the scene. A GPS map supports the claim only if it is today's activity (check the date when visible). A target distance (e.g. "5 km") is met only if a display shows it.`,
   reading: `READING: Look for an open book or e-reader with readable pages, page numbers or chapters. A closed book or a book on a shelf is not reading. Report the page/chapter you can read. You cannot verify how many pages were read unless progress is visible.`,
   studying: `STUDYING: Look for study material in active use: notes, textbooks, exercises, a study app or work on a screen. Completed exercises or fresh notes are stronger evidence than a closed notebook.`,
