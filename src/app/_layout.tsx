@@ -1,3 +1,4 @@
+import { DialogHost } from '@/components/DialogHost';
 import { BodoniModa_500Medium } from '@expo-google-fonts/bodoni-moda/500Medium';
 import { BodoniModa_600SemiBold } from '@expo-google-fonts/bodoni-moda/600SemiBold';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
@@ -39,6 +40,7 @@ export default function RootLayout() {
       <AppProvider>
         <PrefsProvider>
           <Themed fontsReady={fontsLoaded || !!fontError || fontGrace} />
+          {Platform.OS === 'web' ? <DialogHost /> : null}
         </PrefsProvider>
       </AppProvider>
     </SafeAreaProvider>
@@ -98,6 +100,7 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="challenge/custom" />
         <Stack.Screen name="challenge/generate" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="appeal/[targetId]" />
         <Stack.Screen name="coach" />
         <Stack.Screen name="reports" />

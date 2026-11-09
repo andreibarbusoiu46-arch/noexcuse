@@ -1,8 +1,9 @@
 // Demo mode (EXPO_PUBLIC_DEMO=1): fixture data shaped exactly like the live API.
 // No backend, no AI, no purchases — for design review and Expo Go only. Never ships with this flag on.
 import { ApiError } from '@/lib/supabase';
+import { levelOf } from '@/lib/level';
 import { demoTemplates } from './demoTemplates';
-import type { ChallengeDetail, Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, Challenge, Challenges, ChallengeTemplate, Discipline, Habit, HabitInput, Profile, ScoreEvent, Target, TargetReview, VerdictResult, WarRoom } from './types';
+import type { ChallengeDetail, Achievement, Api, Appeal, AppealResult, ArenaBoard, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, Challenge, Challenges, ChallengeTemplate, Discipline, Habit, HabitInput, Profile, ScoreEvent, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
 const MIN = 60_000;
 const at = (offsetMin: number) => new Date(Date.now() + offsetMin * MIN).toISOString();
@@ -244,5 +245,22 @@ export const demoApi: Api = {
   },
   abandonChallenge: async (cid) => { const c = challenges.find((x) => x.id === cid); if (!c || c.status !== 'active') return false; c.status = 'abandoned'; return true; },
   archiveHabit: async (hid) => { const h = habits.find((x) => x.id === hid); if (h) { h.archived_at = new Date().toISOString(); h.is_active = false; } },
+  restoreHabit: async (hid) => { const h = habits.find((x) => x.id === hid); if (h) { h.archived_at = null; h.is_active = false; } },
+  deleteHabit: async (hid) => { const i = habits.findIndex((x) => x.id === hid); if (i >= 0) habits.splice(i, 1); return 'erased' as const; },
+  deleteChallenge: async (cid) => {
+    const i = challenges.findIndex((x) => x.id === cid);
+    if (i >= 0 && challenges[i].status === 'active') throw new ApiError('bad_request', 'Abandon the challenge before deleting it.', 400);
+    if (i >= 0) challenges.splice(i, 1);
+  },
+  setAvatar: async () => { throw new ApiError('demo', 'Demo mode: profile photos need a signed-in account.', 403); },
+  removeAvatar: async () => { throw new ApiError('demo', 'Demo mode: profile photos need a signed-in account.', 403); },
+  // Demo mode has no community: only the demo account itself, never invented members.
+  getArenaBoard: async (q): Promise<ArenaBoard> => ({
+    period: q.period, since: null, total: 1, eligible: 1,
+    rows: [{ rank: 1, user_id: 'demo-me', display_name: profile.display_name, username: null, avatar_path: null,
+      points: q.period === 'all' ? profile.total_points : 150, total_points: profile.total_points, level: levelOf(profile.total_points).level,
+      streak: 12, challenge: null, is_me: true, is_partner: false }],
+    me: { rank: 1, points: q.period === 'all' ? profile.total_points : 150, level: levelOf(profile.total_points).level },
+  }),
   getHabitHistory: async (hid) => targets.filter((t) => t.habit_id === hid).map((t) => ({ ...t, habit: habitRef(habits.find((h) => h.id === t.habit_id)!) })).reverse(),
 };

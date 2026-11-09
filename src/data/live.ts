@@ -1,5 +1,7 @@
-import { callFunction, supabase } from '@/lib/supabase';
-import type { AiUsageOverview, Achievement, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, ChallengeDetail, ChallengePlan, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
+import { ApiError, callFunction, supabase } from '@/lib/supabase';
+
+const randomName = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, '0')).join('');
+import type { AiUsageOverview, Achievement, ArenaBoard, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, ChallengeDetail, ChallengePlan, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
 
 const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, category, activity, proof_hint, current_streak, is_active, verification_level)';
 const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, verification_level, activity, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';
@@ -19,7 +21,7 @@ function must<T>(res: { data: T | null; error: { message: string } | null }): T 
 
 export const liveApi: Api = {
   async getProfile() {
-    return must(await supabase.from('profiles').select('id, display_name, timezone, total_points, notify_prefs, language, theme, evidence_retention').eq('id', await uid()).single()) as Profile;
+    return must(await supabase.from('profiles').select('id, display_name, timezone, total_points, notify_prefs, language, theme, evidence_retention, username, avatar_path, arena_visible, show_streak, show_challenge').eq('id', await uid()).single()) as Profile;
   },
   async updateProfile(patch) {
     must(await supabase.from('profiles').update(patch).eq('id', await uid()));
@@ -42,7 +44,9 @@ export const liveApi: Api = {
     return must(await supabase.from('habits').insert({ ...input, user_id: await uid() }).select(HABIT_SELECT).single()) as Habit;
   },
   async updateHabit(id, patch) {
-    must(await supabase.from('habits').update(patch).eq('id', id));
+    // An update the database filtered out (not yours, deleted) returns no error: check a row came back.
+    const rows = must(await supabase.from('habits').update(patch).eq('id', id).select('id')) as { id: string }[];
+    if (!rows.length) throw new ApiError('not_found', 'This commitment no longer exists.', 404);
   },
   async getRecentEvents(limit) {
     return must(
@@ -171,7 +175,41 @@ export const liveApi: Api = {
     return (await callFunction<{ deleted: number; kept: number }>('privacy', { action: 'delete_evidence' })).deleted;
   },
   async archiveHabit(id) {
-    must(await supabase.from('habits').update({ archived_at: new Date().toISOString() }).eq('id', id));
+    await liveApi.updateHabit(id, { archived_at: new Date().toISOString() });
+  },
+  async restoreHabit(id) {
+    await liveApi.updateHabit(id, { archived_at: null });
+  },
+  async deleteHabit(id) {
+    return (await callFunction<{ mode: 'erased' | 'removed' }>('privacy', { action: 'delete_commitment', habit_id: id })).mode;
+  },
+  async deleteChallenge(id) {
+    must(await supabase.rpc('delete_challenge', { p_id: id }));
+  },
+  async setAvatar(image) {
+    const me = await uid();
+    const name = `${me}/${randomName()}.jpg`;
+    const bytes = Uint8Array.from(atob(image.base64), (c) => c.charCodeAt(0));
+    const up = await supabase.storage.from('avatars').upload(name, bytes, { contentType: 'image/jpeg', upsert: false });
+    if (up.error) throw new ApiError(/size|large/i.test(up.error.message) ? 'too_large' : 'upload_failed', up.error.message, 400);
+    let old: string | null;
+    try {
+      old = must(await supabase.rpc('set_avatar', { p_path: name })) as string | null;
+    } catch (e) {
+      await supabase.storage.from('avatars').remove([name]);
+      throw e;
+    }
+    if (old) await supabase.storage.from('avatars').remove([old]);
+    return name;
+  },
+  async removeAvatar() {
+    const old = must(await supabase.rpc('remove_avatar')) as string | null;
+    if (old) await supabase.storage.from('avatars').remove([old]);
+  },
+  async getArenaBoard(q) {
+    return must(await supabase.rpc('get_arena_board', {
+      p_period: q.period, p_sort: q.sort, p_search: q.search || null, p_scope: q.scope, p_offset: q.offset, p_limit: q.limit,
+    })) as ArenaBoard;
   },
   async getHabitHistory(id, limit) {
     return must(

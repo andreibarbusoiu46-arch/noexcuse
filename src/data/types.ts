@@ -12,6 +12,12 @@ export interface Profile {
   language: 'en' | 'ro';
   theme: 'dark' | 'light' | 'system';
   evidence_retention: 'keep' | '30d';
+  username?: string | null;
+  /** Storage path in the public "avatars" bucket; see avatarUrl(). */
+  avatar_path?: string | null;
+  arena_visible?: boolean;
+  show_streak?: boolean;
+  show_challenge?: boolean;
 }
 
 export interface CoachMessage { id: number; role: 'user' | 'coach'; content: string; created_at: string }
@@ -320,6 +326,18 @@ export interface VerdictResult {
   analysis?: ProofAnalysis | null;
 }
 
+export type ArenaPeriod = 'week' | 'month' | 'all';
+export interface ArenaQuery { period: ArenaPeriod; sort: 'points' | 'streak'; search: string; scope: 'all' | 'partners'; offset: number; limit: number }
+export interface ArenaMember {
+  rank: number; user_id: string; display_name: string; username: string | null; avatar_path: string | null;
+  points: number; total_points: number; level: number; streak: number | null; challenge: string | null;
+  is_me: boolean; is_partner: boolean;
+}
+export interface ArenaBoard {
+  period: ArenaPeriod; since: string | null; total: number; eligible: number; rows: ArenaMember[];
+  me: { rank: number | null; points: number; level: number; hidden?: boolean } | null;
+}
+
 /** Internal AI usage overview (admins only). Costs are estimates from public prices. */
 export interface AiUsageOverview {
   since: string;
@@ -357,13 +375,13 @@ export interface MissedDetail {
 
 export interface Api {
   getProfile(): Promise<Profile>;
-  updateProfile(patch: Partial<Pick<Profile, 'display_name' | 'timezone' | 'notify_prefs' | 'language' | 'theme' | 'evidence_retention'>>): Promise<void>;
+  updateProfile(patch: Partial<Pick<Profile, 'display_name' | 'timezone' | 'notify_prefs' | 'language' | 'theme' | 'evidence_retention' | 'username' | 'arena_visible' | 'show_streak' | 'show_challenge'>>): Promise<void>;
   getTargets(fromIso: string, toIso: string): Promise<Target[]>;
   getTarget(id: string): Promise<Target | null>;
   getHabits(): Promise<Habit[]>;
   getHabit(id: string): Promise<Habit | null>;
   createHabit(input: HabitInput): Promise<Habit>;
-  updateHabit(id: string, patch: Partial<HabitInput>): Promise<void>;
+  updateHabit(id: string, patch: Partial<HabitInput> & { archived_at?: string | null }): Promise<void>;
   getRecentEvents(limit: number): Promise<ScoreEvent[]>;
   getArena(): Promise<ArenaRow[]>;
   getStats(): Promise<Stats>;
@@ -413,6 +431,16 @@ export interface Api {
   archiveHabit(id: string): Promise<void>;
   /** Settled and upcoming targets of one commitment, newest first. */
   getHabitHistory(id: string, limit: number): Promise<Target[]>;
+  /** Brings an archived commitment back, paused. */
+  restoreHabit(id: string): Promise<void>;
+  /** Permanently deletes a commitment and its photos ('erased' = no history; 'removed' = content erased, results kept). */
+  deleteHabit(id: string): Promise<'erased' | 'removed'>;
+  /** Failed or abandoned challenges only. */
+  deleteChallenge(id: string): Promise<void>;
+  /** Uploads a JPEG (already resized) as the profile photo; returns its storage path. */
+  setAvatar(image: { base64: string }): Promise<string>;
+  removeAvatar(): Promise<void>;
+  getArenaBoard(q: ArenaQuery): Promise<ArenaBoard>;
   /** Whether this account may see the internal AI usage overview. */
   isAdmin(): Promise<boolean>;
   getAiUsage(days: number): Promise<AiUsageOverview>;

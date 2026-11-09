@@ -1,7 +1,7 @@
 import { en as pe, ro as pr } from '../plural';
 
 export const en = {
-  tabs: { home: 'Home', commitments: 'Habits', challenges: 'Challenges', arena: 'Arena', profile: 'Profile' },
+  tabs: { home: 'Home', commitments: 'Habits', challenges: 'Challenges', arena: 'Arena', profile: 'Profile', ai: 'AI', you: 'Profile & settings', nav: 'Main navigation' },
   onboarding: {
     step: (i: number, n: number) => `Step ${i} of ${n}`,
     overline: 'The private performance arena', hero1: 'No excuses.', hero2: 'Just execution.',
@@ -41,7 +41,7 @@ export const en = {
   habits: {
     overline: (a: number, p: number) => `${a} active · ${p} paused`, title: 'Commitments', newA11y: 'New commitment',
     freePlan: (a: number, m: number) => `Free plan: ${a} of ${m} active commitments.`, freeFull: ' Pause one to add another, or go Premium for unlimited.',
-    today: 'Today', all: 'All', paused: 'Paused', loading: 'Loading commitments…', failTitle: 'Couldn’t load commitments.',
+    today: 'Today', all: 'All', paused: 'Paused', archived: 'Archived', nothingArchived: 'Nothing archived.', archivedBody: 'Archived commitments can be restored or deleted from their page.', loading: 'Loading commitments…', failTitle: 'Couldn’t load commitments.',
     emptyTitle: 'No commitments yet.', emptyBody: 'Pick a time and the days. That’s your first commitment.', create: 'Create a commitment',
     nothingPaused: 'Nothing paused.', nothingToday: 'Nothing scheduled today.',
     pausedBody: 'Paused commitments keep their history and score nothing.', todayBody: 'Check “All” to see your full schedule.',
@@ -61,14 +61,19 @@ export const en = {
     editTitle: 'Edit commitment', archivedTitle: 'Archived commitment', editNote: 'Time and day changes apply to windows that haven’t opened yet. Settled scores never change.',
     notFound: 'Commitment not found.', notFoundBody: 'It may have been changed on another device.',
     history: 'Completion history', historyEmpty: 'No windows yet. The first one appears on the next scheduled day.',
-    archive: 'Archive commitment', archiveQ: 'Archive this commitment?', archiveBody: 'It stops scheduling new windows. Its history, points and streak record stay on your account. Archived commitments can’t be restored.', archiveAction: 'Archive',
-    archiveNote: 'Commitments are archived, never deleted, so your record and Discipline Score stay honest.',
+    archive: 'Archive commitment', archiveQ: 'Archive this commitment?', archiveBody: 'It stops scheduling new windows. Its history, points and streak record stay on your account. You can restore it later.', archiveAction: 'Archive',
+    archiveNote: 'Archive to stop it without losing anything. Delete removes it for good.',
+    archived: 'Archived', restore: 'Restore commitment', restored: 'Restored. It’s paused — switch it on when you’re ready.',
+    deleteAction: 'Delete permanently', deleteQ: 'Delete this commitment permanently?',
+    deleteBody: 'The commitment, its photos, notes and AI feedback are erased. This can’t be undone. Points you already earned or lost stay on your record.',
+    deleted: 'Commitment deleted.', archivedDone: 'Commitment archived.', saved: 'Changes saved.',
+    working: 'Working…', timeLabel: 'Target time', timeHelp: (tz: string) => `Your local time (${tz}).`,
     partOfChallenge: 'Part of a challenge — it pauses automatically when the challenge ends.',
   },
 };
 
 export const ro: typeof en = {
-  tabs: { home: 'Acasă', commitments: 'Obiceiuri', challenges: 'Provocări', arena: 'Arena', profile: 'Profil' },
+  tabs: { home: 'Acasă', commitments: 'Obiceiuri', challenges: 'Provocări', arena: 'Arena', profile: 'Profil', ai: 'AI', you: 'Profil și setări', nav: 'Navigare principală' },
   onboarding: {
     step: (i: number, n: number) => `Pasul ${i} din ${n}`,
     overline: 'Arena privată a performanței', hero1: 'Fără scuze.', hero2: 'Doar execuție.',
@@ -108,7 +113,7 @@ export const ro: typeof en = {
   habits: {
     overline: (a: number, p: number) => `${a} active · ${p} pe pauză`, title: 'Angajamente', newA11y: 'Angajament nou',
     freePlan: (a: number, m: number) => `Plan gratuit: ${a} din ${m} angajamente active.`, freeFull: ' Pune unul pe pauză ca să adaugi altul sau treci la Premium pentru nelimitat.',
-    today: 'Azi', all: 'Toate', paused: 'Pe pauză', loading: 'Se încarcă angajamentele…', failTitle: 'Angajamentele nu s-au încărcat.',
+    today: 'Azi', all: 'Toate', paused: 'Pe pauză', archived: 'Arhivate', nothingArchived: 'Nimic arhivat.', archivedBody: 'Angajamentele arhivate pot fi restaurate sau șterse din pagina lor.', loading: 'Se încarcă angajamentele…', failTitle: 'Angajamentele nu s-au încărcat.',
     emptyTitle: 'Încă nu ai angajamente.', emptyBody: 'Alege o oră și zilele. Acesta e primul tău angajament.', create: 'Creează un angajament',
     nothingPaused: 'Nimic pe pauză.', nothingToday: 'Nimic programat azi.',
     pausedBody: 'Angajamentele puse pe pauză își păstrează istoricul și nu se punctează.', todayBody: 'Vezi „Toate” pentru programul complet.',
@@ -128,8 +133,13 @@ export const ro: typeof en = {
     editTitle: 'Editează angajamentul', archivedTitle: 'Angajament arhivat', editNote: 'Schimbările de oră și zile se aplică ferestrelor care nu s-au deschis încă. Scorurile decontate nu se schimbă.',
     notFound: 'Angajamentul nu a fost găsit.', notFoundBody: 'Poate a fost modificat pe alt dispozitiv.',
     history: 'Istoric', historyEmpty: 'Încă nu există ferestre. Prima apare în următoarea zi programată.',
-    archive: 'Arhivează angajamentul', archiveQ: 'Arhivezi acest angajament?', archiveBody: 'Nu mai programează ferestre noi. Istoricul, punctele și recordul de serie rămân în cont. Angajamentele arhivate nu pot fi restaurate.', archiveAction: 'Arhivează',
-    archiveNote: 'Angajamentele se arhivează, nu se șterg, ca istoricul și Discipline Score să rămână corecte.',
+    archive: 'Arhivează angajamentul', archiveQ: 'Arhivezi acest angajament?', archiveBody: 'Nu mai programează ferestre noi. Istoricul, punctele și recordul de serie rămân în cont. Îl poți restaura oricând.', archiveAction: 'Arhivează',
+    archiveNote: 'Arhivează-l ca să-l oprești fără să pierzi nimic. Ștergerea îl elimină definitiv.',
+    archived: 'Arhivat', restore: 'Restaurează angajamentul', restored: 'Restaurat. E pe pauză — activează-l când ești gata.',
+    deleteAction: 'Șterge definitiv', deleteQ: 'Ștergi definitiv acest angajament?',
+    deleteBody: 'Angajamentul, pozele, notițele și feedback-ul AI se șterg. Acțiunea nu se poate anula. Punctele câștigate sau pierdute deja rămân în istoricul tău.',
+    deleted: 'Angajament șters.', archivedDone: 'Angajament arhivat.', saved: 'Modificările au fost salvate.',
+    working: 'Se procesează…', timeLabel: 'Ora țintă', timeHelp: (tz: string) => `Ora ta locală (${tz}).`,
     partOfChallenge: 'Face parte dintr-o provocare — se pune automat pe pauză când provocarea se termină.',
   },
 };

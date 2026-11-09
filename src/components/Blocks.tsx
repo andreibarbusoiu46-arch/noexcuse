@@ -36,14 +36,8 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
   );
 }
 
-export function Avatar({ name, size = 40, me }: { name: string; size?: number; me?: boolean }) {
-  const initials = me ? 'YOU' : name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join('') || '?';
-  return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: me ? color.accent.primary : color.surface.control, borderColor: color.border.strong, borderWidth: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <T variant="caption" tone={me ? 'onLight' : 'primary'} style={{ fontSize: Math.max(10, size * 0.32) }}>{initials}</T>
-    </View>
-  );
-}
+/** Profile photo or initials — see ./Avatar. */
+export { Avatar } from './Avatar';
 
 export function IconTile({ icon, bg, tint, size = 44 }: { icon: IconName; bg: string; tint: string; size?: number }) {
   return (

@@ -17,8 +17,11 @@ import { T } from '@/components/Text';
 import { api, type Target } from '@/data';
 import { categoryLabel } from '@/lib/categories';
 import { useLoad, useNow } from '@/lib/hooks';
-import { countdown, dayLabel, formatTime, longDate, nextActionable, phaseOf, windowOf } from '@/lib/time';
+import { countdown, dayLabel, formatTime, localDay, longDate, nextActionable, phaseOf, windowOf } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
+import { Avatar } from '@/components/Avatar';
+import { WarRoomIntel } from '@/components/Intel';
+import { levelOf } from '@/lib/level';
 import { color, radius } from '@/theme/tokens';
 
 function greeting(now: number, tz?: string) {
@@ -56,7 +59,9 @@ export default function Home() {
           <T variant="overline" tone="tertiary">{t.home.overline(longDate(now, tz))}</T>
           <T variant="h2" accessibilityRole="header">{greeting(now, tz)} <T variant="h2" tone="accent">{firstName}.</T></T>
         </View>
-        <IconButton icon="Bell" label={t.home.notifications} onPress={() => router.navigate('/profile')} />
+        <Tap onPress={() => router.push('/profile')} accessibilityLabel={t.home.you} haptic="selection">
+          <Avatar name={profile?.display_name ?? '?'} path={profile?.avatar_path} size={44} />
+        </Tap>
       </View>
 
       {q.loading && !d ? (
@@ -65,6 +70,10 @@ export default function Home() {
         <MessagePanel kind="error" icon="Alert" title={t.home.failTitle} body={t.home.failBody} action={t.common.tryAgain} onAction={() => q.reload()} />
       ) : (
         <>
+          <WarRoomIntel room={room} dayKey={`${profile?.id ?? ''}:${localDay(now, tz)}`} />
+
+          <DayProgress done={done} total={list.length} failed={failed} />
+
           <NextTarget target={next} now={now} tz={tz} anyHabits={(d?.targets.length ?? 0) > 0} />
 
           <ScoreCard score={room?.score ?? null} onPress={() => router.push('/discipline')} />
@@ -81,7 +90,7 @@ export default function Home() {
           </View>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <MiniStat label={t.home.streak} value={String(room?.streak ?? 0)} caption={t.home.days} />
-            <MiniStat label={t.home.points} value={fmtNumber(room?.total_points ?? 0)} caption={d?.me ? t.home.rankToday(d.me.rank) : t.home.total} />
+            <MiniStat label={t.home.points} value={fmtNumber(room?.total_points ?? 0)} caption={`${t.home.level(levelOf(room?.total_points ?? 0).level)}${d?.me ? ` · ${t.home.rankToday(d.me.rank)}` : ''}`} />
           </View>
 
           <View style={{ gap: 12 }}>
@@ -248,5 +257,29 @@ function NextTarget({ target, now, tz, anyHabits }: { target: Target | null; now
         <Button kind="glass" label={t.home.cameraOpensAt(formatTime(w.opensAt, tz))} icon="Lock" disabled />
       )}
     </Glass>
+  );
+}
+
+/** What was committed today, what is done, what is left — one line and a bar. */
+function DayProgress({ done, total, failed }: { done: number; total: number; failed: number }) {
+  const left = Math.max(0, total - done - failed);
+  return (
+    <Card style={{ gap: 12, padding: 18 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <T variant="overline" tone="tertiary">{t.home.progress}</T>
+        <T variant="caption" tone="secondary">{total === 0 ? t.home.nothingYet : left === 0 ? t.home.allDone : t.home.remaining(left)}</T>
+      </View>
+      <T variant="h3">{total === 0 ? '—' : t.home.doneOf(done, total)}</T>
+      <View style={{ flexDirection: 'row', height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: color.surface.control, gap: 2 }}
+        accessible accessibilityLabel={total ? t.home.doneOf(done, total) : t.home.nothingYet}>
+        {total > 0 ? (
+          <>
+            <View style={{ flex: done, backgroundColor: color.text.primary }} />
+            <View style={{ flex: failed, backgroundColor: color.text.tertiary }} />
+            <View style={{ flex: left }} />
+          </>
+        ) : null}
+      </View>
+    </Card>
   );
 }

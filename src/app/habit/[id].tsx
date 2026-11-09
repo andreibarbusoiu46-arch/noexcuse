@@ -9,7 +9,10 @@ import { HabitForm } from '@/components/HabitForm';
 import { MessagePanel } from '@/components/StatePanel';
 import { T } from '@/components/Text';
 import { api, type Target } from '@/data';
-import { confirmDestructive } from '@/lib/dialog';
+import { confirmDestructive, notify } from '@/lib/dialog';
+import { errorText } from '@/lib/errors';
+import { haptics } from '@/lib/haptics';
+import { useState } from 'react';
 import { useLoad } from '@/lib/hooks';
 import { dayLabel, formatTime } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
@@ -21,6 +24,8 @@ export default function EditHabit() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profile } = useApp();
   const tz = profile?.timezone;
+  const [busy, setBusy] = useState<'archive' | 'restore' | 'delete' | null>(null);
+  const [msg, setMsg] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
   const q = useLoad(async () => {
     const [habit, history] = await Promise.all([api.getHabit(id), api.getHabitHistory(id, 14)]);
     return { habit, history };
@@ -36,11 +41,31 @@ export default function EditHabit() {
   }
   const archived = !!h.archived_at;
 
-  async function archive() {
-    const ok = await confirmDestructive(t.form.archiveQ, t.form.archiveBody, t.form.archiveAction);
-    if (!ok) return;
-    await api.archiveHabit(h!.id);
-    router.back();
+  // One action at a time; the buttons are disabled while it runs, so a double tap can't send it twice.
+  async function run(kind: 'archive' | 'restore' | 'delete') {
+    if (busy) return;
+    if (kind === 'archive' && !(await confirmDestructive(t.form.archiveQ, t.form.archiveBody, t.form.archiveAction))) return;
+    if (kind === 'delete' && !(await confirmDestructive(t.form.deleteQ, t.form.deleteBody, t.form.deleteAction))) return;
+    setBusy(kind); setMsg(null);
+    try {
+      if (kind === 'archive') await api.archiveHabit(h!.id);
+      if (kind === 'restore') await api.restoreHabit(h!.id);
+      if (kind === 'delete') {
+        await api.deleteHabit(h!.id);
+        haptics.success();
+        notify(t.form.deleted);
+        if (router.canGoBack()) router.back(); else router.replace('/habits');
+        return;
+      }
+      haptics.success();
+      setMsg({ tone: 'success', text: kind === 'archive' ? t.form.archivedDone : t.form.restored });
+      await q.reload({ silent: true });
+    } catch (e) {
+      haptics.error();
+      setMsg({ tone: 'danger', text: errorText(e) });
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
@@ -49,7 +74,7 @@ export default function EditHabit() {
       submitLabel={t.common.saveChanges}
       initial={{ title: h.title, proof_hint: h.proof_hint, target_time: h.target_time, weekdays: h.weekdays, is_active: h.is_active, reminder_minutes: h.reminder_minutes,
         category: h.category, custom_category: h.custom_category, description: h.description, notes: h.notes, verification_level: h.verification_level, activity: h.activity ?? null }}
-      onSubmit={async (v) => { await api.updateHabit(h.id, v); router.back(); }}
+      onSubmit={async (v) => { await api.updateHabit(h.id, v); if (router.canGoBack()) router.back(); else router.replace('/habits'); }}
       onClose={() => router.back()}
       note={t.form.editNote}
       footer={
@@ -70,7 +95,13 @@ export default function EditHabit() {
               ))}
             </Card>
           )}
-          {!archived && <Button kind="danger" label={t.form.archive} icon="Trash" onPress={archive} />}
+          {msg ? <T variant="bodySmall" tone={msg.tone} accessibilityLiveRegion="polite">{msg.text}</T> : null}
+          {archived ? (
+            <Button kind="glass" label={busy === 'restore' ? t.form.working : t.form.restore} icon="Retry" onPress={() => run('restore')} loading={busy === 'restore'} disabled={!!busy} />
+          ) : (
+            <Button kind="glass" label={busy === 'archive' ? t.form.working : t.form.archive} icon="Minus" onPress={() => run('archive')} loading={busy === 'archive'} disabled={!!busy} />
+          )}
+          <Button kind="danger" label={busy === 'delete' ? t.form.working : t.form.deleteAction} icon="Trash" onPress={() => run('delete')} loading={busy === 'delete'} disabled={!!busy} />
           <T variant="caption" tone="tertiary">{t.form.archiveNote}</T>
         </View>
       }

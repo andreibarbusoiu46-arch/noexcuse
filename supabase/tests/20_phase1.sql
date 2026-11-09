@@ -91,7 +91,7 @@ select pg_temp.ok((select not is_active from public.habits where title = 'Guitar
 select pg_temp.ok((select count(*) = 0 from public.targets t join public.habits h on h.id = t.habit_id
                     where h.title = 'Guitar practice' and t.status = 'pending'), 'archiving removes windows that have not opened');
 select pg_temp.ok((select count(*) = 1 from public.audit_log where action = 'commitment_archived'), 'archive is written to the audit log');
-select pg_temp.expect_error($$update public.habits set archived_at = null where title = 'Guitar practice'$$, 'cannot be restored');
+-- (Phase 7 allows restoring an archived commitment; see 90_phase7.sql.)
 update public.habits set is_active = true where title = 'Guitar practice';
 select pg_temp.ok((select not is_active from public.habits where title = 'Guitar practice'), 'an archived commitment cannot be re-activated');
 select pg_temp.expect_error($$delete from public.habits where title = 'Guitar practice'$$, 'permission denied');

@@ -1,4 +1,3 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { t } from '@/i18n';
 import { errorText } from '@/lib/errors';
 import { useState, type ReactNode } from 'react';
@@ -19,10 +18,10 @@ import { EvidenceChecklist } from './Evidence';
 import { Button, IconButton } from './Button';
 import { Tap } from './Tap';
 import { Field } from './Field';
+import { TimeField } from './TimeField';
 import { T } from './Text';
 
 const toDate = (hhmmss: string) => { const [h, m] = hhmmss.split(':').map(Number); const d = new Date(); d.setHours(h, m, 0, 0); return d; };
-const toHHMM = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:00`;
 
 interface Props {
   title: string;
@@ -38,7 +37,7 @@ interface Props {
 /** Figma D2 — the new/edit habit sheet. Server validates everything again. */
 export function HabitForm({ title, initial, submitLabel, onSubmit, onClose, note, footer }: Props) {
   const insets = useSafeAreaInsets();
-  const { premium } = useApp();
+  const { premium, profile } = useApp();
   const [v, setV] = useState<HabitInput>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,14 +92,8 @@ export function HabitForm({ title, initial, submitLabel, onSubmit, onClose, note
         <Field label={t.form.description} value={v.description ?? ''} onChangeText={(x) => set('description', x)} placeholder={t.form.descriptionPlaceholder} multiline maxLength={500} style={{ minHeight: 64, textAlignVertical: 'top' }} />
         <View style={{ gap: 8 }}>
           <T variant="overline" tone="tertiary">{t.form.targetTime}</T>
-          {Platform.OS === 'web' ? (
-            <Field label="HH:MM" value={v.target_time.slice(0, 5)} onChangeText={(x) => /^\d{2}:\d{2}$/.test(x) && set('target_time', `${x}:00`)} />
-          ) : (
-            <View style={{ backgroundColor: color.surface.inset, borderRadius: radius.md, borderWidth: 1, borderColor: color.border.hairline, alignItems: 'center' }}>
-              <DateTimePicker value={time} mode="time" display="spinner" minuteInterval={5} themeVariant={scheme()} textColor={color.text.primary} accentColor={color.accent.glow}
-                onChange={(_e, d) => { if (d) { haptics.selection(); set('target_time', toHHMM(d)); } }} style={{ height: 150, alignSelf: 'stretch' }} />
-            </View>
-          )}
+          <TimeField value={v.target_time} onChange={(x) => set('target_time', x)} label={t.form.timeLabel} />
+          <T variant="caption" tone="tertiary">{t.form.timeHelp(profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone)}</T>
           <T variant="caption" tone="accent">{t.form.window(formatTime(w.opensAt), formatTime(w.closesAt))}</T>
         </View>
         <View style={{ gap: 8 }}>

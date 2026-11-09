@@ -22,6 +22,10 @@ const DB: [RegExp, () => string][] = [
   [/needs 1–5 objectives/, () => t.domain.errors.planCount],
   [/does not match the category/, () => t.domain.errors.planDuration],
   [/elite challenges allow no misses/, () => t.domain.errors.planElite],
+  [/abandon the challenge before deleting/, () => t.domain.errors.challengeActive],
+  [/completed challenges stay on your record/, () => t.domain.errors.challengeCompleted],
+  [/profiles_username_key|duplicate key.*username/, () => t.domain.errors.usernameTaken],
+  [/profiles_username_check/, () => t.domain.errors.usernameFormat],
 ];
 
 /** A message the user can read, in their language. */

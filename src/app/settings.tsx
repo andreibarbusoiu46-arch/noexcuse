@@ -10,6 +10,7 @@ import { Button } from '@/components/Button';
 import { Card, Divider } from '@/components/Card';
 import { Field } from '@/components/Field';
 import { Icon, type IconName } from '@/components/Icon';
+import { PhotoEditor } from '@/components/PhotoEditor';
 import { Screen } from '@/components/Screen';
 import { Tap } from '@/components/Tap';
 import { T } from '@/components/Text';
@@ -65,6 +66,7 @@ export default function Settings() {
   const admin = useLoad(() => api.isAdmin().catch(() => false));
   const [push, setPush] = useState<boolean | null>(null);
   const [name, setName] = useState(profile?.display_name ?? '');
+  const [username, setUsername] = useState(profile?.username ?? '');
   const [pw, setPw] = useState({ open: false, a: '', b: '' });
   const [busy, setBusy] = useState<string | null>(null);
   useEffect(() => { pushPermissionGranted().then(setPush).catch(() => setPush(false)); }, []);
@@ -81,6 +83,20 @@ export default function Settings() {
     if (!n || n === profile?.display_name) return;
     await api.updateProfile({ display_name: n });
     haptics.success();
+    await refreshProfile();
+  });
+
+  const usernameProblem = username && !/^[a-z0-9_]{3,20}$/.test(username) ? t.domain.errors.usernameFormat : null;
+  const saveUsername = () => run('username', async () => {
+    const u = username.trim().toLowerCase();
+    if ((u || null) === (profile?.username ?? null) || (u && !/^[a-z0-9_]{3,20}$/.test(u))) return;
+    await api.updateProfile({ username: u || null });
+    haptics.success();
+    await refreshProfile();
+  });
+  const setPublic = (key: 'arena_visible' | 'show_streak' | 'show_challenge', v: boolean) => run(key, async () => {
+    await api.updateProfile({ [key]: v });
+    haptics.selection();
     await refreshProfile();
   });
 
@@ -187,6 +203,27 @@ export default function Settings() {
           <SettingsRow icon="Globe" label={t.settings.timezone} value={tz === deviceTimeZone() ? tz : t.settings.useTz(deviceTimeZone())}
             chevron={tz !== deviceTimeZone()} onPress={() => run('tz', async () => { if (tz === deviceTimeZone()) return; await api.updateProfile({ timezone: deviceTimeZone() }); haptics.success(); await refreshProfile(); })} />
         </Card>
+      </View>
+
+      {/* Public profile */}
+      <View style={{ gap: 12 }}>
+        <SectionHeader title={t.settings.publicProfile} />
+        <PhotoEditor name={profile?.display_name ?? '?'} path={profile?.avatar_path} onChanged={refreshProfile} />
+        <Card style={{ gap: 10 }}>
+          <Field label={t.settings.username} value={username} onChangeText={(x) => setUsername(x.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+            placeholder={t.settings.usernamePlaceholder} autoCapitalize="none" autoCorrect={false} maxLength={20} returnKeyType="done"
+            onSubmitEditing={saveUsername} onBlur={saveUsername} />
+          <T variant="caption" tone={usernameProblem ? 'danger' : 'tertiary'}>{usernameProblem ?? t.settings.usernameNote}</T>
+        </Card>
+        <Card style={{ gap: 4 }}>
+          <ToggleRow title={t.settings.arenaVisible} subtitle={t.settings.arenaVisibleSub} value={profile?.arena_visible ?? true}
+            disabled={busy === 'arena_visible'} onChange={(v) => setPublic('arena_visible', v)} />
+          <ToggleRow title={t.settings.showStreak} subtitle={t.settings.showStreakSub} value={profile?.show_streak ?? true}
+            disabled={busy === 'show_streak'} onChange={(v) => setPublic('show_streak', v)} />
+          <ToggleRow title={t.settings.showChallenge} subtitle={t.settings.showChallengeSub} value={profile?.show_challenge ?? true}
+            disabled={busy === 'show_challenge'} onChange={(v) => setPublic('show_challenge', v)} />
+        </Card>
+        <T variant="caption" tone="tertiary">{t.settings.publicNote}</T>
       </View>
 
       {/* Preferences */}

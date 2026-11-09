@@ -27,7 +27,7 @@ export function LeaderboardRow({ row }: { row: ArenaRow }) {
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: radius.md, borderWidth: 1,
         backgroundColor: row.is_me ? color.accent.soft : color.surface.card, borderColor: row.is_me ? color.border.accent : color.border.hairline }}>
       <T variant="bodyStrong" tone={row.is_me ? 'accent' : 'secondary'} style={{ width: 28 }} numberOfLines={1} adjustsFontSizeToFit>{row.rank}</T>
-      <Avatar name={row.display_name} me={row.is_me} />
+      <Avatar name={row.display_name} path={row.avatar_url} me={row.is_me} />
       <View style={{ flex: 1, gap: 2 }}>
         <T variant="bodyStrong" numberOfLines={1}>{row.is_me ? t.common.you : row.display_name}</T>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -52,7 +52,7 @@ export function Podium({ rows }: { rows: ArenaRow[] }) {
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
       {order.map((r) => (
         <View key={r.user_id} style={{ flex: 1, alignItems: 'center', gap: 8 }} accessible accessibilityLabel={t.arena.placeA11y(r.rank, r.display_name, r.points)}>
-          <Avatar name={r.display_name} size={r.rank === 1 ? 64 : 54} me={r.is_me} />
+          <Avatar name={r.display_name} path={r.avatar_url} size={r.rank === 1 ? 64 : 54} me={r.is_me} />
           <T variant="bodyStrong" numberOfLines={1}>{r.is_me ? t.common.you : r.display_name}</T>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
             <Icon name="Flame" size={12} tint={color.accent.glow} />

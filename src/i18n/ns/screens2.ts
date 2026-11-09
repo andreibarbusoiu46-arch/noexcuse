@@ -1,7 +1,15 @@
 import { en as pe, ro as pr } from '../plural';
 
 export const en = {
+  intel: {
+    label: 'War Room · Daily intel', another: 'Another',
+    kind: { rebuild: 'Rebuild', accountability: 'Accountability', streak: 'Momentum', progress: 'Progress', execution: 'Execution' },
+    why: { rebuild: 'Picked because your score needs a rebuild.', accountability: 'Picked because a window was missed today.',
+      streak: 'Picked to protect your streak.', progress: 'Picked because you just finished a challenge.', execution: 'Today’s standard.' },
+  },
   home: {
+    progress: 'Today’s progress', doneOf: (d: number, n: number) => `${d} of ${n} done`, remaining: (n: number) => (n === 1 ? '1 left' : `${n} left`),
+    allDone: 'Everything today is done.', nothingYet: 'Nothing scheduled today.', level: (n: number) => `Level ${n}`, you: 'Profile & settings',
     greeting: (h: number): string => (h < 5 ? 'Late night,' : h < 12 ? 'Morning,' : h < 18 ? 'Afternoon,' : 'Evening,'),
     overline: (date: string) => `War Room · ${date}`, notifications: 'Notification settings',
     loading: 'Loading your War Room…', failTitle: 'Couldn’t load the War Room.', failBody: 'Check your connection. Your score is safe on the server.',
@@ -148,7 +156,15 @@ export const en = {
 };
 
 export const ro: typeof en = {
+  intel: {
+    label: 'War Room · Informații zilnice', another: 'Altul',
+    kind: { rebuild: 'Reconstruire', accountability: 'Responsabilitate', streak: 'Avânt', progress: 'Progres', execution: 'Execuție' },
+    why: { rebuild: 'Ales pentru că scorul tău are nevoie de reconstruire.', accountability: 'Ales pentru că azi ai ratat o fereastră.',
+      streak: 'Ales ca să-ți protejezi seria.', progress: 'Ales pentru că tocmai ai terminat o provocare.', execution: 'Standardul de azi.' },
+  },
   home: {
+    progress: 'Progresul de azi', doneOf: (d: number, n: number) => `${d} din ${n} făcute`, remaining: (n: number) => (n === 1 ? 'mai e 1' : `mai sunt ${n}`),
+    allDone: 'Tot ce era azi e făcut.', nothingYet: 'Nimic programat azi.', level: (n: number) => `Nivel ${n}`, you: 'Profil și setări',
     greeting: (h: number) => (h < 5 ? 'Noapte târzie,' : h < 12 ? 'Bună dimineața,' : h < 18 ? 'Bună ziua,' : 'Bună seara,'),
     overline: (date: string) => `War Room · ${date}`, notifications: 'Setări notificări',
     loading: 'Se încarcă War Room…', failTitle: 'War Room nu s-a încărcat.', failBody: 'Verifică conexiunea. Scorul tău e în siguranță pe server.',

@@ -36,6 +36,17 @@ export default function ChallengeDetail() {
   const q = useLoad(() => api.getChallengeDetail(id), [id]);
   const c = q.data;
 
+  async function remove() {
+    if (!c || busy) return;
+    if (!(await confirmDestructive(t.ch.deleteTitle, t.ch.deleteBody, t.ch.delete))) return;
+    setBusy(true);
+    try {
+      await api.deleteChallenge(c.id);
+      notify(t.ch.deleted);
+      if (router.canGoBack()) router.back(); else router.replace('/challenges');
+    } catch (e) { notify(t.ch.deleteFail, errorText(e)); setBusy(false); }
+  }
+
   async function abandon() {
     if (!c) return;
     const ok = await confirmDestructive(t.ch.abandonTitle, t.ch.abandonBody, t.ch.abandon);
@@ -149,6 +160,9 @@ export default function ChallengeDetail() {
           </View>
 
           {c.status === 'active' && <Button kind="danger" label={t.ch.abandon} loading={busy} onPress={abandon} />}
+          {(c.status === 'failed' || c.status === 'abandoned') && (
+            <Button kind="danger" icon="Trash" label={t.ch.delete} loading={busy} disabled={busy} onPress={remove} />
+          )}
         </>
       )}
     </Screen>

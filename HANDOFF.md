@@ -42,6 +42,17 @@
   Env: `GEMINI_API_KEY` (required), `GEMINI_MODEL` (default `gemini-3.1-flash-lite`), optional
   `GEMINI_MODEL_VERIFY` / `_APPEAL` / `_COACH` / `_GENERATE`, `AI_PROVIDER` (`gemini`|`openai`).
 
+- Phase 7 (UI + community): exact-minute time picker (browser time input on web, system wheel on iOS) — the old web
+  field only accepted a fully typed "HH:MM", so editing snapped back to the old time; archive ⇄ restore (restored
+  commitments come back paused) and permanent deletion (privacy function: photos leave storage first; a commitment
+  with results keeps anonymous results so points can't be reset); delete failed/abandoned challenges; in-app confirm
+  dialog on web (window.confirm is blocked in iframes / in-app browsers and silently answered "no"); profile photos
+  (public `avatars` bucket, 2 MB, JPEG/PNG/WebP, owner-only writes, server-checked path); username and public-profile
+  controls (appear in Arena, show streak, show challenge); Arena board of real confirmed users (week / month /
+  all-time, search, partners filter, sort by streak, 20 per page, no e-mail ever); glass dock with Home in the centre
+  and sections expanding from their place (fade only with Reduce Motion); WAR ROOM · Daily Intel (original library,
+  picked from real progress, "Another" button).
+
 Free: 2 active commitments, Standard verification, points, Discipline Score, War Room, Arena, achievements,
 share card, joining a partner's circle. Premium (€9.99/month): everything else.
 
@@ -58,6 +69,6 @@ template texts in `src/i18n/templates.ts`, and the server copy in `supabase/func
 in the `profiles.language` check constraint.
 
 ## Tests
-- Database: `PGHOST=... PGPORT=... PGUSER=postgres bash supabase/tests/run.sh` (phases 0–6 + AI, 231 checks).
+- Database: `PGHOST=... PGPORT=... PGUSER=postgres bash supabase/tests/run.sh` (phases 0–7 + AI, 267 checks).
 - Functions: `cd supabase/functions && deno test --allow-env --no-lock --node-modules-dir=none tests`.
 - App: `npx tsc --noEmit && npx eslint src`.

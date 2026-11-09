@@ -19,7 +19,7 @@ import { localDay } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color } from '@/theme/tokens';
 
-type Filter = 'today' | 'all' | 'paused';
+type Filter = 'today' | 'all' | 'paused' | 'archived';
 
 export default function Habits() {
   const { profile, premium } = useApp();
@@ -35,15 +35,17 @@ export default function Habits() {
     return { habits, targets, plan };
   }, [premium]);
 
-  // Archived commitments keep their history (open them from the habit detail) but are not listed here.
+  // Archived commitments have their own filter; they can be restored or deleted from their page.
   const habits = (q.data?.habits ?? []).filter((h) => !h.archived_at);
+  const archivedList = (q.data?.habits ?? []).filter((h) => !!h.archived_at);
   const today = localDay(now, tz);
   const nextFor = (h: Habit): Target | undefined => {
     const ts = (q.data?.targets ?? []).filter((t) => t.habit_id === h.id);
     return ts.find((t) => localDay(t.due_at, tz) === today) ?? ts.find((t) => t.status === 'pending');
   };
   const active = habits.filter((h) => h.is_active);
-  const shown = filter === 'paused' ? habits.filter((h) => !h.is_active)
+  const shown = filter === 'archived' ? archivedList
+    : filter === 'paused' ? habits.filter((h) => !h.is_active)
     : filter === 'today' ? active.filter((h) => (q.data?.targets ?? []).some((t) => t.habit_id === h.id && localDay(t.due_at, tz) === today))
     : habits;
 
@@ -72,19 +74,26 @@ export default function Habits() {
           {t.habits.freePlan(Math.min(active.length, freeMax), freeMax)}{atFreeLimit ? t.habits.freeFull : ''}
         </T>
       )}
-      <Segmented value={filter} onChange={setFilter} options={[{ key: 'today', label: t.habits.today }, { key: 'all', label: t.habits.all }, { key: 'paused', label: t.habits.paused }]} />
+      <Segmented value={filter} onChange={setFilter} options={[{ key: 'today', label: t.habits.today }, { key: 'all', label: t.habits.all }, { key: 'paused', label: t.habits.paused }, { key: 'archived', label: t.habits.archived }]} />
 
       {q.loading && !q.data ? (
         <LoadingPanel label={t.habits.loading} />
       ) : q.error && !q.data ? (
         <MessagePanel kind="error" icon="Alert" title={t.habits.failTitle} body={t.common.connection} action={t.common.tryAgain} onAction={() => q.reload()} />
-      ) : habits.length === 0 ? (
+      ) : habits.length === 0 && filter !== 'archived' ? (
         <MessagePanel kind="empty" icon="Target" title={t.habits.emptyTitle} body={t.habits.emptyBody} action={t.habits.create} onAction={create} />
       ) : shown.length === 0 ? (
-        <MessagePanel kind="empty" icon={filter === 'paused' ? 'Minus' : 'Check'} title={filter === 'paused' ? t.habits.nothingPaused : t.habits.nothingToday} body={filter === 'paused' ? t.habits.pausedBody : t.habits.todayBody} />
+        <MessagePanel kind="empty" icon={filter === 'paused' ? 'Minus' : filter === 'archived' ? 'Doc' : 'Check'}
+          title={filter === 'paused' ? t.habits.nothingPaused : filter === 'archived' ? t.habits.nothingArchived : t.habits.nothingToday}
+          body={filter === 'paused' ? t.habits.pausedBody : filter === 'archived' ? t.habits.archivedBody : t.habits.todayBody} />
       ) : (
         <View style={{ gap: 12 }}>
           {shown.map((h) => {
+            if (h.archived_at) {
+              return <HabitCard key={h.id} {...habitCard(h, undefined, now, tz)} title={h.title}
+                accessory={<T variant="caption" tone="tertiary">{t.form.archived}</T>}
+                onPress={() => router.push({ pathname: '/habit/[id]', params: { id: h.id } })} />;
+            }
             const next = nextFor(h);
             const c = habitCard(h, next, now, tz);
             return (

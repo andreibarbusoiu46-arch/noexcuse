@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
+import { BackHeader } from '@/components/BackHeader';
 import { Avatar, SectionHeader, StatTile } from '@/components/Blocks';
+import { levelOf } from '@/lib/level';
 import { IconButton } from '@/components/Button';
 import { Card, Divider } from '@/components/Card';
 import { Icon, type IconName } from '@/components/Icon';
@@ -43,12 +45,13 @@ export default function Profile() {
     : ent?.expires_at ? t.profile.renewLine(ent.will_renew === false, new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short' }).format(new Date(ent.expires_at))) : '';
 
   return (
-    <Screen tabBar refreshing={q.refreshing} onRefresh={() => q.reload()}>
+    <Screen refreshing={q.refreshing} onRefresh={() => q.reload()}>
+      <BackHeader title={t.profile.title} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-        <Avatar name={profile?.display_name ?? '?'} size={72} />
+        <Avatar name={profile?.display_name ?? '?'} path={profile?.avatar_path} size={72} ring />
         <View style={{ flex: 1, gap: 4 }}>
           <T variant="h2" numberOfLines={1}>{profile?.display_name}</T>
-          <T variant="caption" tone="tertiary">{tz}</T>
+          <T variant="caption" tone="tertiary">{[profile?.username ? `@${profile.username}` : null, t.community.level(levelOf(profile?.total_points ?? 0).level), tz].filter(Boolean).join(' · ')}</T>
         </View>
         <IconButton icon="Settings" label={t.profile.settings} onPress={() => router.push('/settings')} />
       </View>
@@ -116,6 +119,8 @@ export default function Profile() {
       <View style={{ gap: 12 }}>
         <SectionHeader title={t.profile.account} />
         <Card padding={0} style={{ gap: 0 }}>
+          <Row icon="Profile" label={t.photo.title} value={profile?.avatar_path ? '' : t.profile.addPhoto} onPress={() => router.push('/settings')} />
+          <Divider />
           <Row icon="Settings" label={t.profile.settings} value={t.profile.settingsValue} onPress={() => router.push('/settings')} />
         </Card>
       </View>

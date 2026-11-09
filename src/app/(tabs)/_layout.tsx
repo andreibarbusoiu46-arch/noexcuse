@@ -1,28 +1,42 @@
 import { NativeTabs } from 'expo-router/native-tabs';
+import { Tabs } from 'expo-router/js-tabs';
 import { t } from '@/i18n';
 import { Platform } from 'react-native';
-import { color, scheme } from '@/theme/tokens';
+import { GlassDock, revealInterpolator, revealTiming } from '@/components/GlassDock';
+import { useReduceMotion } from '@/lib/hooks';
+import { color } from '@/theme/tokens';
 
-// Web only: expo-router's web tab bar pads each tab 20px (overflows five tabs on a phone) and has a fixed
-// dark palette. Re-written on every render so it follows the current theme.
-function webTabsCss() {
-  if (Platform.OS !== 'web' || typeof document === 'undefined') return;
-  let el = document.getElementById('nx-tabs-css');
-  if (!el) { el = document.createElement('style'); el.id = 'nx-tabs-css'; document.head.appendChild(el); }
-  el.textContent = [
-    '@media (max-width: 520px){[class*="navigationMenuTrigger"]{padding:0 7px!important}}',
-    `[class*="navigationMenuRoot"]{background:${color.surface.raised}!important;border:1px solid ${color.border.hairline};box-shadow:0 8px 24px rgba(0,0,0,${scheme() === 'light' ? 0.08 : 0.3})}`,
-    `[class*="navigationMenuTrigger"]{background:transparent!important}`,
-    `[class*="navigationMenuTrigger"][data-state="active"]{background:${color.surface.glassStrong}!important;box-shadow:inset 0 0 0 1px ${color.border.strong}}`,
-  ].join('\n');
+// Home is the centre of the navigation; deep links and refreshes still land on the section in the URL.
+export const unstable_settings = { initialRouteName: 'index' };
+
+/** Web: floating glass dock (Home in the centre); each section expands out of its place in the dock. */
+function WebTabs() {
+  const reduce = useReduceMotion();
+  return (
+    <Tabs
+      tabBar={(props) => <GlassDock {...props} />}
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: { backgroundColor: color.bg.base },
+        sceneStyleInterpolator: revealInterpolator(reduce),
+        transitionSpec: revealTiming,
+        animation: reduce ? 'fade' : 'shift',
+      }}>
+      <Tabs.Screen name="habits" />
+      <Tabs.Screen name="ai" />
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="challenges" />
+      <Tabs.Screen name="arena" />
+    </Tabs>
+  );
 }
 
 /**
- * Native tab bar: on iOS 26 the system draws it in Liquid Glass (never hand-rolled),
- * and fires its own tab haptics. Android gets the Material bottom navigation.
+ * Native: the system tab bar (Liquid Glass on iOS 26, never hand-rolled; it fires its own haptics),
+ * with Home in the middle. Profile and Settings open from the avatar on Home.
  */
 export default function TabsLayout() {
-  webTabsCss();
+  if (Platform.OS === 'web') return <WebTabs />;
   return (
     <NativeTabs
       tintColor={color.accent.glow}
@@ -30,13 +44,17 @@ export default function TabsLayout() {
       labelStyle={{ default: { color: color.text.tertiary }, selected: { color: color.text.primary } }}
       minimizeBehavior="onScrollDown"
     >
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
-        <NativeTabs.Trigger.Label>{t.tabs.home}</NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="habits">
         <NativeTabs.Trigger.Icon sf="checklist" md="checklist" />
         <NativeTabs.Trigger.Label>{t.tabs.commitments}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="ai">
+        <NativeTabs.Trigger.Icon sf="sparkles" md="auto_awesome" />
+        <NativeTabs.Trigger.Label>{t.tabs.ai}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="index">
+        <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
+        <NativeTabs.Trigger.Label>{t.tabs.home}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="challenges">
         <NativeTabs.Trigger.Icon sf={{ default: 'flag', selected: 'flag.fill' }} md="flag" />
@@ -45,10 +63,6 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="arena">
         <NativeTabs.Trigger.Icon sf={{ default: 'trophy', selected: 'trophy.fill' }} md="emoji_events" />
         <NativeTabs.Trigger.Label>{t.tabs.arena}</NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
-        <NativeTabs.Trigger.Icon sf={{ default: 'person', selected: 'person.fill' }} md="person" />
-        <NativeTabs.Trigger.Label>{t.tabs.profile}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
