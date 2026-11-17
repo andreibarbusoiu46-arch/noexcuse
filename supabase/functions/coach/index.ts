@@ -1,5 +1,5 @@
 // POST { message } → the coach's reply, grounded in the user's own data (Premium, daily limit).
-import { askCoach, type CoachTurn } from "../_shared/coach.ts";
+import { askCoach, coachSnapshot, type CoachTurn } from "../_shared/coach.ts";
 import { adminClient, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
 import { recordUsage } from "../_shared/llm.ts";
 
@@ -31,7 +31,7 @@ Deno.serve(withCors(async (req) => {
   try {
     const { data: prof } = await db.from("profiles").select("language").eq("id", user.id).maybeSingle();
     const replyLanguage = prof?.language === "ro" ? "Romanian" : "English";
-    const out = await askCoach({ ...(context as object), reply_language: replyLanguage }, history, message);
+    const out = await askCoach(coachSnapshot((context ?? {}) as Record<string, unknown>, replyLanguage), history, message);
     reply = out.reply;
     await recordUsage(db, { userId: user.id, feature: "coach", result: out.result });
   } catch (e) {

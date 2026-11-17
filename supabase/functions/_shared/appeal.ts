@@ -3,7 +3,7 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2.118.0";
 import { activityOf } from "../../../src/shared/activity.ts";
 import { analyzeEvidence } from "./engine.ts";
 import { loadEvidence, storedNotes } from "./evidence.ts";
-import { recordUsage } from "./llm.ts";
+import { LlmError, recordUsage } from "./llm.ts";
 import { copy, notifyOnce } from "./push.ts";
 import { APPEAL_MIN_CONFIDENCE, formatLocalTime, isLevel, type Level } from "./rules.ts";
 
@@ -60,7 +60,7 @@ export async function runAppealReview(db: SupabaseClient, appealId: string, noti
     if (notify) await notifyOnce(db, a.user_id, "appeal", a.id, copy.appeal(habit.title, out.status === "overturned", out.points_delta), { targetId: a.proof.target.id });
     return { appeal_id: a.id, status: out.status, critique: r.explanation, points_delta: out.points_delta, streak: out.streak, total_points: out.total_points };
   } catch (e) {
-    const { data: st } = await db.rpc("fail_appeal", { p_appeal: a.id, p_raw: { error: e instanceof Error ? e.message : String(e) } });
+    const { data: st } = await db.rpc("fail_appeal", { p_appeal: a.id, p_raw: { error: e instanceof LlmError ? e.code : "error" } });
     if (st === "unavailable" && notify) await notifyOnce(db, a.user_id, "appeal", a.id, copy.appeal_unavailable(a.proof.target.habit.title), { targetId: a.proof.target.id });
     return { appeal_id: a.id, status: st === "unavailable" ? "unavailable" : "pending", critique: null, points_delta: 0 };
   }

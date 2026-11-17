@@ -28,8 +28,12 @@ Deno.test("config: Gemini is chosen when its key is set; missing keys are a conf
   assertEquals(llmConfig("verify", env({ GEMINI_API_KEY: "g" })).model, "gemini-3.1-flash-lite");
   assertEquals(llmConfig("verify", env({ GEMINI_API_KEY: "g", GEMINI_MODEL: "m1", GEMINI_MODEL_VERIFY: "m2" })).model, "m2");
   assertEquals(llmConfig("coach", env({ GEMINI_API_KEY: "g", GEMINI_MODEL: "m1", GEMINI_MODEL_VERIFY: "m2" })).model, "m1");
-  assertEquals(llmConfig("verify", env({ OPENAI_API_KEY: "o" })).provider, "openai");
+  // An OpenAI key alone does not enable OpenAI; only an explicit AI_PROVIDER does.
   let err: unknown;
+  try { llmConfig("verify", env({ OPENAI_API_KEY: "o" })); } catch (e) { err = e; }
+  assert(err instanceof LlmError && err.code === "config");
+  assertEquals(llmConfig("verify", env({ AI_PROVIDER: "openai", OPENAI_API_KEY: "o" })).provider, "openai");
+  err = undefined;
   try { llmConfig("verify", env({})); } catch (e) { err = e; }
   assert(err instanceof LlmError && err.code === "config" && !err.retryable);
   try { llmConfig("verify", env({ AI_PROVIDER: "gemini", OPENAI_API_KEY: "o" })); } catch (e) { err = e; }
@@ -231,4 +235,25 @@ Deno.test("engine end to end with a fake provider: usage and validated analysis 
 Deno.test("Gemini body never contains anything but the request (no key, no stray fields)", () => {
   const b = buildGeminiBody({ feature: "verify", system: "s", parts: [{ text: "t" }] });
   assertEquals(Object.keys(b).sort(), ["contents", "generationConfig", "systemInstruction"]);
+});
+
+// ---------- data minimisation ----------
+
+Deno.test("privacy: the coach model never receives the display name", async () => {
+  const { coachSnapshot, buildCoachRequest } = await import("../_shared/coach.ts");
+  const snap = coachSnapshot({ name: "Ana Popescu", total_points: 120, commitments: [{ title: "Run" }] }, "Romanian");
+  assert(!("name" in snap));
+  assertEquals(snap.total_points, 120);
+  assertEquals(snap.reply_language, "Romanian");
+  const body = JSON.stringify(buildCoachRequest(snap, [], "salut"));
+  assert(!body.includes("Ana Popescu"));
+});
+
+Deno.test("privacy: an evidence request carries only the commitment, times, rules and images", () => {
+  const req = buildEngineRequest(baseInput({ language: "en" }), requirementsFor("gym", "standard"));
+  const text = req.parts.filter((p) => "text" in p).map((p) => (p as { text: string }).text).join("\n");
+  // No account identifiers: no e-mail address, no UUID, no user/name fields.
+  assert(!/[\w.+-]+@[\w-]+\.[\w.]+/.test(text));
+  assert(!/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(text));
+  assert(!/display.?name|username|user_id/i.test(text));
 });

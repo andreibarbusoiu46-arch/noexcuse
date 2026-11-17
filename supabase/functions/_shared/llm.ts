@@ -1,5 +1,6 @@
 // One server-side entry point for every AI call (proof verification, appeals, coach, challenge
-// generator). Gemini is the default provider; OpenAI stays as an optional fallback.
+// generator). Gemini is the provider; the OpenAI adapter stays available but is used only when
+// selected explicitly (AI_PROVIDER=openai).
 // API keys are read from the function environment only and never leave the server.
 // Nothing here logs prompts, images or answers — only status codes, timings and token counts.
 
@@ -77,12 +78,16 @@ export interface LlmConfig { provider: Provider; model: string; apiKey: string }
 
 const DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite";
 
-/** Gemini when GEMINI_API_KEY is set (or AI_PROVIDER=gemini), otherwise OpenAI if configured. */
+/**
+ * The launch configuration uses Gemini only. Another provider is used only when it is chosen
+ * explicitly with AI_PROVIDER (the OpenAI adapter below is kept for that); a key alone never
+ * switches provider, so data never goes to a processor that wasn't deliberately enabled.
+ */
 export function llmConfig(feature: Feature, env: (k: string) => string | undefined = (k) => Deno.env.get(k)): LlmConfig {
   const forced = env("AI_PROVIDER");
   const gemini = env("GEMINI_API_KEY")?.trim();
   const openai = env("OPENAI_API_KEY")?.trim();
-  const pick: Provider | null = forced === "gemini" || forced === "openai" ? forced : gemini ? "gemini" : openai ? "openai" : null;
+  const pick: Provider | null = forced === "gemini" || forced === "openai" ? forced : gemini ? "gemini" : null;
   if (pick === "gemini") {
     if (!gemini) throw new LlmError("config", "GEMINI_API_KEY is not set", false, undefined, "gemini");
     const model = env(`GEMINI_MODEL_${feature.toUpperCase()}`) ?? env("GEMINI_MODEL") ?? DEFAULT_GEMINI_MODEL;
