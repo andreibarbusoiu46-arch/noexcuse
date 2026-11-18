@@ -49,7 +49,7 @@ export function MiniStat({ label, value, caption }: { label: string; value: stri
       accessible accessibilityLabel={`${label}: ${value}${caption ? `, ${caption}` : ''}`}>
       <T variant="overline" tone="tertiary" numberOfLines={1}>{label}</T>
       <T variant="h2" numberOfLines={1} adjustsFontSizeToFit>{value}</T>
-      {caption ? <T variant="caption" tone="tertiary" numberOfLines={1}>{caption}</T> : null}
+      {caption ? <T variant="caption" tone="tertiary" numberOfLines={2}>{caption}</T> : null}
     </View>
   );
 }

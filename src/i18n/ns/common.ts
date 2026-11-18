@@ -20,6 +20,7 @@ export const en = {
   somethingWrong: 'Something went wrong. Try again.',
   demoOnly: 'Demo mode — fixture data, nothing is saved.',
   premiumBadge: 'Premium',
+  notFound: { title: 'This page doesn’t exist', body: 'The link may be old or mistyped. Your data is safe.', home: 'Back to home' },
 };
 
 export const ro: typeof en = {
@@ -42,4 +43,5 @@ export const ro: typeof en = {
   somethingWrong: 'Ceva n-a mers. Încearcă din nou.',
   demoOnly: 'Mod demo — date de test, nimic nu se salvează.',
   premiumBadge: 'Premium',
+  notFound: { title: 'Pagina nu există', body: 'Linkul poate fi vechi sau greșit. Datele tale sunt în siguranță.', home: 'Înapoi la pagina principală' },
 };
