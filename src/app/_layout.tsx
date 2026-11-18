@@ -113,6 +113,7 @@ function Navigator({ fontsReady }: { fontsReady: boolean }) {
       {/* E-mail links and OAuth land here whether or not a session exists yet. */}
       <Stack.Screen name="auth/callback" />
       <Stack.Screen name="reset-password" />
+      <Stack.Screen name="+not-found" />
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="sign-in" />

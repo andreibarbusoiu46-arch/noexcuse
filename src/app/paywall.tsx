@@ -83,12 +83,12 @@ export default function Paywall() {
     <>
       {state === 'ready' && <T variant="caption" tone="tertiary" align="center">{terms}</T>}
       {state === 'ready' && plan?.stripeMode === 'test' && <T variant="caption" tone="warning" align="center">{t.paywall.testMode}</T>}
-      <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', columnGap: 18, rowGap: 6 }}>
-        <Tap onPress={onRestore} disabled={busy !== null || !paywallAvailable()} accessibilityLabel={web ? t.paywall.refresh : t.paywall.restore}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', columnGap: 18, marginVertical: -8 }}>
+        <Tap onPress={onRestore} disabled={busy !== null || !paywallAvailable()} accessibilityLabel={web ? t.paywall.refresh : t.paywall.restore} style={{ paddingVertical: 13 }}>
           <T variant="caption" tone="secondary">{busy === 'restore' ? t.paywall.restoring : web ? t.paywall.refresh : t.paywall.restore}</T>
         </Tap>
-        <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel={t.settings.terms}><T variant="caption" tone="secondary">{t.settings.terms}</T></Tap>
-        {config.privacyUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link" accessibilityLabel={t.settings.privacyPolicy}><T variant="caption" tone="secondary">{t.settings.privacyPolicy}</T></Tap> : null}
+        <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel={t.settings.terms} style={{ paddingVertical: 13 }}><T variant="caption" tone="secondary">{t.settings.terms}</T></Tap>
+        {config.privacyUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link" accessibilityLabel={t.settings.privacyPolicy} style={{ paddingVertical: 13 }}><T variant="caption" tone="secondary">{t.settings.privacyPolicy}</T></Tap> : null}
       </View>
     </>
   );

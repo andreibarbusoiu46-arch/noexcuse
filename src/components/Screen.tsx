@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Platform, RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { color, layout, palette, scheme } from '@/theme/tokens';
@@ -70,9 +70,8 @@ interface ScreenProps {
 /** Obsidian ground + ambient glow + safe areas + a centered column that caps at 560pt on iPad. */
 export function Screen({ children, glow = 'violet', scroll = true, tabBar, refreshing, onRefresh, contentStyle, background, footer }: ScreenProps) {
   const insets = useSafeAreaInsets();
-  // Web preview only: expo-router's web tabs sit at the top, so content moves down instead of up.
-  const webTabs = Platform.OS === 'web' && tabBar;
-  const pad = { paddingTop: insets.top + 12 + (webTabs ? 76 : 0), paddingBottom: (tabBar && !webTabs ? layout.tabBarClearance : 24) + (footer ? 0 : insets.bottom) };
+  // Tab screens leave room for the floating tab bar at the bottom (the glass dock on the web, the system bar natively).
+  const pad = { paddingTop: insets.top + 12, paddingBottom: (tabBar ? layout.tabBarClearance : 24) + (footer ? 0 : insets.bottom) };
   const column = [styles.column, pad, contentStyle];
   return (
     <View style={[styles.root, { backgroundColor: color.bg.base }]}>

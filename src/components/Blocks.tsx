@@ -1,8 +1,7 @@
 import { t } from '@/i18n';
 // Small building blocks from the Figma library: Stat Tile, Section Header, Avatar, Icon Tile, Segmented, Day chips, Toggle row.
 import type { ReactNode } from 'react';
-import { Switch, View } from 'react-native';
-import { haptics } from '@/lib/haptics';
+import { Platform, Switch, View } from 'react-native';
 import { color, radius, palette } from '@/theme/tokens';
 import { Glass, GlassGroup } from './Glass';
 import { Icon, type IconName } from './Icon';
@@ -28,7 +27,7 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
       <T variant="overline" tone="tertiary" accessibilityRole="header">{title}</T>
       {action && (
-        <Tap onPress={onAction} accessibilityRole="link" accessibilityLabel={action}>
+        <Tap onPress={onAction} accessibilityRole="link" accessibilityLabel={action} style={{ paddingVertical: 13, marginVertical: -13, paddingLeft: 12 }}>
           <T variant="caption" tone="accent">{action}</T>
         </Tap>
       )}
@@ -84,21 +83,30 @@ export function DayChips({ value, onChange }: { value: number[]; onChange: (v: n
   );
 }
 
-// React Native Web paints the "on" thumb teal unless told otherwise.
-const webSwitchColors = () => ({ activeThumbColor: color.text.onLight, activeTrackColor: color.accent.primary }) as object;
-
 export function ToggleRow({ title, subtitle, value, onChange, icon, disabled }: { title: string; subtitle?: string; value: boolean; onChange: (v: boolean) => void; icon?: ReactNode; disabled?: boolean }) {
+  // The whole row is the control (a large touch target, one focus stop); the switch inside only shows the state.
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+    <Tap haptic="medium" dim={false} disabled={disabled} onPress={() => onChange(!value)}
+      accessibilityRole="switch" accessibilityState={{ checked: value, disabled }} aria-checked={value} accessibilityLabel={title} accessibilityHint={subtitle}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 }}>
       {icon}
       <View style={{ flex: 1, gap: 2 }}>
         <T variant="bodyStrong">{title}</T>
         {subtitle && <T variant="caption" tone="tertiary">{subtitle}</T>}
       </View>
-      <Switch value={value} disabled={disabled} accessibilityLabel={title}
-        onValueChange={(v) => { haptics.medium(); onChange(v); }}
-        trackColor={{ true: color.status.success, false: color.surface.control }} thumbColor={value ? color.text.onLight : palette.white} ios_backgroundColor={color.surface.control}
-          {...webSwitchColors()} />
-    </View>
+      {Platform.OS === 'web' ? (
+        // A drawn switch on the web: the browser's checkbox would be a second, conflicting focus stop.
+        <View aria-hidden style={{ width: 40, height: 24, borderRadius: 12, padding: 2, justifyContent: 'center',
+          backgroundColor: value ? color.accent.primary : color.surface.control, opacity: disabled ? 0.5 : 1 }}>
+          <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: value ? color.text.onLight : palette.white,
+            transform: [{ translateX: value ? 16 : 0 }], transitionProperty: 'transform', transitionDuration: '160ms' } as object} />
+        </View>
+      ) : (
+        <View pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <Switch value={value} disabled={disabled}
+            trackColor={{ true: color.status.success, false: color.surface.control }} thumbColor={value ? color.text.onLight : palette.white} ios_backgroundColor={color.surface.control} />
+        </View>
+      )}
+    </Tap>
   );
 }
