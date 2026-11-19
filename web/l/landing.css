@@ -143,7 +143,7 @@ main > section { overflow-x: clip; }
 .step-btn { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 18px; width: 100%; padding: 18px 0; background: none; border: 0; text-align: left; cursor: pointer; }
 .step-btn .dot { position: relative; z-index: 1; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); font: 500 17px/1 var(--serif); color: var(--graphite); transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease; }
 .step-btn b { display: block; font: 500 clamp(22px, 2vw, 28px)/1.15 var(--serif); letter-spacing: -0.01em; color: var(--graphite); transition: color 300ms ease; }
-.step-btn span.t { display: block; margin-top: 6px; color: var(--graphite); font-size: 16px; max-width: 30em; opacity: .7; transition: opacity 300ms ease, color 300ms ease; }
+.step-btn span.t { display: block; margin-top: 6px; color: var(--graphite); font-size: 16px; max-width: 30em; transition: color 300ms ease; }
 .step-btn[aria-current="step"] .dot, .step-btn.done .dot { background: var(--paper); color: var(--ink); box-shadow: none; }
 .step-btn[aria-current="step"] b { color: var(--paper); }
 .step-btn[aria-current="step"] span.t { color: var(--silver); opacity: 1; }
@@ -391,7 +391,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 .compare { margin-top: clamp(40px, 6vw, 72px); border-top: 1px solid var(--line-dark); }
 .cmp-row { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(12px, 3vw, 40px); padding: clamp(18px, 2.2vw, 26px) 0; border-bottom: 1px solid var(--line-dark); align-items: baseline; }
 .cmp-row b { font: 500 clamp(22px, 2.2vw, 30px)/1.1 var(--serif); letter-spacing: -0.01em; }
-.cmp-row span:nth-child(2) { color: #8A8A90; text-decoration: line-through; text-decoration-color: rgba(0,0,0,.25); text-decoration-thickness: 1px; }
+.cmp-row span:nth-child(2) { color: #66666C; text-decoration: line-through; text-decoration-color: rgba(0,0,0,.25); text-decoration-thickness: 1px; }
 .cmp-row span:nth-child(3) { color: #111; font-weight: 500; }
 .cmp-head { padding-top: 0; }
 .cmp-head span { font: 600 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #6A6A70 !important; text-decoration: none !important; }
@@ -507,3 +507,20 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 @media (prefers-reduced-transparency: reduce) {
   .nav-bar, .glass-card, .btn-ghost, .today { backdrop-filter: none; -webkit-backdrop-filter: none; background: #141416; }
 }
+
+/* ── How it works · steps 3–4: real app screens with tappable areas over the real controls ── */
+.no-island .island { display: none; }
+.shot-view { position: absolute; inset: 0; background: #000; }
+.shot-view img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.shot-view img.later { opacity: 0; transition: opacity 600ms ease; }
+.shot-view img.later.show { opacity: 1; }
+.hot { position: absolute; z-index: 3; padding: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hot.round { border-radius: 50%; }
+.hot::after { content: ""; position: absolute; inset: -6%; border-radius: inherit; box-shadow: 0 0 0 2px rgba(255,255,255,.55); opacity: 0; animation: hint 2.2s var(--ease-in-out) 1s infinite; pointer-events: none; }
+.hot:active { transform: scale(.97); }
+.hot:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+@keyframes hint { 0% { opacity: 0; transform: scale(.96); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .hot::after { animation: none; opacity: .6; } .shot-view img.later { transition: none; } }
+/* Inset the real screens below the top edge (where a status bar would be) so the rounded screen never clips them. */
+.shot-frame { position: absolute; left: 2.5%; right: 2.5%; top: 5.5%; aspect-ratio: 390 / 844; }
+.shot-view img { object-fit: contain; }

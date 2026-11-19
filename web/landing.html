@@ -39,32 +39,9 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<!-- Illustration used inside the simulated camera and verification shot -->
+<!-- Brand mark, reused by the nav and the final section -->
 <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
   <defs>
-    <linearGradient id="gym-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B1B1D"/><stop offset=".55" stop-color="#4A4A4F"/><stop offset="1" stop-color="#9A9AA0"/></linearGradient>
-    <linearGradient id="gym-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2A2D"/><stop offset="1" stop-color="#0B0B0C"/></linearGradient>
-    <symbol id="gym" viewBox="0 0 300 400" preserveAspectRatio="xMidYMid slice">
-      <rect width="300" height="400" fill="url(#gym-sky)"/>
-      <path d="M40 40h90v150H40zM170 40h90v150h-90z" fill="#D8D8DC" opacity=".22"/>
-      <path d="M40 112h90M85 40v150M170 112h90M215 40v150" stroke="#111" stroke-width="3" opacity=".5"/>
-      <rect y="250" width="300" height="150" fill="url(#gym-floor)"/>
-      <path d="M0 250h300" stroke="#7A7A80" stroke-width="1.5" opacity=".6"/>
-      <g fill="#0C0C0D">
-        <rect x="24" y="214" width="252" height="10" rx="4"/>
-        <rect x="34" y="224" width="8" height="40"/><rect x="258" y="224" width="8" height="40"/>
-        <circle cx="62" cy="206" r="12"/><circle cx="96" cy="204" r="14"/><circle cx="134" cy="202" r="16"/><circle cx="174" cy="202" r="16"/><circle cx="212" cy="204" r="14"/><circle cx="244" cy="206" r="12"/>
-      </g>
-      <rect x="118" y="252" width="64" height="40" rx="4" fill="#1A1A1C"/>
-      <rect x="110" y="246" width="80" height="8" rx="3" fill="#2E2E31"/>
-      <g transform="rotate(-8 150 350)">
-        <rect x="70" y="342" width="160" height="16" rx="8" fill="#3A3A3E"/>
-        <rect x="42" y="304" width="40" height="92" rx="12" fill="#0A0A0B"/><rect x="50" y="304" width="6" height="92" rx="3" fill="#2A2A2D"/>
-        <rect x="218" y="304" width="40" height="92" rx="12" fill="#0A0A0B"/><rect x="226" y="304" width="6" height="92" rx="3" fill="#2A2A2D"/>
-        <path d="M118 400c4-22 12-38 32-40s30 16 34 40z" fill="#C9C9CE" opacity=".55"/>
-      </g>
-      <path d="M0 400L120 250h60L300 400z" fill="#fff" opacity=".035"/>
-    </symbol>
     <symbol id="mark" viewBox="0 0 56 56"><rect x=".75" y=".75" width="54.5" height="54.5" rx="16" fill="#fff"/><path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
   </defs>
 </svg>
@@ -130,7 +107,7 @@
           <p class="kicker">How NoExcuse works</p>
           <h2 class="h2 reveal" id="how-title">Four steps. No way around them.</h2>
         </div>
-        <p class="sim"><i aria-hidden="true"></i>Interactive simulation. No photo is taken and nothing is sent.</p>
+        <p class="sim"><i aria-hidden="true"></i>Interactive simulation. Steps 3 and 4 are real app screens with demo data and a simulated camera feed. No photo is taken and nothing is sent.</p>
       </div>
 
       <div class="step-tabs" role="group" aria-label="Steps">
@@ -153,7 +130,7 @@
         </div>
 
         <div class="demo-phone-wrap">
-          <div class="phone tilt" id="demo-phone">
+          <div class="phone tilt no-island" id="demo-phone">
             <div class="screen">
               <span class="island" aria-hidden="true"></span>
 
@@ -163,9 +140,9 @@
                   <span class="over">New commitment · 1 of 2</span>
                   <h3 class="ttl">What will you prove?</h3>
                   <label class="lbl" for="habit-name">Commitment</label>
-                  <input type="text" id="habit-name" value="Morning workout" maxlength="28">
+                  <input type="text" id="habit-name" value="Morning run — 5 km" maxlength="28">
                   <label class="lbl" for="habit-proof">What counts as proof</label>
-                  <input type="text" id="habit-proof" value="Me at the rack, gym clothes on" maxlength="40">
+                  <input type="text" id="habit-proof" value="Outdoor track, my watch showing the distance" maxlength="48">
                   <span class="lbl" id="cat-lbl">Category</span>
                   <div class="chips" role="group" aria-labelledby="cat-lbl" data-chips="cat">
                     <button type="button" class="chip" aria-pressed="true" data-v="Fitness">Fitness</button>
@@ -199,51 +176,30 @@
                   <p class="window-line">Proof window <b class="tnum" id="win-text">07:45 – 08:15</b>, on server time.</p>
                   <div class="status-card" id="status-card" aria-live="polite">
                     <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                    <span><b>Committed</b><span id="status-text">Morning workout, 08:00, every day</span></span>
+                    <span><b>Committed</b><span id="status-text">Morning run — 5 km, 08:00, every day</span></span>
                   </div>
                   <span class="grow"></span>
                   <button type="submit" class="app-btn" id="commit-btn">Commit</button>
                 </form>
               </div>
 
-              <!-- 3 · Prove -->
+              <!-- 3 · Prove: real app screens (demo account); the buttons sit over the real controls -->
               <div class="view" data-view="2">
-                <div class="cam">
-                  <div class="scene"><svg aria-hidden="true"><use href="#gym"/></svg></div>
-                  <div class="top"><span class="pill-live">Camera</span><span class="pill-live tnum" id="cam-clock">07:52 · window open</span></div>
-                  <div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-                  <div class="dock">
-                    <span class="gal" aria-label="No gallery" role="img"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="m4 17 5-5 4 4 3-3 4 4" stroke="currentColor" stroke-width="2" fill="none"/></svg></span>
-                    <button type="button" class="shutter" id="shutter" aria-label="Take the photo"><span></span></button>
-                    <span class="hint">No gallery.<br>The photo is taken now.</span>
-                  </div>
-                  <div class="captured" id="captured">
-                    <p class="meta tnum" id="cap-meta">Captured 07:52:14 · send within 3:00</p>
-                    <button type="button" class="app-btn" id="submit-btn">Send proof</button>
-                    <button type="button" class="app-btn ghost" id="retake-btn" style="margin-top:2.4cqw">Retake</button>
-                  </div>
-                  <div class="flash" id="flash"></div>
+                <div class="shot-view"><div class="shot-frame">
+                  <img id="cam-img" src="l/demo/camera-1.webp" alt="NoExcuse proof camera for Morning run, 5 km: photo 1 of 2, with a framing guide, the proof hint, the shutter and no gallery button" width="390" height="844" decoding="async">
+                  <button type="button" class="hot round" id="shutter" style="left:40%;top:87.3%;width:20%;height:9.24%" aria-label="Take the proof photo"></button>
+                  <button type="button" class="hot" id="submit-btn" style="left:3%;top:79.1%;width:94%;height:6.4%" aria-label="Submit for verification" hidden></button>
+                  </div><div class="flash" id="flash"></div>
                 </div>
               </div>
 
-              <!-- 4 · Verify -->
+              <!-- 4 · Verify: real app screens (demo account) -->
               <div class="view" data-view="3">
-                <div class="verify" id="verify">
-                  <span class="over">AI verification</span>
-                  <h3 class="ttl" id="verify-title" style="margin-bottom:4cqw">Checking proof…</h3>
-                  <div class="shot"><svg aria-hidden="true"><use href="#gym"/></svg><span class="scan"></span></div>
-                  <ul class="checks" id="checks" aria-live="polite">
-                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Proof received<small class="tnum" id="chk-time">07:52:14</small></li>
-                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Taken in the app<small>fresh capture</small></li>
-                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Inside the window<small class="tnum" id="chk-win">07:45–08:15</small></li>
-                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Matches the commitment<small id="chk-habit">workout</small></li>
-                  </ul>
-                  <div class="ruling" id="ruling">
-                    <div class="row"><span class="v"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span><span class="pts tnum" id="v-pts">+50</span></div>
-                    <p id="v-critique">Dumbbells, gym floor, morning light. That’s a workout. Counts.</p>
-                    <button type="button" class="app-btn ghost" id="again-btn" style="margin-top:3.4cqw">Try it again</button>
-                  </div>
-                </div>
+                <div class="shot-view"><div class="shot-frame">
+                  <img id="ver-checking" src="l/demo/checking.webp" alt="AI verification in progress: Checking your proof, comparing your evidence with Morning run, 5 km" width="390" height="844" decoding="async">
+                  <img id="ver-done" class="later" src="l/demo/verified.webp" alt="Proof verified: +50 points, 13-day streak, with the AI's one-line reason" width="390" height="844" decoding="async">
+                  <button type="button" class="hot" id="again-btn" style="left:3%;top:83.2%;width:94%;height:6.4%" aria-label="Back to Home: start the simulation again" hidden></button>
+                </div></div>
               </div>
             </div>
           </div>
@@ -308,7 +264,7 @@
         <h2 class="h2 reveal" id="app-title">Real screens. Nothing staged.</h2>
         <p class="lede reveal">These are the actual screens of NoExcuse, filled with sample data.</p>
       </div>
-      <div class="carousel" id="carousel"></div>
+      <div class="carousel" id="carousel" tabindex="0" aria-label="App screens. On a phone, swipe or use the arrow keys to scroll."></div>
       <div class="show-tabs" id="show-tabs" role="tablist" aria-label="App screens"></div>
       <p class="show-cap" id="show-cap" aria-live="polite"></p>
       <p class="show-note"><span class="note">Sample data. Your screens fill with your own commitments.</span></p>
@@ -321,7 +277,7 @@
       <p class="kicker">Why NoExcuse</p>
       <h2 class="h2 reveal" id="why-title">A checklist records.<br>NoExcuse holds you to it.</h2>
       <div class="compare" role="table" aria-label="A checklist app compared with NoExcuse">
-        <div class="cmp-row cmp-head" role="row"><span role="columnheader"></span><span role="columnheader">A checklist app</span><span role="columnheader">NoExcuse</span></div>
+        <div class="cmp-row cmp-head" role="row"><span role="columnheader"><span class="sr">Aspect</span></span><span role="columnheader">A checklist app</span><span role="columnheader">NoExcuse</span></div>
         <div class="cmp-row" role="row"><b role="rowheader">Commitment</b><span role="cell">A habit with no time attached</span><span role="cell">A time, the days and what counts as proof</span></div>
         <div class="cmp-row" role="row"><b role="rowheader">Evidence</b><span role="cell">A tap on a checkbox</span><span role="cell">A photo taken in the app, inside a 30‑minute window</span></div>
         <div class="cmp-row" role="row"><b role="rowheader">Verification</b><span role="cell">You grade yourself</span><span role="cell">AI checks the photo against your commitment and the server clock</span></div>
@@ -344,7 +300,7 @@
             <li>Up to 2 active commitments</li>
             <li>Photo proof and AI verification</li>
             <li>Points, streaks and the Discipline Score</li>
-            <li>The Arena and your weekly report</li>
+            <li>The Arena: weekly, monthly and all‑time standings</li>
           </ul>
           <a class="btn btn-ghost" href="/onboarding" data-cta="free">Start free</a>
         </article>
@@ -357,6 +313,7 @@
             <li>Strict and Elite verification levels</li>
             <li>Challenges, including AI‑generated ones</li>
             <li>AI Coach, built from your own results</li>
+            <li>A weekly report every Monday</li>
             <li>Accountability partners and appeals</li>
           </ul>
           <p class="fine">Nothing can be charged today. When payments open, you’ll choose whether to subscribe.</p>
@@ -372,7 +329,7 @@
       <div class="faq">
         <details><summary>What counts as proof?</summary><p>A photo taken with the camera in the app during the window that clearly shows the commitment: you at the rack in gym clothes, the open book on today’s page, the running track. You write what counts as proof for each commitment, and the AI explains every ruling in one sentence.</p></details>
         <details><summary>Can I use a photo I already have?</summary><p>Not for the main proof. The camera in the app has no gallery button, and a capture has to be sent within three minutes, inside the window. The stricter Premium levels can additionally ask for a screenshot, for example a workout summary.</p></details>
-        <details><summary>What happens when I miss?</summary><p>You lose 100 points and your streak resets. The app then shows when your next chance is and helps you plan a comeback, such as an earlier reminder or a clearer definition of what counts as proof.</p></details>
+        <details><summary>What happens when I miss?</summary><p>You lose 100 points and your streak resets. The app then shows when your next chance is and helps you plan a comeback, such as a clearer definition of what counts as proof.</p></details>
         <details><summary>What if verification is delayed?</summary><p>Your proof is saved with the time it arrived, and the target isn’t marked as missed while it waits. A delay on our side never costs you points.</p></details>
         <details><summary>Who can see my photos?</summary><p>Only you. Proof photos are stored privately and are never shown to other members or partners.</p></details>
         <details><summary>Where can I use it?</summary><p>Today NoExcuse runs on the web, in the browser on your phone or computer. An iPhone app comes next.</p></details>

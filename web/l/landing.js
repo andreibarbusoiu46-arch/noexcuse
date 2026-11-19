@@ -95,18 +95,17 @@
   var CAPTIONS = [
     'Choose what you promise to complete, and write what counts as proof.',
     'Set the time and the days. The proof window opens 15 minutes before and closes 15 minutes after.',
-    'When the window opens, take the photo in the app. There is no gallery button, and a capture must be sent within three minutes.',
-    'AI checks the photo against your commitment and the server clock, then rules with a one‑line reason.'
+    'Real app screens. Inside the window, take each photo in the app: no gallery button, and a capture must be sent within three minutes.',
+    'Real app screens. AI checks the photos against the commitment and the server clock, then rules with a one‑line reason.'
   ];
-  var demo = { step: 0, habit: 'Morning workout', cat: 'Fitness', deadline: '08:00', freq: 'Every day', committed: false, timers: [] };
-  // The camera scene is an illustration of a gym; the ruling text adapts to what the visitor typed.
+  var demo = { step: 0, habit: 'Morning run — 5 km', cat: 'Fitness', deadline: '08:00', freq: 'Every day', committed: false, shot: 0, timers: [] };
+  // Steps 3 and 4 show real app screens from the demo account; the buttons sit over the real controls.
   var views = $$('[data-view]'), stepBtns = $$('.step-btn'), tabBtns = $$('.step-tabs button'), rail = $('#rail');
   function later(ms, fn) { demo.timers.push(setTimeout(fn, reduce ? Math.min(ms, 60) : ms)); }
   function clearTimers() { demo.timers.forEach(clearTimeout); demo.timers = []; }
   function hhmm(min) { min = (min + 1440) % 1440; var h = Math.floor(min / 60), m = min % 60; return pad(h) + ':' + pad(m); }
   function toMin(s) { var p = s.split(':'); return +p[0] * 60 + +p[1]; }
   function windowText(sep) { var d = toMin(demo.deadline); return hhmm(d - 15) + (sep || ' – ') + hhmm(d + 15); }
-  function captureTime() { return hhmm(toMin(demo.deadline) - 8); }
   function placeRail(i) {
     if (!rail || !stepBtns.length) return;
     var first = stepBtns[0].getBoundingClientRect(), cur = stepBtns[i].getBoundingClientRect();
@@ -132,11 +131,6 @@
     $('#win-l').textContent = hhmm(toMin(demo.deadline) - 15);
     $('#win-r').textContent = hhmm(toMin(demo.deadline) + 15);
     $('#status-text').textContent = (demo.habit || 'Your commitment') + ', ' + demo.deadline + ', ' + demo.freq.toLowerCase();
-    $('#chk-win').textContent = windowText('–');
-    $('#chk-habit').textContent = (demo.habit || 'the commitment').toLowerCase().slice(0, 18);
-    $('#cam-clock').textContent = captureTime() + ' · window open';
-    $('#cap-meta').textContent = 'Captured ' + captureTime() + ':14 · send within 3:00';
-    $('#chk-time').textContent = captureTime() + ':14';
   }
   $('#habit-name').addEventListener('input', function (e) { demo.habit = e.target.value.trim(); sync(); });
   $$('[data-chips]').forEach(function (group) {
@@ -156,35 +150,33 @@
     else goTo(2);
   });
 
-  var captured = $('#captured'), flash = $('#flash');
-  function resetCamera() { captured.classList.remove('show'); captured.parentNode.classList.remove('taken'); }
-  $('#shutter').addEventListener('click', function () {
-    if (flash.animate && !reduce) flash.animate([{ opacity: 0.95 }, { opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.23,1,.32,1)' });
-    captured.classList.add('show');
-    captured.parentNode.classList.add('taken');
-    $('#submit-btn').focus({ preventScroll: true });
-  });
-  $('#retake-btn').addEventListener('click', resetCamera);
-  $('#submit-btn').addEventListener('click', function () { goTo(3); });
-
-  // Simulated: a fixed sequence, no network.
-  function runVerification() {
-    var v = $('#verify'), checks = $$('#checks li'), ruling = $('#ruling'), title = $('#verify-title');
-    v.classList.remove('scanning'); checks.forEach(function (c) { c.classList.remove('ok'); });
-    ruling.classList.remove('show'); title.textContent = 'Checking proof…';
-    var h = (demo.habit || 'your commitment'), gym = /work ?out|gym|lift|train|run/i.test(h);
-    $('#v-critique').textContent = gym ? 'Gym floor, weights, morning light. It matches “' + h + '”. Counts.'
-      : 'It shows what you said counts as proof for “' + h + '”. Counts.';
-    later(250, function () { v.classList.add('scanning'); });
-    checks.forEach(function (c, k) { later(500 + k * 520, function () { c.classList.add('ok'); }); });
-    later(500 + checks.length * 520 + 200, function () {
-      v.classList.remove('scanning');
-      title.textContent = 'Verified.';
-      ruling.classList.add('show');
-      count($('#v-pts'), 0, 50, 700, function (n) { return '+' + n; });
-    });
+  // Step 3 · the real proof flow: photo 1 of 2 → photo 2 of 2 → Review proof → Submit for verification.
+  var CAM = [
+    { src: 'l/demo/camera-1.webp', alt: 'NoExcuse proof camera for Morning run, 5 km: photo 1 of 2, with a framing guide, the proof hint, the shutter and no gallery button' },
+    { src: 'l/demo/camera-2.webp', alt: 'NoExcuse proof camera: photo 2 of 2, the watch or treadmill display with distance and time' },
+    { src: 'l/demo/review.webp', alt: 'Review proof: two live photos, strict verification, the evidence checklist and Submit for verification' }
+  ];
+  var camImg = $('#cam-img'), shutter = $('#shutter'), submitBtn = $('#submit-btn'), flash = $('#flash');
+  CAM.forEach(function (c) { var im = new Image(); im.src = c.src; }); // warm the cache so swaps are instant
+  function showShot(k) {
+    demo.shot = k; camImg.src = CAM[k].src; camImg.alt = CAM[k].alt;
+    shutter.hidden = k === 2; submitBtn.hidden = k !== 2;
   }
-  $('#again-btn').addEventListener('click', function () {
+  function resetCamera() { showShot(0); }
+  shutter.addEventListener('click', function () {
+    if (flash.animate && !reduce) flash.animate([{ opacity: 0.95 }, { opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.23,1,.32,1)' });
+    showShot(demo.shot + 1);
+    (demo.shot === 2 ? submitBtn : shutter).focus({ preventScroll: true });
+  });
+  submitBtn.addEventListener('click', function () { goTo(3); });
+
+  // Step 4 · the real verification screens: "Checking your proof…", then the ruling.
+  var verDone = $('#ver-done'), againBtn = $('#again-btn');
+  function runVerification() {
+    verDone.classList.remove('show'); againBtn.hidden = true;
+    later(2600, function () { verDone.classList.add('show'); againBtn.hidden = false; });
+  }
+  againBtn.addEventListener('click', function () {
     demo.committed = false; statusCard.classList.remove('show'); commitBtn.textContent = 'Commit'; goTo(0);
   });
 
@@ -240,10 +232,10 @@
   var SCREENS = [
     { id: 'home', tab: 'Today', alt: 'Today screen with the next target, a live countdown to its window and today’s progress', cap: '<b>Today.</b> Your next commitment with a live countdown to its window, and how much of the day is done.' },
     { id: 'habits', tab: 'Commitments', alt: 'Commitments list with times, days, streaks and results', cap: '<b>Commitments.</b> Every promise with its time, its days, its streak and its last result.' },
-    { id: 'proof', tab: 'Proof camera', alt: 'Proof camera for Morning run, photo 1 of 2, with a framing guide and no gallery', cap: '<b>Proof camera.</b> Opens only inside the window. It shows what counts as proof and has no gallery button.' },
+    { id: 'proof', island: false, tab: 'Proof camera', alt: 'Proof camera for Morning run, photo 1 of 2, with a framing guide and no gallery', cap: '<b>Proof camera.</b> Opens only inside the window. It shows what counts as proof and has no gallery button.' },
     { id: 'discipline', tab: 'Discipline Score', alt: 'Discipline Score screen with the score and its four weighted parts', cap: '<b>Discipline Score.</b> One number from 0 to 100, with every part of the formula shown.' },
     { id: 'challenges', tab: 'Challenges', alt: 'Challenges screen with an active 30-day challenge and the library', cap: '<b>Challenges.</b> Fixed length, a limited number of misses, and a bonus only if you finish. Premium.' },
-    { id: 'report', tab: 'Weekly report', alt: 'Weekly report with the share of verified targets, points, misses and streak', cap: '<b>Weekly report.</b> Every Monday: what you verified, what you missed, your strongest commitment and the one that needs work.' },
+    { id: 'report', tab: 'Weekly report', alt: 'Weekly report with the share of verified targets, points, misses and streak', cap: '<b>Weekly report.</b> Every Monday: what you verified, what you missed, your strongest commitment and the one that needs work. Premium.' },
     { id: 'arena', tab: 'Arena', alt: 'Arena with weekly, monthly and all-time standings', cap: '<b>Arena.</b> Optional competition by verified points, this week, this month or all time.' },
     { id: 'coach', tab: 'AI Coach', alt: 'AI Coach with suggested questions based on your own data', cap: '<b>AI Coach.</b> Answers from your own commitments, results and Discipline Score. Never your photos. Premium.' },
     { id: 'missed', tab: 'Missed', alt: 'Missed target screen with the points and streak lost and the next chance', cap: '<b>Missed.</b> When a window closes without proof: exactly what it cost, and when your next chance is.' }
@@ -252,7 +244,7 @@
   SCREENS.forEach(function (s, i) {
     var slot = document.createElement('div');
     slot.className = 'slot';
-    slot.innerHTML = '<div class="phone"><div class="screen"><span class="island" aria-hidden="true"></span><img src="l/screens/' + s.id + '.webp" alt="' + s.alt + '" loading="lazy" decoding="async" width="390" height="844"></div></div><span class="slot-cap">' + s.cap.replace(/<\/?b>/g, '') + '</span>';
+    slot.innerHTML = '<div class="phone' + (s.island === false ? ' no-island' : '') + '"><div class="screen"><span class="island" aria-hidden="true"></span><img src="l/screens/' + s.id + '.webp" alt="' + s.alt + '" loading="lazy" decoding="async" width="390" height="844"></div></div><span class="slot-cap">' + s.cap.replace(/<\/?b>/g, '') + '</span>';
     slot.addEventListener('click', function () { if (desktop.matches) select(i); });
     carousel.appendChild(slot); slots.push(slot);
     tilt(slot.querySelector('.phone'), 10);
