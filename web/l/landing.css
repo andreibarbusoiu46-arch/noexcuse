@@ -524,3 +524,93 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 /* Inset the real screens below the top edge (where a status bar would be) so the rounded screen never clips them. */
 .shot-frame { position: absolute; left: 2.5%; right: 2.5%; top: 5.5%; aspect-ratio: 390 / 844; }
 .shot-view img { object-fit: contain; }
+
+/* ════════════ Motion & visual refinement (round 3) ════════════ */
+:root { --ease-silk: cubic-bezier(.16, 1, .3, 1); }
+
+/* Rhythm: a little less air between sections, so the page reads as one continuous piece. */
+.sec { padding-top: clamp(72px, 9vw, 136px); padding-bottom: clamp(72px, 9vw, 136px); }
+.demo-head { margin-bottom: clamp(28px, 4vw, 48px); }
+
+/* Backgrounds blend at every seam instead of switching. */
+.eng { background: linear-gradient(180deg, #000 0, var(--ink-2) 180px, var(--ink-2) calc(100% - 180px), #000 100%); }
+.problem { background:
+    radial-gradient(70% 55% at 18% 0%, rgba(255,255,255,.06), transparent 70%),
+    linear-gradient(180deg, #000 0%, #0B0B0D 18%, #0B0B0D 82%, #000 100%); }
+.problem::before, .problem::after { display: none; }
+#app { background: radial-gradient(60% 40% at 50% 62%, rgba(255,255,255,.05), transparent 70%); }
+
+/* Layered reveals: each section brings in kicker → heading → copy → content, one after another. */
+.js .reveal { opacity: 0; transform: translate3d(0, 28px, 0); filter: blur(6px);
+  transition: opacity 900ms ease calc(var(--rv, 0) * 120ms), transform 1200ms var(--ease-silk) calc(var(--rv, 0) * 120ms), filter 900ms ease calc(var(--rv, 0) * 120ms); }
+.js .reveal.in { opacity: 1; transform: none; filter: none; }
+/* Headings rise out of a mask rather than sliding over the page. */
+.js .h2.reveal { filter: none; clip-path: inset(0 -6% 100% -6%); transform: translate3d(0, .35em, 0);
+  transition: clip-path 1300ms var(--ease-silk) calc(var(--rv, 0) * 120ms), transform 1300ms var(--ease-silk) calc(var(--rv, 0) * 120ms), opacity 500ms ease calc(var(--rv, 0) * 120ms); }
+.js .h2.reveal.in { clip-path: inset(-12% -6% -22% -6%); }
+
+/* The white sheet arrives like a page being laid down: it grows into place as it scrolls in (scale is set by script). */
+.sheet { transform-origin: 50% 0; will-change: transform; }
+
+/* ── The checkbox gives way to proof ── */
+.proof-shift { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); align-items: center; margin-top: clamp(72px, 10vw, 140px); }
+.ps-title { font: 500 clamp(40px, 4.4vw, 68px)/1 var(--serif); letter-spacing: -0.03em; color: var(--paper); text-wrap: balance; }
+.ps-line { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
+.ps-line > span { display: block; }
+.js .ps-line > span { transform: translate3d(0, 105%, 0); transition: transform 1300ms var(--ease-silk); }
+.js .ps-line:nth-child(2) > span { transition-delay: 120ms; }
+.js .proof-shift.in .ps-line > span { transform: none; }
+.ps-body { margin-top: clamp(22px, 2.6vw, 34px); max-width: 30em; padding-left: clamp(0px, 3vw, 44px); border-left: 1px solid var(--line); font-size: clamp(17px, 1.3vw, 19px); line-height: 1.6; color: var(--silver); }
+.js .ps-body { opacity: 0; transform: translate3d(0, 16px, 0); transition: opacity 900ms ease 360ms, transform 1200ms var(--ease-silk) 360ms; }
+.js .proof-shift.in .ps-body { opacity: 1; transform: none; }
+
+.ps-stage { position: relative; height: clamp(500px, 46vw, 640px); }
+.ps-stage figure { margin: 0; }
+.ps-check { position: absolute; left: 0; right: 0; top: 50%; transform: translate3d(0, calc(-50% + var(--cy, 0px)), 0); opacity: var(--co, 1); filter: blur(var(--cb, 0px)); display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.ps-row { position: relative; display: flex; align-items: center; gap: 18px; padding: 4px 6px; }
+.ps-box { width: clamp(44px, 4vw, 56px); aspect-ratio: 1; border-radius: 12px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.85); display: grid; place-items: center; }
+.ps-box svg { width: 70%; height: 70%; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+#ps-tick { stroke-dasharray: 1; stroke-dashoffset: var(--tick, 1); }
+.ps-task { font: 500 clamp(30px, 3vw, 44px)/1 var(--serif); letter-spacing: -0.02em; color: var(--paper); }
+.ps-done { padding: 7px 12px; border-radius: 999px; font: 600 12px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--silver); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.ps-strike { position: absolute; left: -4%; right: -4%; top: 50%; height: 2px; background: #fff; transform-origin: left; transform: scaleX(var(--strike2, 0)); }
+.ps-check figcaption, .ps-proof figcaption { font-size: 14px; color: var(--graphite); text-align: center; }
+.ps-proof { position: absolute; left: 50%; top: 50%; width: clamp(220px, 19vw, 270px); transform: translate3d(-50%, calc(-50% + var(--py, 60px)), 0) scale(var(--ps, .94)); opacity: var(--po, 0); }
+.ps-proof figcaption { margin-top: 18px; color: var(--silver); }
+.ps-proof figcaption small { display: block; margin-top: 4px; font-size: 12px; color: var(--graphite); letter-spacing: .04em; }
+.ps-proof .phone { box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 60px 120px -40px rgba(255,255,255,.12), 0 40px 80px -30px rgba(0,0,0,.95); }
+
+/* ── Final: continuous radial lines ── */
+.final::before { content: none; }
+.rays { position: absolute; z-index: -1; left: 50%; top: 50%; width: min(1100px, 150vw); aspect-ratio: 1; transform: translate(-50%, -42%); pointer-events: none;
+  -webkit-mask: radial-gradient(closest-side, #000 52%, transparent); mask: radial-gradient(closest-side, #000 52%, transparent); }
+.rays::after { content: ""; position: absolute; inset: 0; background: radial-gradient(closest-side, rgba(255,255,255,.15), transparent); }
+.rays-breathe, .rays i { position: absolute; inset: 0; border-radius: 50%; }
+.rays-breathe { animation: breathe 13s ease-in-out infinite alternate; }
+.rays i { will-change: transform; }
+/* near: the original pattern (a hairline every 6°), turning very slowly */
+.ray-near { background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.085) 0 .4deg, transparent .4deg 6deg); animation: turn 360s linear infinite; }
+/* far: finer, fainter, larger and turning the other way — the two layers drifting past each other give depth */
+.ray-far { inset: -9%; background: repeating-conic-gradient(from 3deg, rgba(255,255,255,.04) 0 .25deg, transparent .25deg 4deg); filter: blur(.4px); animation: turn 540s linear infinite reverse; }
+/* shade: soft dark lobes sweeping round, so lines brighten and dim in a slow wave */
+.ray-shade { inset: -20%; background: conic-gradient(from 0deg, rgba(0,0,0,.62), rgba(0,0,0,0) 22%, rgba(0,0,0,.5) 48%, rgba(0,0,0,0) 72%, rgba(0,0,0,.62)); animation: turn 150s linear infinite; }
+@keyframes turn { to { transform: rotate(360deg); } }
+@keyframes breathe { from { transform: scale(1); opacity: .88; } to { transform: scale(1.045); opacity: 1; } }
+/* only while the section is on screen */
+.final:not(.live) .rays-breathe, .final:not(.live) .rays i { animation-play-state: paused; }
+.final .wrap { position: relative; }
+
+@media (max-width: 760px) {
+  .proof-shift { grid-template-columns: 1fr; gap: 28px; margin-top: 72px; }
+  .ps-title { font-size: clamp(40px, 11.4vw, 56px); }
+  .ps-body { padding-left: 16px; }
+  /* Phones: no overlap. The checkbox ticks, is struck and fades in place; proof rises in below it. */
+  .ps-stage { height: auto; display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .ps-check { position: relative; top: auto; transform: none; }
+  .ps-proof { position: relative; left: auto; top: auto; width: 230px; transform: translate3d(0, var(--py, 60px), 0) scale(var(--ps, .94)); }
+  .rays { width: 190vw; transform: translate(-50%, -46%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal, .js .h2.reveal, .js .ps-line > span, .js .ps-body { transform: none; filter: none; clip-path: none; transition: opacity 400ms ease; }
+  .rays-breathe, .rays i { animation: none; }
+}

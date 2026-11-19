@@ -83,18 +83,35 @@
   <!-- 2 · The problem -->
   <section class="problem" id="problem" aria-labelledby="problem-title">
     <div class="wrap sec">
-      <p class="kicker">The problem</p>
+      <p class="kicker reveal">The problem</p>
       <h2 class="fade-statement" id="problem-title"><span class="fades" id="fades">Motivation fades.</span><span class="stays">Accountability doesn’t.</span></h2>
-      <p class="problem-intro reveal">You’ve made these promises before. You meant every one of them.</p>
+      <p class="problem-intro reveal" style="--rv:1">You’ve made these promises before. You meant every one of them.</p>
       <ul class="promises" id="promises">
         <li class="promise"><q>“I’ll start on Monday.”</q><small>Every Sunday</small></li>
         <li class="promise"><q>“Gym at seven, every day.”</q><small>Every January</small></li>
         <li class="promise"><q>“Twenty pages before bed.”</q><small>Every night, in theory</small></li>
         <li class="promise"><q>“No phone until nine.”</q><small>Every morning, briefly</small></li>
       </ul>
-      <div class="problem-close reveal">
-        <h3 class="h3">A checkbox can’t tell whether you did it.</h3>
-        <p class="lede">Ticking a box costs nothing, so it proves nothing. NoExcuse asks for something harder to fake: a photo taken on the clock, inside the window you chose, and checked before it counts.</p>
+      <div class="proof-shift" id="proof-shift">
+        <div class="ps-copy">
+          <h3 class="ps-title" id="ps-title"><span class="ps-line"><span>A checkbox can’t tell</span></span> <span class="ps-line"><span>whether you did it.</span></span></h3>
+          <p class="ps-body">Ticking a box costs nothing, so it proves nothing. NoExcuse asks for something harder to fake: a photo taken on the clock, inside the window you chose, and checked before it counts.</p>
+        </div>
+        <div class="ps-stage" id="ps-stage">
+          <figure class="ps-check" aria-label="A ticked checkbox for Gym at seven, marked done with nothing to show for it">
+            <div class="ps-row">
+              <span class="ps-box"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="ps-tick" d="M5 12.5 10 17.5 19 7" pathLength="1"/></svg></span>
+              <span class="ps-task">Gym at seven</span>
+              <span class="ps-done">Done</span>
+              <span class="ps-strike" aria-hidden="true"></span>
+            </div>
+            <figcaption>A checkbox. A promise nobody checked.</figcaption>
+          </figure>
+          <figure class="ps-proof">
+            <div class="phone no-island"><div class="screen"><span class="island" aria-hidden="true"></span><img src="l/demo/review.webp" alt="Real NoExcuse screen, Review proof: two live photos taken inside the window and a Submit for verification button" width="390" height="844" loading="lazy" decoding="async"></div></div>
+            <figcaption>Proof. Taken in the window, checked by AI.<small>Real app screen · demo data</small></figcaption>
+          </figure>
+        </div>
       </div>
     </div>
   </section>
@@ -104,10 +121,10 @@
     <div class="wrap sec">
       <div class="demo-head">
         <div>
-          <p class="kicker">How NoExcuse works</p>
-          <h2 class="h2 reveal" id="how-title">Four steps. No way around them.</h2>
+          <p class="kicker reveal">How NoExcuse works</p>
+          <h2 class="h2 reveal" style="--rv:1" id="how-title">Four steps. No way around them.</h2>
         </div>
-        <p class="sim"><i aria-hidden="true"></i>Interactive simulation. Steps 3 and 4 are real app screens with demo data and a simulated camera feed. No photo is taken and nothing is sent.</p>
+        <p class="sim reveal" style="--rv:2"><i aria-hidden="true"></i>Interactive simulation. Steps 3 and 4 are real app screens with demo data and a simulated camera feed. No photo is taken and nothing is sent.</p>
       </div>
 
       <div class="step-tabs" role="group" aria-label="Steps">
@@ -212,11 +229,11 @@
   <!-- 4 · The Discipline System -->
   <section id="system" class="eng" aria-labelledby="system-title">
     <div class="wrap sec">
-      <p class="kicker">The Discipline System</p>
-      <h2 class="h2 reveal" id="system-title">Every day settles<br>into a number.</h2>
-      <p class="lede sys-lede reveal">Each commitment ends one of two ways. The rules are the same for everyone and are set on the server, not in your settings.</p>
+      <p class="kicker reveal">The Discipline System</p>
+      <h2 class="h2 reveal" style="--rv:1" id="system-title">Every day settles<br>into a number.</h2>
+      <p class="lede sys-lede reveal" style="--rv:2">Each commitment ends one of two ways. The rules are the same for everyone and are set on the server, not in your settings.</p>
 
-      <div class="sys-grid">
+      <div class="sys-grid reveal" style="--rv:3">
         <article class="glass-card sys-card" aria-labelledby="pts-title">
           <div class="card-head"><h3 id="pts-title">Points</h3><span class="tag">Per commitment</span></div>
           <div class="ledger-mini" id="ledger">
@@ -260,11 +277,11 @@
   <section id="app" aria-labelledby="app-title">
     <div class="wrap sec">
       <div class="show-head">
-        <p class="kicker">The app</p>
-        <h2 class="h2 reveal" id="app-title">Real screens. Nothing staged.</h2>
-        <p class="lede reveal">These are the actual screens of NoExcuse, filled with sample data.</p>
+        <p class="kicker reveal">The app</p>
+        <h2 class="h2 reveal" style="--rv:1" id="app-title">Real screens. Nothing staged.</h2>
+        <p class="lede reveal" style="--rv:2">These are the actual screens of NoExcuse, filled with sample data.</p>
       </div>
-      <div class="carousel" id="carousel" tabindex="0" aria-label="App screens. On a phone, swipe or use the arrow keys to scroll."></div>
+      <div class="carousel reveal" style="--rv:3" id="carousel" tabindex="0" aria-label="App screens. On a phone, swipe or use the arrow keys to scroll."></div>
       <div class="show-tabs" id="show-tabs" role="tablist" aria-label="App screens"></div>
       <p class="show-cap" id="show-cap" aria-live="polite"></p>
       <p class="show-note"><span class="note">Sample data. Your screens fill with your own commitments.</span></p>
@@ -274,8 +291,8 @@
   <!-- 6 · Why NoExcuse -->
   <section class="sheet" id="why" aria-labelledby="why-title">
     <div class="wrap sec">
-      <p class="kicker">Why NoExcuse</p>
-      <h2 class="h2 reveal" id="why-title">A checklist records.<br>NoExcuse holds you to it.</h2>
+      <p class="kicker reveal">Why NoExcuse</p>
+      <h2 class="h2 reveal" style="--rv:1" id="why-title">A checklist records.<br>NoExcuse holds you to it.</h2>
       <div class="compare" role="table" aria-label="A checklist app compared with NoExcuse">
         <div class="cmp-row cmp-head" role="row"><span role="columnheader"><span class="sr">Aspect</span></span><span role="columnheader">A checklist app</span><span role="columnheader">NoExcuse</span></div>
         <div class="cmp-row" role="row"><b role="rowheader">Commitment</b><span role="cell">A habit with no time attached</span><span role="cell">A time, the days and what counts as proof</span></div>
@@ -290,9 +307,9 @@
   <!-- 7 · Pricing -->
   <section id="pricing" class="eng" aria-labelledby="price-title">
     <div class="wrap sec">
-      <p class="kicker">Pricing</p>
-      <h2 class="h2 reveal" id="price-title">Free to start.<br>Premium at launch.</h2>
-      <div class="plans">
+      <p class="kicker reveal">Pricing</p>
+      <h2 class="h2 reveal" style="--rv:1" id="price-title">Free to start.<br>Premium at launch.</h2>
+      <div class="plans reveal" style="--rv:2">
         <article class="plan">
           <h3 class="h3">Free</h3>
           <div class="price"><strong class="tnum">€0</strong></div>
@@ -325,8 +342,8 @@
   <!-- 8 · FAQ -->
   <section aria-labelledby="faq-title">
     <div class="wrap sec" style="padding-bottom:0">
-      <h2 class="h2 reveal" id="faq-title">Questions, answered.</h2>
-      <div class="faq">
+      <h2 class="h2 reveal" style="--rv:1" id="faq-title">Questions, answered.</h2>
+      <div class="faq reveal" style="--rv:1">
         <details><summary>What counts as proof?</summary><p>A photo taken with the camera in the app during the window that clearly shows the commitment: you at the rack in gym clothes, the open book on today’s page, the running track. You write what counts as proof for each commitment, and the AI explains every ruling in one sentence.</p></details>
         <details><summary>Can I use a photo I already have?</summary><p>Not for the main proof. The camera in the app has no gallery button, and a capture has to be sent within three minutes, inside the window. The stricter Premium levels can additionally ask for a screenshot, for example a workout summary.</p></details>
         <details><summary>What happens when I miss?</summary><p>You lose 100 points and your streak resets. The app then shows when your next chance is and helps you plan a comeback, such as a clearer definition of what counts as proof.</p></details>
@@ -339,6 +356,7 @@
 
   <!-- 9 · Final -->
   <section class="final" aria-labelledby="final-title">
+    <div class="rays" aria-hidden="true"><div class="rays-breathe"><i class="ray-far"></i><i class="ray-near"></i><i class="ray-shade"></i></div></div>
     <div class="wrap sec">
       <svg class="final-mark" width="96" height="96" aria-hidden="true"><use href="#mark"/></svg>
       <h2 class="display" id="final-title"><span class="line"><span>Stop making promises.</span></span><span class="line"><span class="metal">Start keeping them.</span></span></h2>

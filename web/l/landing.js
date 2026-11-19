@@ -20,7 +20,7 @@
   }
 
   /* ── Reveal on scroll: section heads, comparison rows, the final statement ── */
-  var revealables = $$('.reveal, .cmp-row:not(.cmp-head), .final');
+  var revealables = $$('.reveal, .cmp-row:not(.cmp-head), .final, .proof-shift');
   if ('IntersectionObserver' in window) {
     var ro = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
@@ -34,6 +34,12 @@
     }, { rootMargin: '0px 0px -12% 0px' });
     revealables.forEach(function (el) { ro.observe(el); });
   } else { revealables.forEach(function (el) { el.classList.add('in'); }); }
+
+  /* ── Final section: radial lines animate only while visible ── */
+  var finalEl = $('.final');
+  if (finalEl && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) { es.forEach(function (e) { finalEl.classList.toggle('live', e.isIntersecting); }); }).observe(finalEl);
+  } else if (finalEl) finalEl.classList.add('live');
 
   /* ── Hero: never stay hidden. The 3D scene normally reveals the copy; if it can't load
      (blocked CDN, no WebGL, old device), show the copy and the still image anyway. ── */
@@ -73,6 +79,44 @@
       var fr = fades.getBoundingClientRect();
       var f = Math.min(1, Math.max(0, (vh * 0.7 - fr.top) / (vh * 0.45)));
       fades.style.setProperty('--p', (100 - f * 118).toFixed(1) + '%');
+    }
+    motion(vh);
+  }
+
+  /* ── Scroll-linked motion: transforms and opacity only, written once per frame ── */
+  var heroCopy = $('.hero-copy'), stageEl = $('#stage'), sheetEls = $$('.sheet'), psStage = $('#ps-stage');
+  var mobile = matchMedia('(max-width: 760px)');
+  function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function seg(p, a, b) { return clamp01((p - a) / (b - a)); }
+  function easeOut(x) { return 1 - Math.pow(1 - x, 3); }
+  function easeInOut(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function motion(vh) {
+    // Hero: the copy drifts up and dims a little faster than the page; the dial sinks slightly behind it.
+    if (!reduce && !mobile.matches) {
+      var y = Math.min(scrollY, vh);
+      heroCopy.style.transform = 'translate3d(0,' + (-y * 0.16).toFixed(1) + 'px,0)';
+      heroCopy.style.opacity = (1 - clamp01(y / (vh * 0.75)) * 0.9).toFixed(3);
+      stageEl.style.transform = 'translate3d(0,' + (y * 0.1).toFixed(1) + 'px,0) scale(' + (1 + y / vh * 0.035).toFixed(4) + ')';
+    }
+    // The light sheet grows into place as it arrives.
+    sheetEls.forEach(function (sh) {
+      var r = sh.getBoundingClientRect(), k = reduce ? 1 : easeOut(clamp01((vh - r.top) / (vh * 0.75)));
+      sh.style.transform = k >= 1 ? 'none' : 'scale(' + (0.94 + 0.06 * k).toFixed(4) + ')';
+    });
+    // The checkbox ticks itself, gets struck through and fades; real proof rises in its place.
+    if (psStage) {
+      var r2 = psStage.getBoundingClientRect(), L = vh * 0.62 + r2.height * 0.3;
+      var p = reduce ? 1 : clamp01((vh * 0.88 - r2.top) / L), st = psStage.style;
+      st.setProperty('--tick', (1 - easeInOut(seg(p, 0.04, 0.28))).toFixed(3));
+      st.setProperty('--strike2', easeInOut(seg(p, 0.34, 0.52)).toFixed(3));
+      var out = seg(p, 0.5, 0.74);
+      st.setProperty('--co', (1 - (mobile.matches ? 0.6 : 0.82) * out).toFixed(3));
+      st.setProperty('--cb', (out * 3).toFixed(2) + 'px');
+      st.setProperty('--cy', (mobile.matches ? 0 : -easeOut(seg(p, 0.5, 0.86)) * 150).toFixed(1) + 'px');
+      var inn = easeOut(seg(p, 0.56, 0.92));
+      st.setProperty('--po', seg(p, 0.56, 0.8).toFixed(3));
+      st.setProperty('--py', ((mobile.matches ? 0 : 40) + 60 * (1 - inn)).toFixed(1) + 'px');
+      st.setProperty('--ps', (0.94 + 0.06 * inn).toFixed(4));
     }
   }
   addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
