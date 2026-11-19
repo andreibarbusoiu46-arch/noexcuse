@@ -3,17 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NoExcuse — stop making promises, start keeping them</title>
-<meta name="description" content="Your goals deserve more than a checkbox. Prove your progress with the in-app camera, let an AI judge verify it, and build discipline you can measure.">
+<title>NoExcuse — Close every day</title>
+<meta name="description" content="NoExcuse is an accountability app: commit to a time, prove it with a photo inside a 30-minute window, and let AI check it. +50 when you deliver, −100 when you don't.">
+<link rel="canonical" href="https://noexcuse.vercel.app/">
 <meta name="theme-color" content="#000000">
-<meta property="og:title" content="NoExcuse — stop making promises, start keeping them">
-<meta property="og:description" content="Live photo evidence, an AI judge and a score that can't be faked. +50 when you deliver, −100 when you don't.">
+<meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="NoExcuse">
+<meta property="og:url" content="https://noexcuse.vercel.app/">
+<meta property="og:title" content="NoExcuse — Close every day">
+<meta property="og:description" content="Commit to a time. Prove it inside the window. Every proof is checked. Stop making promises, start keeping them.">
+<meta property="og:image" content="https://noexcuse.vercel.app/l/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="NoExcuse — Close every day">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NoExcuse — Close every day">
+<meta name="twitter:description" content="Commit to a time. Prove it inside the window. Every proof is checked.">
+<meta name="twitter:image" content="https://noexcuse.vercel.app/l/og.jpg">
 <link rel="icon" href="/favicon.ico">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"NoExcuse","url":"https://noexcuse.vercel.app/","applicationCategory":"LifestyleApplication","operatingSystem":"Web","description":"An accountability app: commit to a time, prove it with a photo inside a 30-minute window, and let AI check it."}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/l/landing.css">
+<link rel="stylesheet" href="l/landing.css">
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" crossorigin>
 <script type="importmap">
 { "imports": {
@@ -24,8 +37,9 @@
 <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
-<!-- Reusable illustration: a gym at first light (used by the demo camera and the verification shot) -->
+<!-- Illustration used inside the simulated camera and verification shot -->
 <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
   <defs>
     <linearGradient id="gym-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B1B1D"/><stop offset=".55" stop-color="#4A4A4F"/><stop offset="1" stop-color="#9A9AA0"/></linearGradient>
@@ -51,45 +65,50 @@
       </g>
       <path d="M0 400L120 250h60L300 400z" fill="#fff" opacity=".035"/>
     </symbol>
+    <symbol id="mark" viewBox="0 0 56 56"><rect x=".75" y=".75" width="54.5" height="54.5" rx="16" fill="#fff"/><path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
   </defs>
 </svg>
 
 <header class="nav" id="nav">
   <div class="nav-bar">
-    <a class="lockup" href="/" aria-label="NoExcuse home">
-      <svg width="30" height="30" viewBox="0 0 56 56" aria-hidden="true"><rect x=".75" y=".75" width="54.5" height="54.5" rx="16" fill="#fff"/><path d="M11 39 23.5 18l7 11.5 4-5.5L45 39" stroke="#000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <a class="lockup" href="#top" aria-label="NoExcuse, back to top">
+      <svg width="30" height="30" aria-hidden="true"><use href="#mark"/></svg>
       <span>NOEXCUSE</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="#demo">Demo</a>
-      <a href="#system">How it works</a>
+      <a href="#how">How it works</a>
+      <a href="#system">Discipline</a>
       <a href="#app">The app</a>
       <a href="#pricing">Pricing</a>
     </nav>
-    <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
+    <a class="btn btn-solid" href="/onboarding" data-cta="nav">Get started</a>
   </div>
+  <span class="progress" id="progress" aria-hidden="true"></span>
 </header>
 
-<main>
-  <!-- 1. Hero -->
-  <section class="hero" aria-labelledby="hero-title">
+<main id="main">
+  <!-- 1 · Hero -->
+  <section class="hero" id="top" aria-labelledby="hero-title">
     <div class="stage" id="stage" aria-hidden="true"><div class="stage-fallback"></div></div>
     <div class="wrap hero-copy">
-      <h1 class="display" id="hero-title"><span class="line"><span>Stop making promises.</span></span><span class="line"><span class="metal">Start keeping them.</span></span></h1>
-      <p class="lede">Your goals deserve more than a checkbox. Prove your progress, let AI verify your actions and build a discipline you can actually measure.</p>
+      <p class="today"><i aria-hidden="true"></i><span>Today</span><b class="tnum" id="now">--:--</b><span class="sep" aria-hidden="true">·</span><span class="tnum" id="left">the day is still open</span></p>
+      <h1 class="display" id="hero-title"><span class="line"><span>Close</span></span><span class="line"><span class="metal">every day.</span></span></h1>
+      <p class="lede">NoExcuse turns your goals into commitments with a time. Prove each one with a photo inside its 30‑minute window, let AI check it, and watch your discipline become a number you can’t fake.</p>
       <div class="cta-row">
-        <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
-        <a class="btn btn-ghost" href="#demo">Explore the system</a>
+        <a class="btn btn-solid" href="/onboarding" data-cta="hero">Start your first commitment</a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
       </div>
-      <p class="fine">3‑day free trial, then €9.99 a month. Cancel anytime.</p>
+      <p class="fine">Free to start. Runs in your browser today.</p>
     </div>
+    <a class="scroll-cue" href="#problem" aria-label="Scroll to the next section"></a>
   </section>
 
-  <!-- 2. The problem -->
-  <section class="problem" aria-labelledby="problem-title">
+  <!-- 2 · The problem -->
+  <section class="problem" id="problem" aria-labelledby="problem-title">
     <div class="wrap sec">
       <p class="kicker">The problem</p>
-      <h2 class="h2 reveal" id="problem-title">You’ve made these promises before.</h2>
+      <h2 class="fade-statement" id="problem-title"><span class="fades" id="fades">Motivation fades.</span><span class="stays">Accountability doesn’t.</span></h2>
+      <p class="problem-intro reveal">You’ve made these promises before. You meant every one of them.</p>
       <ul class="promises" id="promises">
         <li class="promise"><q>“I’ll start on Monday.”</q><small>Every Sunday</small></li>
         <li class="promise"><q>“Gym at seven, every day.”</q><small>Every January</small></li>
@@ -98,312 +117,276 @@
       </ul>
       <div class="problem-close reveal">
         <h3 class="h3">A checkbox can’t tell whether you did it.</h3>
-        <p class="lede">Ticking a box costs nothing, so it proves nothing. NoExcuse asks for something harder to fake: a photo taken live, on the clock, and judged before it counts.</p>
+        <p class="lede">Ticking a box costs nothing, so it proves nothing. NoExcuse asks for something harder to fake: a photo taken on the clock, inside the window you chose, and checked before it counts.</p>
       </div>
     </div>
   </section>
 
-  <!-- 3. Interactive demo -->
-  <section id="demo" aria-labelledby="demo-title">
+  <!-- 3 · How it works -->
+  <section id="how" aria-labelledby="how-title">
     <div class="wrap sec">
       <div class="demo-head">
         <div>
-          <p class="kicker">Try it here</p>
-          <h2 class="h2 reveal" id="demo-title">The whole loop, in four taps.</h2>
+          <p class="kicker">How NoExcuse works</p>
+          <h2 class="h2 reveal" id="how-title">Four steps. No way around them.</h2>
         </div>
-        <p class="sim"><i aria-hidden="true"></i>Simulated demo. No photo is taken and nothing is sent to an AI.</p>
+        <p class="sim"><i aria-hidden="true"></i>Interactive simulation. No photo is taken and nothing is sent.</p>
       </div>
 
-      <div class="step-tabs" role="group" aria-label="Demo steps">
+      <div class="step-tabs" role="group" aria-label="Steps">
         <button type="button" data-go="0" aria-current="step">Commit</button>
-        <button type="button" data-go="1">Prove</button>
-        <button type="button" data-go="2">Verify</button>
-        <button type="button" data-go="3">Results</button>
+        <button type="button" data-go="1">Schedule</button>
+        <button type="button" data-go="2">Prove</button>
+        <button type="button" data-go="3">Verify</button>
       </div>
 
       <div class="demo">
         <div>
-          <ol class="steps-nav" aria-label="Demo steps">
+          <ol class="steps-nav" aria-label="Steps">
             <span class="rail" id="rail" aria-hidden="true"></span>
-            <li><button class="step-btn" type="button" data-go="0" aria-current="step"><span class="dot">1</span><span><b>Create a commitment</b><span class="t">Name the habit, pick the deadline and how often. The evidence window is 15 minutes either side.</span></span></button></li>
-            <li><button class="step-btn" type="button" data-go="1"><span class="dot">2</span><span><b>Submit evidence</b><span class="t">The in‑app camera opens inside the window. The gallery is locked, so the photo is from right now.</span></span></button></li>
-            <li><button class="step-btn" type="button" data-go="2"><span class="dot">3</span><span><b>AI verification</b><span class="t">The judge checks the photo against your habit and the clock, then rules with a one‑line reason.</span></span></button></li>
-            <li><button class="step-btn" type="button" data-go="3"><span class="dot">4</span><span><b>See the consequences</b><span class="t">Deliver and earn 50 points. Miss and lose 100. Compare both outcomes.</span></span></button></li>
+            <li><button class="step-btn" type="button" data-go="0" aria-current="step"><span class="dot">1</span><span><b>Commit</b><span class="t">Choose what you promise to complete, and write what counts as proof.</span></span></button></li>
+            <li><button class="step-btn" type="button" data-go="1"><span class="dot">2</span><span><b>Schedule</b><span class="t">Set the time and the days. The proof window opens 15 minutes before and closes 15 minutes after.</span></span></button></li>
+            <li><button class="step-btn" type="button" data-go="2"><span class="dot">3</span><span><b>Prove</b><span class="t">When the window opens, take the photo in the app. There is no gallery button, and a capture must be sent within three minutes.</span></span></button></li>
+            <li><button class="step-btn" type="button" data-go="3"><span class="dot">4</span><span><b>Verify</b><span class="t">AI checks the photo against your commitment and the server clock, then rules with a one‑line reason.</span></span></button></li>
           </ol>
-          <div class="demo-cta"><a class="btn btn-solid" href="/onboarding">Start your challenge</a></div>
+          <div class="demo-cta"><a class="btn btn-solid" href="/onboarding" data-cta="demo">Make your first commitment</a></div>
         </div>
 
         <div class="demo-phone-wrap">
-          <div class="phone" id="demo-phone">
+          <div class="phone tilt" id="demo-phone">
             <div class="screen">
               <span class="island" aria-hidden="true"></span>
 
-              <!-- Step 1 · Commit -->
+              <!-- 1 · Commit -->
               <div class="view on" data-view="0">
                 <form class="app" id="commit-form" autocomplete="off">
-                  <span class="over">New commitment</span>
+                  <span class="over">New commitment · 1 of 2</span>
                   <h3 class="ttl">What will you prove?</h3>
-                  <label class="lbl" for="habit-name">Habit</label>
+                  <label class="lbl" for="habit-name">Commitment</label>
                   <input type="text" id="habit-name" value="Morning workout" maxlength="28">
-                  <span class="lbl" id="dl-lbl">Deadline</span>
+                  <label class="lbl" for="habit-proof">What counts as proof</label>
+                  <input type="text" id="habit-proof" value="Me at the rack, gym clothes on" maxlength="40">
+                  <span class="lbl" id="cat-lbl">Category</span>
+                  <div class="chips" role="group" aria-labelledby="cat-lbl" data-chips="cat">
+                    <button type="button" class="chip" aria-pressed="true" data-v="Fitness">Fitness</button>
+                    <button type="button" class="chip" aria-pressed="false" data-v="Learning">Learning</button>
+                    <button type="button" class="chip" aria-pressed="false" data-v="Focus">Focus</button>
+                  </div>
+                  <span class="grow"></span>
+                  <button type="submit" class="app-btn">Continue</button>
+                </form>
+              </div>
+
+              <!-- 2 · Schedule -->
+              <div class="view" data-view="1">
+                <form class="app" id="schedule-form" autocomplete="off">
+                  <span class="over">New commitment · 2 of 2</span>
+                  <h3 class="ttl">When will you prove it?</h3>
+                  <span class="lbl" id="dl-lbl">Time</span>
                   <div class="chips" role="group" aria-labelledby="dl-lbl" data-chips="deadline">
+                    <button type="button" class="chip" aria-pressed="false" data-v="06:30">06:30</button>
                     <button type="button" class="chip" aria-pressed="false" data-v="07:00">07:00</button>
-                    <button type="button" class="chip" aria-pressed="false" data-v="07:30">07:30</button>
                     <button type="button" class="chip" aria-pressed="true" data-v="08:00">08:00</button>
                   </div>
-                  <span class="lbl" id="fr-lbl">Frequency</span>
+                  <span class="lbl" id="fr-lbl">Days</span>
                   <div class="chips" role="group" aria-labelledby="fr-lbl" data-chips="freq">
-                    <button type="button" class="chip" aria-pressed="true" data-v="Daily">Daily</button>
-                    <button type="button" class="chip" aria-pressed="false" data-v="Weekdays">Weekdays</button>
+                    <button type="button" class="chip" aria-pressed="true" data-v="Every day">Every day</button>
+                    <button type="button" class="chip" aria-pressed="false" data-v="Mon–Fri">Mon–Fri</button>
                   </div>
-                  <p class="window-line">Evidence window <b class="tnum" id="win-text">07:45 – 08:15</b></p>
+                  <div class="win-viz" aria-hidden="true">
+                    <svg viewBox="0 0 200 56"><line x1="8" y1="34" x2="192" y2="34" stroke="rgba(255,255,255,.18)" stroke-width="2"/><rect id="win-band" x="70" y="24" width="60" height="20" rx="10" fill="#fff"/><line x1="100" y1="16" x2="100" y2="52" stroke="#000" stroke-width="2"/><text id="win-l" x="70" y="12" text-anchor="middle">07:45</text><text id="win-r" x="130" y="12" text-anchor="middle">08:15</text></svg>
+                  </div>
+                  <p class="window-line">Proof window <b class="tnum" id="win-text">07:45 – 08:15</b>, on server time.</p>
                   <div class="status-card" id="status-card" aria-live="polite">
                     <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                    <span><b>Active</b><span id="status-text">Morning workout, due 08:00, daily</span></span>
+                    <span><b>Committed</b><span id="status-text">Morning workout, 08:00, every day</span></span>
                   </div>
                   <span class="grow"></span>
                   <button type="submit" class="app-btn" id="commit-btn">Commit</button>
                 </form>
               </div>
 
-              <!-- Step 2 · Prove -->
-              <div class="view" data-view="1">
+              <!-- 3 · Prove -->
+              <div class="view" data-view="2">
                 <div class="cam">
                   <div class="scene"><svg aria-hidden="true"><use href="#gym"/></svg></div>
-                  <div class="top"><span class="pill-live">Live camera</span><span class="pill-live tnum" id="cam-clock">07:52 · window open</span></div>
+                  <div class="top"><span class="pill-live">Camera</span><span class="pill-live tnum" id="cam-clock">07:52 · window open</span></div>
                   <div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
                   <div class="dock">
-                    <span class="gal" aria-label="Gallery locked" role="img"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="m4 17 5-5 4 4 3-3 4 4" stroke="currentColor" stroke-width="2" fill="none"/></svg></span>
+                    <span class="gal" aria-label="No gallery" role="img"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="m4 17 5-5 4 4 3-3 4 4" stroke="currentColor" stroke-width="2" fill="none"/></svg></span>
                     <button type="button" class="shutter" id="shutter" aria-label="Take the photo"><span></span></button>
-                    <span class="hint">Gallery locked.<br>Photos are taken live.</span>
+                    <span class="hint">No gallery.<br>The photo is taken now.</span>
                   </div>
                   <div class="captured" id="captured">
-                    <p class="meta tnum" id="cap-meta">Captured 07:52:14 · in‑app camera</p>
-                    <button type="button" class="app-btn" id="submit-btn">Submit evidence</button>
+                    <p class="meta tnum" id="cap-meta">Captured 07:52:14 · send within 3:00</p>
+                    <button type="button" class="app-btn" id="submit-btn">Send proof</button>
                     <button type="button" class="app-btn ghost" id="retake-btn" style="margin-top:2.4cqw">Retake</button>
                   </div>
                   <div class="flash" id="flash"></div>
                 </div>
               </div>
 
-              <!-- Step 3 · Verify -->
-              <div class="view" data-view="2">
+              <!-- 4 · Verify -->
+              <div class="view" data-view="3">
                 <div class="verify" id="verify">
                   <span class="over">AI verification</span>
-                  <h3 class="ttl" id="verify-title" style="margin-bottom:4cqw">Reviewing evidence…</h3>
+                  <h3 class="ttl" id="verify-title" style="margin-bottom:4cqw">Checking proof…</h3>
                   <div class="shot"><svg aria-hidden="true"><use href="#gym"/></svg><span class="scan"></span></div>
                   <ul class="checks" id="checks" aria-live="polite">
-                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Evidence received<small class="tnum">07:52:14</small></li>
-                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Taken with the live camera<small>no upload</small></li>
+                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Proof received<small class="tnum" id="chk-time">07:52:14</small></li>
+                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Taken in the app<small>fresh capture</small></li>
                     <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Inside the window<small class="tnum" id="chk-win">07:45–08:15</small></li>
-                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Photo shows the habit<small id="chk-habit">workout</small></li>
+                    <li><span class="ck"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" stroke="#000" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Matches the commitment<small id="chk-habit">workout</small></li>
                   </ul>
                   <div class="ruling" id="ruling">
                     <div class="row"><span class="v"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified</span><span class="pts tnum" id="v-pts">+50</span></div>
                     <p id="v-critique">Dumbbells, gym floor, morning light. That’s a workout. Counts.</p>
-                    <p class="calc tnum">1,240 + 50 = <b id="v-total">1,290</b> points</p>
+                    <button type="button" class="app-btn ghost" id="again-btn" style="margin-top:3.4cqw">Try it again</button>
                   </div>
                 </div>
               </div>
-
-              <!-- Step 4 · Consequences -->
-              <div class="view" data-view="3">
-                <div class="app">
-                  <span class="over">Consequences</span>
-                  <h3 class="ttl">Same habit. Two outcomes.</h3>
-                  <div class="seg" id="seg" role="group" aria-label="Outcome" style="margin-top:5cqw">
-                    <button type="button" aria-pressed="true" data-o="win">Delivered</button>
-                    <button type="button" aria-pressed="false" data-o="loss">Missed</button>
-                  </div>
-                  <div class="big-delta tnum" id="big-delta" aria-live="polite">+50</div>
-                  <div class="conseq">
-                    <div><span>Streak</span><b class="tnum" id="c-streak">12 → 13 days</b></div>
-                    <div><span>Points</span><b class="tnum" id="c-points">1,240 → 1,290</b></div>
-                  </div>
-                  <div class="bars" id="bars" aria-hidden="true"><i style="--h:40%"></i><i style="--h:55%"></i><i style="--h:48%"></i><i style="--h:62%"></i><i style="--h:70%"></i><i style="--h:76%"></i><i class="last" style="--h:86%"></i></div>
-                  <div class="bars-cap"><span>Last 7 days</span><span id="bars-cap">today: +50</span></div>
-                </div>
-              </div>
             </div>
           </div>
-          <p class="step-caption" id="step-caption">Name the habit, pick the deadline and how often. The evidence window is 15 minutes either side.</p>
+          <p class="step-caption" id="step-caption" aria-live="polite">Choose what you promise to complete, and write what counts as proof.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 4. Discipline, engineered -->
-  <section id="system" class="eng" aria-labelledby="eng-title">
+  <!-- 4 · The Discipline System -->
+  <section id="system" class="eng" aria-labelledby="system-title">
     <div class="wrap sec">
-      <p class="kicker">How it works</p>
-      <h2 class="h2 reveal" id="eng-title">Discipline, engineered.</h2>
-      <div class="eng-grid" style="margin-top:clamp(24px,4vw,48px)">
-        <div>
-          <div class="eng-track" id="eng-track">
-            <article class="eng-stage active" data-stage="0">
-              <span class="num">01</span>
-              <h3>Commit</h3>
-              <p>Set the habit, the deadline and the days. The deadline becomes a window: fifteen minutes before, fifteen after. Outside it, nothing counts.</p>
-              <ul><li>Times follow your own time zone</li><li>A reminder arrives before every window</li></ul>
-              <div class="m-visual"><svg class="dial" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="100" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/><path d="M120 20 A100 100 0 0 1 145.9 23.4" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" transform="rotate(232.5 120 120)"/><text x="120" y="126" text-anchor="middle" style="font:500 30px var(--serif);fill:#fff">08:00</text></svg></div>
-            </article>
-            <article class="eng-stage" data-stage="1">
-              <span class="num">02</span>
-              <h3>Prove</h3>
-              <p>When the window opens, the in‑app camera takes the photo. Each capture expires after three minutes, and the gallery stays locked.</p>
-              <ul><li>Checked against server time, not your phone’s</li><li>Old photos and screenshots can’t be sent</li></ul>
-              <div class="m-visual"><div class="ring-wrap" style="width:60%"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/><circle cx="60" cy="60" r="52" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="98"/></svg><div class="rt"><b class="tnum">2:06</b><span>to capture</span></div></div></div>
-            </article>
-            <article class="eng-stage" data-stage="2">
-              <span class="num">03</span>
-              <h3>Deliver</h3>
-              <p>The AI judge evaluates the photo and rules. Your points and streak update on the server, once per target, so a result can’t be counted twice.</p>
-              <ul><li>Verified: +50 and the streak grows</li><li>Missed or rejected: −100 and the streak resets</li></ul>
-              <div class="m-visual"><div class="ledger-mini"><div class="lr on"><span>Verified</span><b>+50</b></div><div class="lr on"><span>Missed</span><b class="loss">−100</b></div></div></div>
-            </article>
-          </div>
-          <div class="eng-dots" id="eng-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
-        </div>
+      <p class="kicker">The Discipline System</p>
+      <h2 class="h2 reveal" id="system-title">Every day settles<br>into a number.</h2>
+      <p class="lede sys-lede reveal">Each commitment ends one of two ways. The rules are the same for everyone and are set on the server, not in your settings.</p>
 
-        <div class="eng-visual" aria-live="polite">
-          <!-- 01: the window on the clock (interactive) -->
-          <div class="panel on" data-panel="0">
-            <div class="glass-card">
-              <svg class="dial" id="dial" viewBox="0 0 240 240" role="img" aria-label="Clock face showing the evidence window">
-                <circle cx="120" cy="120" r="100" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12"/>
-                <g id="dial-ticks"></g>
-                <path id="dial-win" class="win" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
-                <line id="dial-hand" x1="120" y1="120" x2="120" y2="34" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-                <circle cx="120" cy="120" r="5" fill="#fff"/>
-              </svg>
-              <div class="dial-out"><b class="tnum" id="dial-time">08:00</b><span class="tnum" id="dial-win-text">Window 07:45 – 08:15</span></div>
-              <label class="sr" for="dial-range">Deadline</label>
-              <input class="range" id="dial-range" type="range" min="20" max="88" step="1" value="32">
-            </div>
+      <div class="sys-grid">
+        <article class="glass-card sys-card" aria-labelledby="pts-title">
+          <div class="card-head"><h3 id="pts-title">Points</h3><span class="tag">Per commitment</span></div>
+          <div class="ledger-mini" id="ledger">
+            <div class="lr" data-k="v"><span>Verified inside the window</span><b>+50</b></div>
+            <div class="lr" data-k="m"><span>Missed, late or rejected</span><b class="loss">−100</b></div>
           </div>
-          <!-- 02: the capture clock -->
-          <div class="panel" data-panel="1">
-            <div class="glass-card">
-              <div class="ring-wrap">
-                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/><circle id="cap-ring" cx="60" cy="60" r="52" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
-                <div class="rt"><b class="tnum" id="cap-time">3:00</b><span>to capture</span></div>
-              </div>
-              <div class="facts">
-                <div><b>Live only</b>Gallery locked</div>
-                <div><b>Server time</b>Your clock is ignored</div>
-                <div><b>One capture</b>Expires in 3 min</div>
-                <div><b>Private</b>Only you see the photo</div>
-              </div>
-            </div>
+          <div class="ledger-total"><span>Sample total</span><b class="tnum" id="ledger-total">1,250</b></div>
+          <div class="spark" id="spark" aria-hidden="true"></div>
+          <div class="streak-row"><span>Streak</span><b class="tnum" id="streak">12 days</b></div>
+          <div class="ledger-btns">
+            <button type="button" class="mini-btn" data-apply="v">Deliver (+50)</button>
+            <button type="button" class="mini-btn" data-apply="m">Miss (−100)</button>
           </div>
-          <!-- 03: the ledger (interactive) -->
-          <div class="panel" data-panel="2">
-            <div class="glass-card">
-              <div class="ledger-mini" id="ledger">
-                <div class="lr" data-k="v"><span>Verified inside the window</span><b>+50</b></div>
-                <div class="lr" data-k="m"><span>Missed or late</span><b class="loss">−100</b></div>
-                <div class="lr" data-k="r"><span>Rejected by the judge</span><b class="loss">−100</b></div>
-              </div>
-              <div class="ledger-total"><span>Your points</span><b class="tnum" id="ledger-total">1,240</b></div>
-              <div class="ledger-btns">
-                <button type="button" class="mini-btn" data-apply="v">Deliver</button>
-                <button type="button" class="mini-btn" data-apply="m">Miss</button>
-                <button type="button" class="mini-btn" data-apply="r">Get rejected</button>
-              </div>
-            </div>
+          <p class="card-note">A miss also resets the streak. Try both.</p>
+        </article>
+
+        <article class="glass-card sys-card" aria-labelledby="score-title">
+          <div class="card-head"><h3 id="score-title">Discipline Score</h3><span class="tag">0 – 100</span></div>
+          <div class="score-ring">
+            <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/><circle id="score-arc" cx="60" cy="60" r="52" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg>
+            <div class="rt"><b class="tnum" id="score-num">0</b><span>sample score</span></div>
           </div>
-        </div>
+          <ul class="weights" id="weights">
+            <li style="--v:.80"><span>Completion</span><em>45%</em><i></i><small>Verified ÷ settled, last 28 days</small></li>
+            <li style="--v:.86"><span>Recent form</span><em>25%</em><i></i><small>The same, last 7 days</small></li>
+            <li style="--v:.80"><span>Consistency</span><em>20%</em><i></i><small>Days without a miss, last 14 days</small></li>
+            <li style="--v:.57"><span>Streak</span><em>10%</em><i></i><small>Best current streak, up to 21 days</small></li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="sys-facts reveal">
+        <div><b>Settled targets only</b><span>Only commitments that were verified, missed or rejected count. A delay on our side never does.</span></div>
+        <div><b>Can’t be reset</b><span>Targets can’t be deleted, so the score can’t be wiped by re‑creating a commitment.</span></div>
+        <div><b>Challenges pay a bonus</b><span>10 points for every required day, paid once when you finish the challenge. Premium.</span></div>
       </div>
     </div>
   </section>
 
-  <!-- 5. Differentiation -->
-  <section class="sheet" aria-labelledby="pillars-title">
-    <div class="wrap sec">
-      <h2 class="fade-statement" id="pillars-title"><span class="fades" id="fades">Motivation fades.</span><span class="stays">Accountability doesn’t.</span></h2>
-      <div class="pillars">
-        <div class="pillar">
-          <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="5" y="11" width="34" height="25" rx="7" stroke="#000" stroke-width="2" fill="none"/><circle cx="22" cy="23.5" r="7" stroke="#000" stroke-width="2" fill="none"/><path d="M15 11l3-5h8l3 5" stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
-          <h3>Real evidence</h3>
-          <p>Your progress must be demonstrated, not simply checked off. Every target ends in a photo taken live, inside its window.</p>
-        </div>
-        <div class="pillar">
-          <svg viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5v34M8 13h28M8 13l-5 12a6 6 0 0 0 10 0zM36 13l-5 12a6 6 0 0 0 10 0zM14 39h16" stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
-          <h3>AI accountability</h3>
-          <p>An AI judge evaluates your submitted evidence against the habit you committed to, and tells you why in one line.</p>
-        </div>
-        <div class="pillar">
-          <svg viewBox="0 0 44 44" aria-hidden="true"><path d="M6 32 16 20l8 7 14-16" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 11h8v8" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <h3>Real consequences</h3>
-          <p>Every commitment matters. Deliver and earn 50 points. Fail and lose 100. Your streak and your rank in the daily Arena follow.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 6. Product showcase -->
+  <!-- 5 · Product showcase -->
   <section id="app" aria-labelledby="app-title">
     <div class="wrap sec">
       <div class="show-head">
         <p class="kicker">The app</p>
-        <h2 class="h2 reveal" id="app-title">Exactly what you get.</h2>
-        <p class="lede">These are real screens from NoExcuse, filled with sample data. Nothing here is a concept.</p>
+        <h2 class="h2 reveal" id="app-title">Real screens. Nothing staged.</h2>
+        <p class="lede reveal">These are the actual screens of NoExcuse, filled with sample data.</p>
       </div>
       <div class="carousel" id="carousel"></div>
       <div class="show-tabs" id="show-tabs" role="tablist" aria-label="App screens"></div>
       <p class="show-cap" id="show-cap" aria-live="polite"></p>
-      <p class="show-note"><span class="note">Sample data. Your screens fill with your own habits.</span></p>
+      <p class="show-note"><span class="note">Sample data. Your screens fill with your own commitments.</span></p>
     </div>
   </section>
 
-  <!-- 7. Pricing -->
+  <!-- 6 · Why NoExcuse -->
+  <section class="sheet" id="why" aria-labelledby="why-title">
+    <div class="wrap sec">
+      <p class="kicker">Why NoExcuse</p>
+      <h2 class="h2 reveal" id="why-title">A checklist records.<br>NoExcuse holds you to it.</h2>
+      <div class="compare" role="table" aria-label="A checklist app compared with NoExcuse">
+        <div class="cmp-row cmp-head" role="row"><span role="columnheader"></span><span role="columnheader">A checklist app</span><span role="columnheader">NoExcuse</span></div>
+        <div class="cmp-row" role="row"><b role="rowheader">Commitment</b><span role="cell">A habit with no time attached</span><span role="cell">A time, the days and what counts as proof</span></div>
+        <div class="cmp-row" role="row"><b role="rowheader">Evidence</b><span role="cell">A tap on a checkbox</span><span role="cell">A photo taken in the app, inside a 30‑minute window</span></div>
+        <div class="cmp-row" role="row"><b role="rowheader">Verification</b><span role="cell">You grade yourself</span><span role="cell">AI checks the photo against your commitment and the server clock</span></div>
+        <div class="cmp-row" role="row"><b role="rowheader">Accountability</b><span role="cell">Skipping costs nothing</span><span role="cell">+50 when verified, −100 when missed, and the streak resets</span></div>
+        <div class="cmp-row" role="row"><b role="rowheader">Consistency</b><span role="cell">A streak counter</span><span role="cell">A Discipline Score built from every settled target</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · Pricing -->
   <section id="pricing" class="eng" aria-labelledby="price-title">
-    <div class="wrap sec price-grid">
-      <div>
-        <p class="kicker">Pricing</p>
-        <h2 class="h2 reveal" id="price-title">One plan. No tiers to negotiate.</h2>
-        <div class="timeline">
-          <div><b>Today</b><p>Full access to every feature. Nothing is charged.</p></div>
-          <div><b>Day 4</b><p>€9.99 a month begins, unless you cancel first. On the web you pay by card through Stripe; in the iPhone app, through your Apple ID.</p></div>
-          <div><b>Any time</b><p>Cancel in Settings › Subscription (web) or in your iPhone’s Settings (App Store). Access runs to the end of the paid month.</p></div>
-        </div>
-      </div>
-      <div class="price-card">
-        <h3 class="h3">NoExcuse Premium</h3>
-        <div class="price"><strong class="tnum">€9.99</strong><span>a month</span></div>
-        <span class="trial">3 days free</span>
-        <ul class="benefits">
-          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Live evidence camera and AI verification</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Points, streaks and the daily Arena</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited habits, with a reminder before every window</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>A comeback plan after a missed target</li>
-        </ul>
-        <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
-        <p class="fine">Secure card payment by Stripe on the web, or Apple In‑App Purchase on iPhone.</p>
+    <div class="wrap sec">
+      <p class="kicker">Pricing</p>
+      <h2 class="h2 reveal" id="price-title">Free to start.<br>Premium at launch.</h2>
+      <div class="plans">
+        <article class="plan">
+          <h3 class="h3">Free</h3>
+          <div class="price"><strong class="tnum">€0</strong></div>
+          <ul class="benefits">
+            <li>Up to 2 active commitments</li>
+            <li>Photo proof and AI verification</li>
+            <li>Points, streaks and the Discipline Score</li>
+            <li>The Arena and your weekly report</li>
+          </ul>
+          <a class="btn btn-ghost" href="/onboarding" data-cta="free">Start free</a>
+        </article>
+        <article class="plan plan-premium">
+          <h3 class="h3">Premium</h3>
+          <div class="price"><strong class="tnum">€9.99</strong><span>a month, after a 3‑day free trial</span></div>
+          <span class="trial">Payments open at launch</span>
+          <ul class="benefits">
+            <li>Unlimited commitments</li>
+            <li>Strict and Elite verification levels</li>
+            <li>Challenges, including AI‑generated ones</li>
+            <li>AI Coach, built from your own results</li>
+            <li>Accountability partners and appeals</li>
+          </ul>
+          <p class="fine">Nothing can be charged today. When payments open, you’ll choose whether to subscribe.</p>
+        </article>
       </div>
     </div>
   </section>
 
-  <!-- 8. FAQ -->
+  <!-- 8 · FAQ -->
   <section aria-labelledby="faq-title">
     <div class="wrap sec" style="padding-bottom:0">
       <h2 class="h2 reveal" id="faq-title">Questions, answered.</h2>
       <div class="faq">
-        <details><summary>What counts as evidence?</summary><p>A photo taken with the in‑app camera during the window that clearly shows the habit: you in gym clothes at the rack, the open book on today’s page, the running track. You can write what counts as proof for each habit, and the judge explains every ruling in one sentence.</p></details>
-        <details><summary>Why can’t I upload a photo I already have?</summary><p>Because then it could be from any day. NoExcuse only accepts photos taken live, inside the window, so a verified habit means you actually did it.</p></details>
-        <details><summary>What happens when I miss?</summary><p>You lose 100 points and your streak resets. The app then offers a comeback plan, such as an earlier reminder or a clearer definition of what counts as proof, so the next window goes better.</p></details>
-        <details><summary>What if the verification is delayed?</summary><p>Your evidence is saved with the time it arrived, and the target isn’t marked as missed while it waits for a ruling. A delay on our side never costs you points.</p></details>
-        <details><summary>Can I use it on Android or a computer?</summary><p>NoExcuse is built for iPhone first. You can sign in and manage your habits on the web today; live evidence is designed for your phone’s camera.</p></details>
+        <details><summary>What counts as proof?</summary><p>A photo taken with the camera in the app during the window that clearly shows the commitment: you at the rack in gym clothes, the open book on today’s page, the running track. You write what counts as proof for each commitment, and the AI explains every ruling in one sentence.</p></details>
+        <details><summary>Can I use a photo I already have?</summary><p>Not for the main proof. The camera in the app has no gallery button, and a capture has to be sent within three minutes, inside the window. The stricter Premium levels can additionally ask for a screenshot, for example a workout summary.</p></details>
+        <details><summary>What happens when I miss?</summary><p>You lose 100 points and your streak resets. The app then shows when your next chance is and helps you plan a comeback, such as an earlier reminder or a clearer definition of what counts as proof.</p></details>
+        <details><summary>What if verification is delayed?</summary><p>Your proof is saved with the time it arrived, and the target isn’t marked as missed while it waits. A delay on our side never costs you points.</p></details>
+        <details><summary>Who can see my photos?</summary><p>Only you. Proof photos are stored privately and are never shown to other members or partners.</p></details>
+        <details><summary>Where can I use it?</summary><p>Today NoExcuse runs on the web, in the browser on your phone or computer. An iPhone app comes next.</p></details>
       </div>
     </div>
   </section>
 
-  <!-- 9. Final -->
+  <!-- 9 · Final -->
   <section class="final" aria-labelledby="final-title">
     <div class="wrap sec">
-      <h2 class="display reveal" id="final-title">Become someone who follows through.</h2>
+      <svg class="final-mark" width="96" height="96" aria-hidden="true"><use href="#mark"/></svg>
+      <h2 class="display" id="final-title"><span class="line"><span>Stop making promises.</span></span><span class="line"><span class="metal">Start keeping them.</span></span></h2>
       <div class="cta-row">
-        <a class="btn btn-solid" href="/onboarding">Start your challenge</a>
+        <a class="btn btn-solid" href="/onboarding" data-cta="final">Start your first commitment</a>
         <a class="btn btn-ghost" href="/sign-in">Sign in</a>
       </div>
     </div>
@@ -414,14 +397,14 @@
   <div class="wrap">
     <span>© 2026 NoExcuse</span>
     <nav aria-label="Footer">
-      <a href="#demo">Demo</a>
-      <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" rel="noopener">Terms of Use</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
       <a href="/sign-in">Sign in</a>
     </nav>
   </div>
 </footer>
 
-<script src="/l/landing.js" defer></script>
-<script type="module" src="/l/hero3d.js"></script>
+<script src="l/landing.js" defer></script>
+<script type="module" src="l/hero3d.js"></script>
 </body>
 </html>
