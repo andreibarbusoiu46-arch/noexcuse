@@ -111,7 +111,7 @@
       st.setProperty('--strike2', easeInOut(seg(p, 0.34, 0.52)).toFixed(3));
       var out = seg(p, 0.5, 0.74);
       st.setProperty('--co', (1 - (mobile.matches ? 0.6 : 0.82) * out).toFixed(3));
-      st.setProperty('--cb', (out * 3).toFixed(2) + 'px');
+      st.setProperty('--cb', (out * (mobile.matches ? 0.6 : 3)).toFixed(2) + 'px');
       st.setProperty('--cy', (mobile.matches ? 0 : -easeOut(seg(p, 0.5, 0.86)) * 150).toFixed(1) + 'px');
       var inn = easeOut(seg(p, 0.56, 0.92));
       st.setProperty('--po', seg(p, 0.56, 0.8).toFixed(3));

@@ -586,16 +586,17 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
   -webkit-mask: radial-gradient(closest-side, #000 52%, transparent); mask: radial-gradient(closest-side, #000 52%, transparent); }
 .rays::after { content: ""; position: absolute; inset: 0; background: radial-gradient(closest-side, rgba(255,255,255,.15), transparent); }
 .rays-breathe, .rays i { position: absolute; inset: 0; border-radius: 50%; }
-.rays-breathe { animation: breathe 13s ease-in-out infinite alternate; }
+.rays-breathe { animation: breathe 7s ease-in-out infinite alternate; }
 .rays i { will-change: transform; }
 /* near: the original pattern (a hairline every 6°), turning very slowly */
-.ray-near { background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.085) 0 .4deg, transparent .4deg 6deg); animation: turn 360s linear infinite; }
+.ray-near { background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.085) 0 .4deg, transparent .4deg 6deg); animation: turn 84s linear infinite; }
 /* far: finer, fainter, larger and turning the other way — the two layers drifting past each other give depth */
-.ray-far { inset: -9%; background: repeating-conic-gradient(from 3deg, rgba(255,255,255,.04) 0 .25deg, transparent .25deg 4deg); filter: blur(.4px); animation: turn 540s linear infinite reverse; }
+.ray-far { inset: -9%; background: repeating-conic-gradient(from 3deg, rgba(255,255,255,.04) 0 .25deg, transparent .25deg 4deg); filter: blur(.4px); animation: turn 132s linear infinite reverse; }
 /* shade: soft dark lobes sweeping round, so lines brighten and dim in a slow wave */
-.ray-shade { inset: -20%; background: conic-gradient(from 0deg, rgba(0,0,0,.62), rgba(0,0,0,0) 22%, rgba(0,0,0,.5) 48%, rgba(0,0,0,0) 72%, rgba(0,0,0,.62)); animation: turn 150s linear infinite; }
+.ray-shade { inset: -20%; background: conic-gradient(from 0deg, rgba(0,0,0,.62), rgba(0,0,0,0) 22%, rgba(0,0,0,.5) 48%, rgba(0,0,0,0) 72%, rgba(0,0,0,.62)); animation: turn 46s linear infinite, shade 9s ease-in-out infinite alternate; }
 @keyframes turn { to { transform: rotate(360deg); } }
-@keyframes breathe { from { transform: scale(1); opacity: .88; } to { transform: scale(1.045); opacity: 1; } }
+@keyframes breathe { from { transform: scale(.97); opacity: .72; } to { transform: scale(1.06); opacity: 1; } }
+@keyframes shade { from { opacity: .55; } to { opacity: 1; } }
 /* only while the section is on screen */
 .final:not(.live) .rays-breathe, .final:not(.live) .rays i { animation-play-state: paused; }
 .final .wrap { position: relative; }
