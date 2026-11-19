@@ -143,6 +143,7 @@ try {
   const rim = new THREE.DirectionalLight(0xffffff, 3.2); rim.position.set(-4, 2, -3); scene.add(rim);
   const top = new THREE.SpotLight(0xffffff, 40, 30, 0.5, 0.8); top.position.set(0, 9, 5); scene.add(top);
 
+  const copyEnd = document.querySelector('.hero .fine') || document.querySelector('.hero .cta-row');
   let baseY = 0, halfHCache = 1, summitY = 0, fitCache = 1, narrow = false;
   function layout() {
     const w = stage.clientWidth, h = stage.clientHeight;
@@ -158,6 +159,13 @@ try {
     fitCache = fit;
     baseY = narrow ? -0.04 * halfH : -halfH - fit * 0.78;
     summitY = narrow ? 0.05 : 1.45;
+    // Desktop/tablet: keep the dial's top (the time arc) below the hero copy, so the text never sits on it.
+    // Measured with offsets (not getBoundingClientRect) so the copy's intro transform doesn't skew it.
+    if (!narrow && copyEnd) {
+      const px = copyEnd.offsetTop + copyEnd.offsetHeight + Math.max(24, h * 0.035);
+      const limitY = halfH - (px / h) * 2 * halfH;
+      baseY = Math.min(baseY, limitY - 2.85 * fit);
+    }
     rig.scale.setScalar(fit);
     rig.position.y = baseY;
     glow.position.y = baseY + summitY * fit; glow.scale.setScalar(fit * (narrow ? 0.95 : 1.1));
@@ -224,6 +232,7 @@ try {
   function start() { if (!running && !reduce && !STILL && !stalled) { running = true; last = performance.now(); samples = 0; slow = 0; setState('animating'); requestAnimationFrame(loop); } }
 
   layout(); new ResizeObserver(layout).observe(stage);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
   new IntersectionObserver((e) => { visible = e[0].isIntersecting; if (visible) start(); }).observe(stage);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) start(); });
   frame(0);

@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var finePointer = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var fmt = function (n) { return n.toLocaleString('en-US'); };
@@ -18,23 +19,56 @@
     })(t0);
   }
 
-  /* ── Reveal section heads once ───────────────────────── */
+  /* ── Reveal on scroll: section heads, comparison rows, the final statement ── */
+  var revealables = $$('.reveal, .cmp-row:not(.cmp-head), .final, .proof-shift');
   if ('IntersectionObserver' in window) {
     var ro = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); ro.unobserve(e.target); } });
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target;
+        // Comparison rows arrive one after another.
+        var delay = el.classList.contains('cmp-row') ? Math.max(0, $$('.cmp-row:not(.cmp-head)').indexOf(el)) * 90 : 0;
+        setTimeout(function () { el.classList.add('in'); }, reduce ? 0 : delay);
+        ro.unobserve(el);
+      });
     }, { rootMargin: '0px 0px -12% 0px' });
-    $$('.reveal').forEach(function (el) { ro.observe(el); });
-  } else { $$('.reveal').forEach(function (el) { el.classList.add('in'); }); }
+    revealables.forEach(function (el) { ro.observe(el); });
+  } else { revealables.forEach(function (el) { el.classList.add('in'); }); }
 
-  /* ── Scroll-linked details: nav over light sheets, struck promises, fading motivation ── */
-  var nav = $('#nav'), sheets = $$('.sheet'), promises = $$('.promise'), fades = $('#fades');
+  /* ── Final section: radial lines animate only while visible ── */
+  var finalEl = $('.final');
+  if (finalEl && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) { es.forEach(function (e) { finalEl.classList.toggle('live', e.isIntersecting); }); }).observe(finalEl);
+  } else if (finalEl) finalEl.classList.add('live');
+
+  /* ── Hero: never stay hidden. The 3D scene normally reveals the copy; if it can't load
+     (blocked CDN, no WebGL, old device), show the copy and the still image anyway. ── */
+  setTimeout(function () { document.documentElement.classList.add('ready'); }, 2500);
+
+  /* ── Hero: the live clock that the 3D arc also follows ── */
+  var nowEl = $('#now'), leftEl = $('#left');
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function tickClock() {
+    var d = new Date(), mins = d.getHours() * 60 + d.getMinutes(), rest = 1440 - mins;
+    nowEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    leftEl.textContent = Math.floor(rest / 60) + 'h ' + pad(rest % 60) + 'm left to close it';
+  }
+  tickClock();
+  setInterval(tickClock, 15000);
+
+  /* ── Scroll-linked details ── */
+  var nav = $('#nav'), progress = $('#progress'), sheets = $$('.sheet'), promises = $$('.promise'), fades = $('#fades');
   var ticking = false;
   function onScroll() {
     ticking = false;
-    var vh = innerHeight;
+    var vh = innerHeight, doc = document.documentElement;
+    // Backup for the observer above (e.g. after a jump link): reveal anything already on screen.
+    revealables.forEach(function (el) { if (!el.classList.contains('in') && el.getBoundingClientRect().top < vh * 0.88) el.classList.add('in'); });
     var navMid = 44, onLight = false;
     sheets.forEach(function (s) { var r = s.getBoundingClientRect(); if (r.top < navMid && r.bottom > navMid) onLight = true; });
     nav.classList.toggle('on-light', onLight);
+    var max = doc.scrollHeight - vh;
+    progress.style.setProperty('--read', max > 0 ? (scrollY / max).toFixed(4) : 0);
     promises.forEach(function (p) {
       var r = p.getBoundingClientRect();
       var k = Math.min(1, Math.max(0, (vh * 0.78 - r.top) / (vh * 0.22)));
@@ -43,31 +77,84 @@
     });
     if (fades) {
       var fr = fades.getBoundingClientRect();
-      var f = Math.min(1, Math.max(0, (vh * 0.85 - fr.top) / (vh * 0.5)));
+      var f = Math.min(1, Math.max(0, (vh * 0.7 - fr.top) / (vh * 0.45)));
       fades.style.setProperty('--p', (100 - f * 118).toFixed(1) + '%');
+    }
+    motion(vh);
+  }
+
+  /* ── Scroll-linked motion: transforms and opacity only, written once per frame ── */
+  var heroCopy = $('.hero-copy'), stageEl = $('#stage'), sheetEls = $$('.sheet'), psStage = $('#ps-stage');
+  var mobile = matchMedia('(max-width: 760px)');
+  function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function seg(p, a, b) { return clamp01((p - a) / (b - a)); }
+  function easeOut(x) { return 1 - Math.pow(1 - x, 3); }
+  function easeInOut(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function motion(vh) {
+    // Hero: the copy drifts up and dims a little faster than the page; the dial sinks slightly behind it.
+    if (!reduce && !mobile.matches) {
+      var y = Math.min(scrollY, vh);
+      heroCopy.style.transform = 'translate3d(0,' + (-y * 0.16).toFixed(1) + 'px,0)';
+      heroCopy.style.opacity = (1 - clamp01(y / (vh * 0.75)) * 0.9).toFixed(3);
+      stageEl.style.transform = 'translate3d(0,' + (y * 0.1).toFixed(1) + 'px,0) scale(' + (1 + y / vh * 0.035).toFixed(4) + ')';
+    }
+    // The light sheet grows into place as it arrives.
+    sheetEls.forEach(function (sh) {
+      var r = sh.getBoundingClientRect(), k = reduce ? 1 : easeOut(clamp01((vh - r.top) / (vh * 0.75)));
+      sh.style.transform = k >= 1 ? 'none' : 'scale(' + (0.94 + 0.06 * k).toFixed(4) + ')';
+    });
+    // The checkbox ticks itself, gets struck through and fades; real proof rises in its place.
+    if (psStage) {
+      var r2 = psStage.getBoundingClientRect(), L = vh * 0.62 + r2.height * 0.3;
+      var p = reduce ? 1 : clamp01((vh * 0.88 - r2.top) / L), st = psStage.style;
+      st.setProperty('--tick', (1 - easeInOut(seg(p, 0.04, 0.28))).toFixed(3));
+      st.setProperty('--strike2', easeInOut(seg(p, 0.34, 0.52)).toFixed(3));
+      var out = seg(p, 0.5, 0.74);
+      st.setProperty('--co', (1 - (mobile.matches ? 0.6 : 0.82) * out).toFixed(3));
+      st.setProperty('--cb', (out * (mobile.matches ? 0.6 : 3)).toFixed(2) + 'px');
+      st.setProperty('--cy', (mobile.matches ? 0 : -easeOut(seg(p, 0.5, 0.86)) * 150).toFixed(1) + 'px');
+      var inn = easeOut(seg(p, 0.56, 0.92));
+      st.setProperty('--po', seg(p, 0.56, 0.8).toFixed(3));
+      st.setProperty('--py', ((mobile.matches ? 0 : 40) + 60 * (1 - inn)).toFixed(1) + 'px');
+      st.setProperty('--ps', (0.94 + 0.06 * inn).toFixed(4));
     }
   }
   addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   addEventListener('resize', onScroll);
   onScroll();
 
-  /* ── Interactive demo ───────────────────────────────── */
+  /* ── Subtle 3D tilt that follows the pointer (mouse only) ── */
+  function tilt(el, max) {
+    if (!finePointer || reduce || !el) return;
+    el.addEventListener('pointermove', function (e) {
+      var r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      el.style.setProperty('--ry', (x * max).toFixed(2) + 'deg');
+      el.style.setProperty('--rx', (-y * max).toFixed(2) + 'deg');
+    });
+    el.addEventListener('pointerleave', function () { el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); });
+  }
+  tilt($('#demo-phone'), 8);
+
+  /* ── How it works: a simulated commitment, start to finish ── */
   var CAPTIONS = [
-    'Name the habit, pick the deadline and how often. The evidence window is 15 minutes either side.',
-    'The in‑app camera opens inside the window. The gallery is locked, so the photo is from right now.',
-    'The judge checks the photo against your habit and the clock, then rules with a one‑line reason.',
-    'Deliver and earn 50 points. Miss and lose 100. Compare both outcomes.'
+    'Choose what you promise to complete, and write what counts as proof.',
+    'Set the time and the days. The proof window opens 15 minutes before and closes 15 minutes after.',
+    'Real app screens. Inside the window, take each photo in the app: no gallery button, and a capture must be sent within three minutes.',
+    'Real app screens. AI checks the photos against the commitment and the server clock, then rules with a one‑line reason.'
   ];
-  var demo = {
-    step: 0, habit: 'Morning workout', deadline: '08:00', freq: 'Daily', committed: false, captured: false, outcome: 'win', timers: []
-  };
+  var demo = { step: 0, habit: 'Morning run — 5 km', cat: 'Fitness', deadline: '08:00', freq: 'Every day', committed: false, shot: 0, timers: [] };
+  // Steps 3 and 4 show real app screens from the demo account; the buttons sit over the real controls.
   var views = $$('[data-view]'), stepBtns = $$('.step-btn'), tabBtns = $$('.step-tabs button'), rail = $('#rail');
   function later(ms, fn) { demo.timers.push(setTimeout(fn, reduce ? Math.min(ms, 60) : ms)); }
   function clearTimers() { demo.timers.forEach(clearTimeout); demo.timers = []; }
-  function hhmm(min) { var h = Math.floor(min / 60) % 24, m = min % 60; return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m; }
+  function hhmm(min) { min = (min + 1440) % 1440; var h = Math.floor(min / 60), m = min % 60; return pad(h) + ':' + pad(m); }
   function toMin(s) { var p = s.split(':'); return +p[0] * 60 + +p[1]; }
-  function windowText() { var d = toMin(demo.deadline); return hhmm(d - 15) + ' – ' + hhmm(d + 15); }
-  function captureTime() { return hhmm(toMin(demo.deadline) - 8); }
+  function windowText(sep) { var d = toMin(demo.deadline); return hhmm(d - 15) + (sep || ' – ') + hhmm(d + 15); }
+  function placeRail(i) {
+    if (!rail || !stepBtns.length) return;
+    var first = stepBtns[0].getBoundingClientRect(), cur = stepBtns[i].getBoundingClientRect();
+    rail.style.height = (cur.top - first.top) + 'px';
+  }
 
   function goTo(i) {
     clearTimers();
@@ -75,190 +162,136 @@
     views.forEach(function (v, k) { v.classList.toggle('on', k === i); v.classList.toggle('prev', k < i); v.inert = k !== i; });
     stepBtns.forEach(function (b, k) { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); b.classList.toggle('done', k < i); });
     tabBtns.forEach(function (b, k) { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
-    if (rail && stepBtns.length) {
-      var first = stepBtns[0].getBoundingClientRect(), cur = stepBtns[i].getBoundingClientRect();
-      rail.style.height = (cur.top - first.top) + 'px';
-    }
-    var cap = $('#step-caption'); if (cap) cap.textContent = CAPTIONS[i];
-    if (i === 1) resetCamera();
-    if (i === 2) runVerification();
-    if (i === 3) setOutcome(demo.outcome, true);
+    placeRail(i);
+    $('#step-caption').textContent = CAPTIONS[i];
+    if (i === 2) resetCamera();
+    if (i === 3) runVerification();
   }
-  // "Start your challenge" → after sign-up the app opens the trial offer once (see Home).
-  $$('a[href="/onboarding"]').forEach(function (a) {
-    a.addEventListener('click', function () { try { sessionStorage.setItem('noexcuse:start-trial', '1'); } catch (e) { /* private mode */ } });
-  });
   $$('[data-go]').forEach(function (b) { b.addEventListener('click', function () { goTo(+b.getAttribute('data-go')); }); });
 
-  // Step 1 · Commit
-  var habitInput = $('#habit-name'), statusCard = $('#status-card'), commitBtn = $('#commit-btn');
-  function syncCommit() {
+  var statusCard = $('#status-card'), commitBtn = $('#commit-btn');
+  function sync() {
     $('#win-text').textContent = windowText();
-    $('#status-text').textContent = (demo.habit || 'Your habit') + ', due ' + demo.deadline + ', ' + demo.freq.toLowerCase();
-    $('#chk-win').textContent = windowText().replace(' – ', '–');
-    $('#chk-habit').textContent = (demo.habit || 'the habit').toLowerCase().slice(0, 18);
-    $('#cam-clock').textContent = captureTime() + ' · window open';
-    $('#cap-meta').textContent = 'Captured ' + captureTime() + ':14 · in‑app camera';
-    $$('#checks small')[0].textContent = captureTime() + ':14';
+    $('#win-l').textContent = hhmm(toMin(demo.deadline) - 15);
+    $('#win-r').textContent = hhmm(toMin(demo.deadline) + 15);
+    $('#status-text').textContent = (demo.habit || 'Your commitment') + ', ' + demo.deadline + ', ' + demo.freq.toLowerCase();
   }
-  habitInput.addEventListener('input', function () { demo.habit = habitInput.value.trim(); syncCommit(); });
+  $('#habit-name').addEventListener('input', function (e) { demo.habit = e.target.value.trim(); sync(); });
   $$('[data-chips]').forEach(function (group) {
     var key = group.getAttribute('data-chips');
     $$('.chip', group).forEach(function (c) {
       c.addEventListener('click', function () {
         $$('.chip', group).forEach(function (o) { o.setAttribute('aria-pressed', o === c ? 'true' : 'false'); });
         demo[key] = c.getAttribute('data-v');
-        syncCommit();
+        sync();
       });
     });
   });
-  $('#commit-form').addEventListener('submit', function (e) {
+  $('#commit-form').addEventListener('submit', function (e) { e.preventDefault(); goTo(1); });
+  $('#schedule-form').addEventListener('submit', function (e) {
     e.preventDefault();
-    if (!demo.committed) {
-      demo.committed = true;
-      statusCard.classList.add('show');
-      commitBtn.textContent = 'Continue to proof';
-    } else { goTo(1); }
+    if (!demo.committed) { demo.committed = true; statusCard.classList.add('show'); commitBtn.textContent = 'Open the camera'; }
+    else goTo(2);
   });
 
-  // Step 2 · Prove
-  var captured = $('#captured'), flash = $('#flash');
-  function resetCamera() { demo.captured = false; captured.classList.remove('show'); captured.parentNode.classList.remove('taken'); }
-  $('#shutter').addEventListener('click', function () {
+  // Step 3 · the real proof flow: photo 1 of 2 → photo 2 of 2 → Review proof → Submit for verification.
+  var CAM = [
+    { src: 'l/demo/camera-1.webp', alt: 'NoExcuse proof camera for Morning run, 5 km: photo 1 of 2, with a framing guide, the proof hint, the shutter and no gallery button' },
+    { src: 'l/demo/camera-2.webp', alt: 'NoExcuse proof camera: photo 2 of 2, the watch or treadmill display with distance and time' },
+    { src: 'l/demo/review.webp', alt: 'Review proof: two live photos, strict verification, the evidence checklist and Submit for verification' }
+  ];
+  var camImg = $('#cam-img'), shutter = $('#shutter'), submitBtn = $('#submit-btn'), flash = $('#flash');
+  CAM.forEach(function (c) { var im = new Image(); im.src = c.src; }); // warm the cache so swaps are instant
+  function showShot(k) {
+    demo.shot = k; camImg.src = CAM[k].src; camImg.alt = CAM[k].alt;
+    shutter.hidden = k === 2; submitBtn.hidden = k !== 2;
+  }
+  function resetCamera() { showShot(0); }
+  shutter.addEventListener('click', function () {
     if (flash.animate && !reduce) flash.animate([{ opacity: 0.95 }, { opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.23,1,.32,1)' });
-    demo.captured = true;
-    captured.classList.add('show');
-    captured.parentNode.classList.add('taken');
-    $('#submit-btn').focus({ preventScroll: true });
+    showShot(demo.shot + 1);
+    (demo.shot === 2 ? submitBtn : shutter).focus({ preventScroll: true });
   });
-  $('#retake-btn').addEventListener('click', resetCamera);
-  $('#submit-btn').addEventListener('click', function () { goTo(2); });
+  submitBtn.addEventListener('click', function () { goTo(3); });
 
-  // Step 3 · Verify (simulated: a fixed sequence, no network)
+  // Step 4 · the real verification screens: "Checking your proof…", then the ruling.
+  var verDone = $('#ver-done'), againBtn = $('#again-btn');
   function runVerification() {
-    var v = $('#verify'), checks = $$('#checks li'), ruling = $('#ruling'), title = $('#verify-title');
-    v.classList.remove('scanning'); checks.forEach(function (c) { c.classList.remove('ok'); });
-    ruling.classList.remove('show'); title.textContent = 'Reviewing evidence…';
-    $('#v-critique').textContent = 'Dumbbells, gym floor, morning light. It matches “' + (demo.habit || 'your habit') + '”. Counts.';
-    later(250, function () { v.classList.add('scanning'); });
-    checks.forEach(function (c, k) { later(500 + k * 520, function () { c.classList.add('ok'); }); });
-    later(500 + checks.length * 520 + 200, function () {
-      v.classList.remove('scanning');
-      title.textContent = 'Verified.';
-      ruling.classList.add('show');
-      count($('#v-pts'), 0, 50, 700, function (n) { return '+' + n; });
-      count($('#v-total'), 1240, 1290, 900, fmt);
-    });
+    verDone.classList.remove('show'); againBtn.hidden = true;
+    later(2600, function () { verDone.classList.add('show'); againBtn.hidden = false; });
   }
+  againBtn.addEventListener('click', function () {
+    demo.committed = false; statusCard.classList.remove('show'); commitBtn.textContent = 'Commit'; goTo(0);
+  });
 
-  // Step 4 · Consequences
-  var seg = $('#seg'), bigDelta = $('#big-delta'), bars = $$('#bars i'), lastBar = bars[bars.length - 1];
-  function setOutcome(o, instant) {
-    demo.outcome = o;
-    var win = o === 'win';
-    seg.classList.toggle('right', !win);
-    $$('button', seg).forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-o') === o ? 'true' : 'false'); });
-    bigDelta.classList.toggle('loss', !win);
-    var from = win ? -100 : 50, to = win ? 50 : -100;
-    count(bigDelta, instant ? to : from, to, 600, function (n) { return n > 0 ? '+' + n : n < 0 ? minus + Math.abs(n) : '0'; });
-    $('#c-streak').textContent = win ? '12 → 13 days' : '12 → 0 days';
-    $('#c-points').textContent = win ? '1,240 → 1,290' : '1,240 → 1,140';
-    lastBar.style.setProperty('--h', win ? '86%' : '30%');
-    lastBar.classList.toggle('neg', !win);
-    $('#bars-cap').textContent = win ? 'today: +50' : 'today: ' + minus + '100';
-  }
-  $$('button', seg).forEach(function (b) { b.addEventListener('click', function () { setOutcome(b.getAttribute('data-o')); }); });
-
-  syncCommit();
+  sync();
   goTo(0);
-  addEventListener('resize', function () { if (rail && stepBtns.length) { var f = stepBtns[0].getBoundingClientRect(), c = stepBtns[demo.step].getBoundingClientRect(); rail.style.height = (c.top - f.top) + 'px'; } });
+  addEventListener('resize', function () { placeRail(demo.step); });
 
-  /* ── Discipline, engineered ─────────────────────────── */
-  var stages = $$('.eng-stage'), panels = $$('[data-panel]'), engActive = -1;
-  function setStage(i) {
-    if (i === engActive) return;
-    engActive = i;
-    stages.forEach(function (s, k) { s.classList.toggle('active', k === i); });
-    panels.forEach(function (p, k) { p.classList.toggle('on', k === i); });
-    $$('#eng-dots i').forEach(function (d, k) { d.classList.toggle('on', k === i); });
-    if (i === 1) startCapture(); else stopCapture();
+  /* ── The Discipline System ── */
+  var total = 1250, streak = 12, totalEl = $('#ledger-total'), streakEl = $('#streak'), spark = $('#spark');
+  var history = [40, 55, 48, 62, 70, 76, 86];
+  function drawSpark(lastNeg) {
+    spark.innerHTML = history.map(function (h, i) {
+      var last = i === history.length - 1;
+      return '<i class="' + (last ? 'last' : '') + (last && lastNeg ? ' neg' : '') + '" style="--h:' + h + '%"></i>';
+    }).join('');
   }
-  var desktop = matchMedia('(min-width: 761px)');
-  if ('IntersectionObserver' in window) {
-    var so = new IntersectionObserver(function (es) {
-      if (!desktop.matches) return;
-      es.forEach(function (e) { if (e.isIntersecting) setStage(+e.target.getAttribute('data-stage')); });
-    }, { rootMargin: '-45% 0px -45% 0px' });
-    stages.forEach(function (s) { so.observe(s); });
-  }
-  var track = $('#eng-track');
-  track.addEventListener('scroll', function () {
-    if (desktop.matches) return;
-    var w = track.scrollWidth - track.clientWidth;
-    var i = w > 0 ? Math.round((track.scrollLeft / w) * (stages.length - 1)) : 0;
-    $$('#eng-dots i').forEach(function (d, k) { d.classList.toggle('on', k === i); });
-  }, { passive: true });
-
-  // 01 · dial: the deadline becomes a 30-minute window on the clock face
-  var dialTicks = $('#dial-ticks'), dialWin = $('#dial-win'), dialHand = $('#dial-hand'), range = $('#dial-range');
-  (function buildTicks() {
-    var ns = 'http://www.w3.org/2000/svg', s = '';
-    for (var i = 0; i < 60; i++) {
-      var big = i % 5 === 0, a = i * 6 * Math.PI / 180, r1 = big ? 78 : 83, r2 = 88;
-      s += '<line x1="' + (120 + r1 * Math.sin(a)).toFixed(2) + '" y1="' + (120 - r1 * Math.cos(a)).toFixed(2) + '" x2="' + (120 + r2 * Math.sin(a)).toFixed(2) + '" y2="' + (120 - r2 * Math.cos(a)).toFixed(2) + '" stroke="' + (big ? '#fff' : 'rgba(255,255,255,.35)') + '" stroke-width="' + (big ? 2 : 1) + '"/>';
-    }
-    dialTicks.innerHTML = s; void ns;
-  })();
-  function polar(deg, r) { var a = (deg - 90) * Math.PI / 180; return [120 + r * Math.cos(a), 120 + r * Math.sin(a)]; }
-  function setDial() {
-    var minutes = +range.value * 15, d = minutes % 720;
-    var a0 = (d - 15) / 720 * 360, a1 = (d + 15) / 720 * 360, p0 = polar(a0, 100), p1 = polar(a1, 100);
-    dialWin.setAttribute('d', 'M' + p0[0].toFixed(2) + ' ' + p0[1].toFixed(2) + ' A100 100 0 0 1 ' + p1[0].toFixed(2) + ' ' + p1[1].toFixed(2));
-    var h = polar(d / 720 * 360, 76);
-    dialHand.setAttribute('x2', h[0].toFixed(2)); dialHand.setAttribute('y2', h[1].toFixed(2));
-    $('#dial-time').textContent = hhmm(minutes);
-    $('#dial-win-text').textContent = 'Window ' + hhmm(minutes - 15) + ' – ' + hhmm(minutes + 15);
-    range.setAttribute('aria-valuetext', 'Deadline ' + hhmm(minutes));
-  }
-  range.addEventListener('input', setDial);
-  setDial();
-
-  // 02 · capture clock: ticks down in real time while visible
-  var capTimer = null, capRing = $('#cap-ring'), capTime = $('#cap-time'), C = 326.7;
-  function renderCap(s) { capTime.textContent = Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); capRing.setAttribute('stroke-dashoffset', (C * (1 - s / 180)).toFixed(1)); }
-  function startCapture() { stopCapture(); var s = 180; renderCap(s); capTimer = setInterval(function () { s = s > 0 ? s - 1 : 180; renderCap(s); }, 1000); }
-  function stopCapture() { if (capTimer) clearInterval(capTimer); capTimer = null; }
-  capRing.style.transition = reduce ? 'none' : 'stroke-dashoffset 900ms linear';
-
-  // 03 · ledger: apply outcomes to a running total
-  var total = 1240, totalEl = $('#ledger-total'), DELTA = { v: 50, m: -100, r: -100 };
+  drawSpark(false);
+  var DELTA = { v: 50, m: -100 };
   $$('[data-apply]').forEach(function (b) {
     b.addEventListener('click', function () {
       var k = b.getAttribute('data-apply'), from = total;
       total += DELTA[k];
       $$('#ledger .lr').forEach(function (r) { r.classList.toggle('on', r.getAttribute('data-k') === k); });
       count(totalEl, from, total, 600, fmt);
+      streak = k === 'v' ? streak + 1 : 0;
+      streakEl.textContent = streak + (streak === 1 ? ' day' : ' days');
+      var prev = history[history.length - 1];
+      history.shift(); history.push(k === 'v' ? Math.min(100, prev + 8) : 30);
+      drawSpark(k === 'm');
     });
   });
-  setStage(0);
 
-  /* ── Product showcase ───────────────────────────────── */
+  // Discipline Score: a sample built with the real formula (45 / 25 / 20 / 10).
+  var weightsEls = $$('#weights li'), W = [0.45, 0.25, 0.20, 0.10];
+  var parts = weightsEls.map(function (li) { return parseFloat(getComputedStyle(li).getPropertyValue('--v')) || 0; });
+  var score = Math.round(100 * parts.reduce(function (s, v, i) { return s + v * W[i]; }, 0));
+  var scored = false;
+  function showScore() {
+    if (scored) return; scored = true;
+    var arc = $('#score-arc'), C = 326.7;
+    if (!reduce) arc.style.transition = 'stroke-dashoffset 1600ms cubic-bezier(.23,1,.32,1)';
+    arc.setAttribute('stroke-dashoffset', (C * (1 - score / 100)).toFixed(1));
+    count($('#score-num'), 0, score, 1600, String);
+    weightsEls.forEach(function (li, i) { setTimeout(function () { li.style.setProperty('--fill', parts[i]); }, reduce ? 0 : 200 + i * 140); });
+  }
+  if ('IntersectionObserver' in window) {
+    var so = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { showScore(); so.disconnect(); } }); }, { threshold: 0.35 });
+    so.observe($('.score-ring'));
+  } else showScore();
+
+  /* ── Product showcase ── */
+  var desktop = matchMedia('(min-width: 761px)');
   var SCREENS = [
-    { id: 'home', tab: 'Today', alt: 'Today screen with the next target, countdown, progress and points', cap: '<b>Today.</b> Your next target with a live countdown to its window, today’s progress, your streak and points.' },
-    { id: 'habits', tab: 'Habits', alt: 'Habits list with times, days and streaks', cap: '<b>Habits.</b> Every commitment with its time, days and streak. Pause one without losing its history.' },
-    { id: 'proof', tab: 'Camera', alt: 'Proof screen asking for camera access only', cap: '<b>Camera.</b> The proof screen asks for the camera and nothing else. There is no upload button.' },
-    { id: 'missed', tab: 'Missed', alt: 'Missed target screen showing the points and streak lost', cap: '<b>Missed.</b> When a window closes without proof: exactly what it cost, and when your next chance is.' },
-    { id: 'comeback', tab: 'Comeback', alt: 'Comeback plan with streak rebuild, earlier reminder and sharper proof', cap: '<b>Comeback.</b> Rebuild the streak, move the reminder earlier, sharpen what counts as proof.' },
-    { id: 'arena', tab: 'Arena', alt: 'Daily Arena leaderboard with podium and your position', cap: '<b>Arena.</b> A daily ranking. Everyone starts at zero each morning, and ties go to the longer streak.' },
-    { id: 'profile', tab: 'Profile', alt: 'Profile with lifetime points, streaks, success rate and recent activity', cap: '<b>Profile.</b> Lifetime points, streaks, success rate and every score change in your history.' }
+    { id: 'home', tab: 'Today', alt: 'Today screen with the next target, a live countdown to its window and today’s progress', cap: '<b>Today.</b> Your next commitment with a live countdown to its window, and how much of the day is done.' },
+    { id: 'habits', tab: 'Commitments', alt: 'Commitments list with times, days, streaks and results', cap: '<b>Commitments.</b> Every promise with its time, its days, its streak and its last result.' },
+    { id: 'proof', island: false, tab: 'Proof camera', alt: 'Proof camera for Morning run, photo 1 of 2, with a framing guide and no gallery', cap: '<b>Proof camera.</b> Opens only inside the window. It shows what counts as proof and has no gallery button.' },
+    { id: 'discipline', tab: 'Discipline Score', alt: 'Discipline Score screen with the score and its four weighted parts', cap: '<b>Discipline Score.</b> One number from 0 to 100, with every part of the formula shown.' },
+    { id: 'challenges', tab: 'Challenges', alt: 'Challenges screen with an active 30-day challenge and the library', cap: '<b>Challenges.</b> Fixed length, a limited number of misses, and a bonus only if you finish. Premium.' },
+    { id: 'report', tab: 'Weekly report', alt: 'Weekly report with the share of verified targets, points, misses and streak', cap: '<b>Weekly report.</b> Every Monday: what you verified, what you missed, your strongest commitment and the one that needs work. Premium.' },
+    { id: 'arena', tab: 'Arena', alt: 'Arena with weekly, monthly and all-time standings', cap: '<b>Arena.</b> Optional competition by verified points, this week, this month or all time.' },
+    { id: 'coach', tab: 'AI Coach', alt: 'AI Coach with suggested questions based on your own data', cap: '<b>AI Coach.</b> Answers from your own commitments, results and Discipline Score. Never your photos. Premium.' },
+    { id: 'missed', tab: 'Missed', alt: 'Missed target screen with the points and streak lost and the next chance', cap: '<b>Missed.</b> When a window closes without proof: exactly what it cost, and when your next chance is.' }
   ];
-  var carousel = $('#carousel'), tabs = $('#show-tabs'), capEl = $('#show-cap'), active = 0, slots = [], tabEls = [];
+  var carousel = $('#carousel'), tabs = $('#show-tabs'), capEl = $('#show-cap'), slots = [], tabEls = [];
   SCREENS.forEach(function (s, i) {
     var slot = document.createElement('div');
     slot.className = 'slot';
-    slot.innerHTML = '<div class="phone"><div class="screen"><span class="island" aria-hidden="true"></span><img src="/l/screens/' + s.id + '.webp" alt="' + s.alt + '" loading="lazy" decoding="async" width="390" height="844"></div></div><span class="slot-cap">' + s.cap.replace(/<\/?b>/g, '') + '</span>';
+    slot.innerHTML = '<div class="phone' + (s.island === false ? ' no-island' : '') + '"><div class="screen"><span class="island" aria-hidden="true"></span><img src="l/screens/' + s.id + '.webp" alt="' + s.alt + '" loading="lazy" decoding="async" width="390" height="844"></div></div><span class="slot-cap">' + s.cap.replace(/<\/?b>/g, '') + '</span>';
     slot.addEventListener('click', function () { if (desktop.matches) select(i); });
     carousel.appendChild(slot); slots.push(slot);
+    tilt(slot.querySelector('.phone'), 10);
     var t = document.createElement('button');
     t.type = 'button'; t.setAttribute('role', 'tab'); t.textContent = s.tab;
     t.addEventListener('click', function () { select(i); });
@@ -268,7 +301,6 @@
     tabs.appendChild(t); tabEls.push(t);
   });
   function select(i) {
-    active = i;
     var n = slots.length;
     slots.forEach(function (s, k) {
       var d = ((k - i) % n + n) % n; if (d > n / 2) d -= n; // circular: neighbours on both sides
@@ -279,6 +311,7 @@
       s.style.filter = ad === 0 ? 'none' : 'saturate(0) brightness(.75)';
       s.style.zIndex = String(10 - ad);
       s.style.pointerEvents = ad > 2 ? 'none' : '';
+      s.setAttribute('aria-hidden', d === 0 || !desktop.matches ? 'false' : 'true');
     });
     tabEls.forEach(function (t, k) { t.setAttribute('aria-selected', k === i ? 'true' : 'false'); t.tabIndex = k === i ? 0 : -1; });
     capEl.innerHTML = SCREENS[i].cap;
