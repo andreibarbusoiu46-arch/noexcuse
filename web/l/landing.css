@@ -615,3 +615,63 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
   .js .reveal, .js .h2.reveal, .js .ps-line > span, .js .ps-body { transform: none; filter: none; clip-path: none; transition: opacity 400ms ease; }
   .rays-breathe, .rays i { animation: none; }
 }
+
+/* ── Hero refinement: copy above the dial, stronger CTAs, cleaner hand-off to the next section ── */
+.hero .lede { color: #D2D2D8; text-shadow: 0 1px 22px rgba(0,0,0,.95), 0 0 3px rgba(0,0,0,.7); }
+.hero .cta-row { gap: 14px; }
+.hero .btn { min-height: 58px; font-weight: 600; transition: transform 380ms var(--ease-silk), box-shadow 380ms var(--ease-silk), background-color 380ms ease, color 380ms ease; }
+.hero .btn-solid { padding: 0 32px; background: #fff; color: #050506;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.6), 0 14px 34px -10px rgba(255,255,255,.42), 0 0 70px -12px rgba(255,255,255,.5); }
+.hero .btn-ghost { padding: 0 26px; color: #EDEDF0; background: rgba(6,6,8,.66);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.24), 0 10px 30px -12px rgba(0,0,0,.9); }
+.hero .btn-ghost::before { content: ""; width: 7px; height: 7px; margin: -4px 2px 0 0; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); opacity: .7; transition: transform 380ms var(--ease-silk); }
+@media (hover: hover) and (pointer: fine) {
+  .hero .btn-solid:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px #fff, 0 20px 44px -12px rgba(255,255,255,.55), 0 0 90px -10px rgba(255,255,255,.6); }
+  .hero .btn-ghost:hover { background: rgba(18,18,22,.8); box-shadow: inset 0 0 0 1px rgba(255,255,255,.5), 0 10px 30px -12px rgba(0,0,0,.9); }
+  .hero .btn-ghost:hover::before { transform: translateY(2px) rotate(45deg); }
+}
+.hero .btn:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.hero .fine { margin-top: 16px; font-size: 13.5px; letter-spacing: .01em; color: #BDBDC4; text-shadow: 0 0 16px #000, 0 0 4px #000; }
+/* The section after the hero starts sooner, from the same black the dial fades into, so the seam disappears. */
+.problem > .wrap.sec { padding-top: clamp(40px, 5.5vw, 84px); }
+.problem { background:
+  linear-gradient(180deg, #000 0, rgba(0,0,0,0) 180px),
+  radial-gradient(70% 55% at 18% 12%, rgba(255,255,255,.05), transparent 70%),
+  linear-gradient(180deg, #000 0%, #000 6%, #0B0B0D 24%, #0B0B0D 82%, #000 100%); }
+
+@media (min-width: 761px) {
+  /* Copy on top, a reserved horizon band for the dial below it; height-aware type so short laptop screens keep the band. */
+  .hero { min-height: max(100svh, 700px); }
+  .hero-copy { padding-top: clamp(100px, 13vh, 150px); padding-bottom: clamp(220px, 34vh, 380px); }
+  .hero h1 { font-size: clamp(64px, min(9.2vw, 16vh), 156px); }
+  .today { margin-bottom: clamp(16px, 2.6vh, 32px); }
+  .hero .lede { margin-top: clamp(14px, 2.4vh, 26px); max-width: 35em; }
+  .hero .cta-row { margin-top: clamp(22px, 3.4vh, 34px); }
+  .scroll-cue { bottom: 18px; opacity: .7; }
+  .hero::after { background:
+    radial-gradient(85% 58% at 50% 24%, rgba(0,0,0,.9) 32%, rgba(0,0,0,.55) 58%, transparent 80%),
+    linear-gradient(0deg, #000 0%, rgba(0,0,0,.88) 7%, rgba(0,0,0,.45) 18%, transparent 30%); }
+}
+/* Portrait tablets: size the hero to copy + dial instead of a full screen, so there is no dead gap between them. */
+@media (min-width: 761px) and (max-aspect-ratio: 1/1) {
+  .hero { min-height: 0; }
+  .hero-copy { padding-bottom: calc(36vw + 48px); }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .hero .lede { max-width: 30em; }
+}
+@media (max-width: 760px) {
+  .hero .lede { color: #CFCFD5; }
+  .hero .cta-row { margin-top: 20px; gap: 10px; }
+  .hero .cta-row .btn { min-height: 56px; font-size: 16px; }
+  .hero .fine { margin-top: 14px; text-align: center; }
+  .problem > .wrap.sec { padding-top: 48px; }
+}
+@media (max-width: 380px) {
+  .hero h1 { font-size: clamp(54px, 17.5vw, 66px); }
+  .hero .lede { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero .btn, .hero .btn-ghost::before { transition: none; }
+  .hero .btn-solid:hover { transform: none; }
+}
