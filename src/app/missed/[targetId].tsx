@@ -73,7 +73,7 @@ export default function Missed() {
               <T variant="bodySmall" tone="tertiary">{r.from}</T>
               <Icon name="ChevronRight" size={14} tint={color.icon.secondary} />
               <T variant="bodyStrong">{r.to}</T>
-              <T variant="caption" tone="danger" style={{ width: 44, textAlign: 'right' }}>{r.delta}</T>
+              <T variant="caption" tone="danger" numberOfLines={1} style={{ minWidth: 44, textAlign: 'right' }}>{r.delta}</T>
             </View>
           </View>
         ))}
