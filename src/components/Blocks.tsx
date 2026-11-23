@@ -88,6 +88,7 @@ export function ToggleRow({ title, subtitle, value, onChange, icon, disabled }: 
   return (
     <Tap haptic="medium" dim={false} disabled={disabled} onPress={() => onChange(!value)}
       accessibilityRole="switch" accessibilityState={{ checked: value, disabled }} aria-checked={value} accessibilityLabel={title} accessibilityHint={subtitle}
+      {...({ onKeyDown: (e: { key?: string; nativeEvent?: { key?: string }; preventDefault?: () => void }) => { if (!disabled && (e.nativeEvent?.key ?? e.key) === ' ') { e.preventDefault?.(); onChange(!value); } } } as object)}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 }}>
       {icon}
       <View style={{ flex: 1, gap: 2 }}>
