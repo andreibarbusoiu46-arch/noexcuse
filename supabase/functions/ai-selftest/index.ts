@@ -1,6 +1,6 @@
 // Internal (cron secret only): runs the real verification engine against real images fetched from
 // URLs, without touching any user, proof or points. Used to test the live Gemini integration.
-// POST { model?, language?, cases: [{ name, title, proof_hint?, activity?, level, images: [{ kind, url }] }] }
+// POST { provider?, model?, language?, cases: [{ name, title, proof_hint?, activity?, level, images: [{ kind, url }] }] }
 import { activityOf, isActivity } from "../../../src/shared/activity.ts";
 import { encodeBase64 } from "../_shared/b64.ts";
 import { analyzeEvidence } from "../_shared/engine.ts";
@@ -37,10 +37,16 @@ async function fetchImage(url: string): Promise<{ base64: string; mimeType: "ima
 Deno.serve(async (req) => {
   const db = adminClient();
   if (!(await isInternal(req, db))) return json(401, { error: "unauthorized" });
-  const body = await req.json().catch(() => ({})) as { model?: string; language?: "en" | "ro"; cases?: Case[] };
+  const body = await req.json().catch(() => ({})) as { provider?: "gemini" | "openai"; model?: string; language?: "en" | "ro"; cases?: Case[] };
   let config;
   try {
     config = llmConfig("verify");
+    // Diagnostics only: run the same cases against the other configured provider.
+    if (body.provider === "openai" || body.provider === "gemini") {
+      const key = Deno.env.get(body.provider === "openai" ? "OPENAI_API_KEY" : "GEMINI_API_KEY")?.trim();
+      if (!key) return json(200, { config_error: `${body.provider}_not_configured` });
+      config = { provider: body.provider, apiKey: key, model: body.provider === "openai" ? Deno.env.get("OPENAI_MODEL") ?? "gpt-5-mini" : config.provider === "gemini" ? config.model : "gemini-3.1-flash-lite" };
+    }
     if (body.model) config = { ...config, model: body.model };
   } catch (e) {
     return json(200, { config_error: e instanceof LlmError ? e.code : String(e) });

@@ -37,3 +37,12 @@ export async function askCoach(context: unknown, history: CoachTurn[], message: 
   const result = await llmCall(buildCoachRequest(context, history, message), { timeoutMs: 40_000, maxAttempts: 2 });
   return { reply: result.text.slice(0, 3000), result };
 }
+
+/**
+ * Data minimisation: what the coach model receives. The snapshot from get_coach_context carries the
+ * display name for the app; the model doesn't need it to coach, so it is removed before sending.
+ */
+export function coachSnapshot(context: Record<string, unknown>, replyLanguage: string): Record<string, unknown> {
+  const { name: _name, ...rest } = context;
+  return { ...rest, reply_language: replyLanguage };
+}

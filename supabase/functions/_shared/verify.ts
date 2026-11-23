@@ -27,18 +27,12 @@ export interface VerdictResult {
 
 /** Messages when the AI could not give an answer. Each one says what is true: nothing is deducted. */
 function unavailableText(code: string, ro: boolean): string {
-  const t = {
-    config: ["Verification isn’t configured on the server yet. Your proof is saved with its capture time and nothing is deducted; it will be checked once the AI is available, or the target is excused.",
-      "Verificarea nu e încă configurată pe server. Dovada ta e salvată cu ora capturii și nu se scade nimic; o verificăm când AI-ul e disponibil, altfel obiectivul e scuzat."],
-    quota: ["The AI service has reached its usage limit. Your proof is saved and nothing is deducted. We’ll retry; if it still can’t be checked, this target is excused.",
-      "Serviciul AI și-a atins limita de utilizare. Dovada ta e salvată și nu se scade nimic. Reîncercăm; dacă tot nu poate fi verificată, obiectivul e scuzat."],
-    blocked: ["The AI service declined to analyse these images. Nothing is deducted. We’ll retry; if it still can’t be checked, this target is excused.",
-      "Serviciul AI a refuzat să analizeze aceste imagini. Nu se scade nimic. Reîncercăm; dacă tot nu poate fi verificată, obiectivul e scuzat."],
-    other: ["The AI check didn’t give a valid answer. Your proof is saved with its capture time and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused.",
-      "Verificarea AI n-a dat un răspuns valid. Dovada ta e salvată cu ora capturii și nu se scade nimic. Reîncercăm curând; dacă tot nu poate fi verificată, obiectivul e scuzat."],
-  } as const;
-  const k = code === "config" || code === "quota" || code === "blocked" ? code : "other";
-  return t[k][ro ? 1 : 0];
+  // Users see why nothing was deducted, never provider or configuration details.
+  return code === "blocked"
+    ? (ro ? "Imaginile nu au putut fi analizate automat. Nu se scade nimic. Reîncercăm; dacă tot nu pot fi verificate, obiectivul e scuzat."
+      : "These images couldn’t be analysed automatically. Nothing is deducted. We’ll retry; if they still can’t be checked, this target is excused.")
+    : (ro ? "Verificarea întârzie. Dovada ta e salvată cu ora capturii și nu se scade nimic. Reîncercăm curând; dacă tot nu poate fi verificată, obiectivul e scuzat."
+      : "Verification is delayed. Your proof is saved with its capture time and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused.");
 }
 
 export async function judgeAndApply(db: SupabaseClient, proofId: string, images: EngineImage[], notes: string[] = []): Promise<VerdictResult> {
@@ -92,7 +86,8 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
     errorCode = e instanceof LlmError ? e.code : "error";
     critique = unavailableText(errorCode, ro);
     // Only codes and status — never the evidence or the model's text.
-    raw = { error: errorCode, status: e instanceof LlmError ? e.status ?? null : null, message: e instanceof Error ? e.message.slice(0, 200) : String(e).slice(0, 200) };
+    // Stored on the user's own (readable) proof row: the error class only. Details stay in ai_usage.
+    raw = { error: errorCode };
   }
 
   const before = outcome === "verified" ? await myRank(db, p.user_id) : null;
