@@ -1,6 +1,7 @@
 // Evidence fingerprints: SHA-256 for exact duplicates, dHash (64-bit difference hash) for
-// near-duplicates — the same image re-encoded, resized or slightly cropped.
+// near-duplicates of the whole frame, and a small signature for crop-tolerant similarity (similarity.ts).
 import jpeg from "npm:jpeg-js@0.4.4";
+import { type Signature, signatureFromRgba } from "./similarity.ts";
 
 export async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", bytes as Uint8Array<ArrayBuffer>);
@@ -39,9 +40,19 @@ export function dhashFromRgba(data: Uint8Array | Uint8ClampedArray, width: numbe
 
 /** Null when the bytes aren't a decodable JPEG (the SHA still protects against exact reuse). */
 export function dhashFromJpeg(bytes: Uint8Array): string | null {
+  return fingerprintJpeg(bytes)?.dhash ?? null;
+}
+
+/**
+ * Fingerprints of one image from a single decode: the 64-bit dHash (stored since phase 2) and the
+ * 48-px similarity signature (similarity.ts) that recognises resized, re-encoded and cropped copies.
+ */
+export interface Fingerprint { dhash: string; width: number; height: number; signature: Signature }
+
+export function fingerprintJpeg(bytes: Uint8Array): Fingerprint | null {
   try {
     const img = jpeg.decode(bytes, { useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 256, maxResolutionInMP: 40 });
-    return dhashFromRgba(img.data, img.width, img.height);
+    return { dhash: dhashFromRgba(img.data, img.width, img.height), width: img.width, height: img.height, signature: signatureFromRgba(img.data, img.width, img.height) };
   } catch {
     return null;
   }

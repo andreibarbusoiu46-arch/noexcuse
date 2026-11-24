@@ -3,7 +3,7 @@
 //   asks the AI, applies the score.
 // Response: { verified, critique, outcome, points_delta, streak, total_points, proof_id, requested_evidence, ... }
 import type { EngineImage as EvidenceImage } from "../_shared/engine.ts";
-import { checkDuplicates, hashEvidence } from "../_shared/evidence.ts";
+import { checkDuplicates, hashEvidence, signatureText } from "../_shared/evidence.ts";
 import { adminClient, fail, hasPremium, json, requireUser, withCors } from "../_shared/http.ts";
 import { checkCaptureSession, checkEvidence, classifyWindow, effectiveLevel, looksLikeJpegBase64 } from "../_shared/rules.ts";
 import { judgeAndApply } from "../_shared/verify.ts";
@@ -96,10 +96,16 @@ Deno.serve(withCors(async (req) => {
     storage_path: paths[0], received_at: receivedAt.toISOString(), level,
   });
   if (insErr) return fail(500, "server_error", "Could not record the proof.");
-  const { error: itemsErr } = await db.from("proof_items").insert(hashed.map((h, i) => ({
+  const { data: itemRows, error: itemsErr } = await db.from("proof_items").insert(hashed.map((h, i) => ({
     proof_id: proofId, user_id: user.id, kind: h.kind, position: i, storage_path: paths[i], sha256: h.sha256, dhash: h.dhash,
-  })));
+  }))).select("id, position");
   if (itemsErr) return fail(500, "server_error", "Could not record the evidence.");
+  // Similarity signatures for future duplicate checks. Not needed for this verdict, so a failure here
+  // never blocks the proof (it only means this evidence can't be matched later, except by exact bytes/dHash).
+  const sigRows = ((itemRows ?? []) as { id: string; position: number }[])
+    .map((r) => ({ proof_item_id: r.id, user_id: user.id, signature: signatureText(hashed[r.position]?.signature ?? null) }))
+    .filter((r) => r.signature !== null);
+  if (sigRows.length) await db.from("evidence_signatures").insert(sigRows);
 
   const { data: prof } = await db.from("profiles").select("language").eq("id", user.id).maybeSingle();
   const ro = prof?.language === "ro";

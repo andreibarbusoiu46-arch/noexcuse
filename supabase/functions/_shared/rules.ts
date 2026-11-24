@@ -103,6 +103,14 @@ export function appealOverturns(verdict: AiVerdict, confidence: number, level: L
 export const SCREENSHOT_DUP_DISTANCE = 4;
 /** Live photos this close to an earlier proof are flagged to the AI (same place every day is normal). */
 export const LIVE_FLAG_DISTANCE = 3;
+/**
+ * Two-stage similarity (similarity.ts), calibrated on 227 copies and 227 genuinely different photos
+ * (including re-shots of the same scene seconds apart): stage 1 (stored 48-px signatures, crop-tolerant)
+ * at or above SIMILAR_MIN makes a look-alike; stage 2 (fine detail of the two full photos) at or above
+ * COPY_DETAIL_MIN confirms a copy. Re-shots of the same scene scored ≤ 0.47 in stage 2; copies ≥ 0.52.
+ */
+export const SIMILAR_MIN = 0.85;
+export const COPY_DETAIL_MIN = 0.6;
 
 export function isMilestone(streak: number, longest: number): boolean {
   return STREAK_MILESTONES.includes(streak) && streak >= longest;

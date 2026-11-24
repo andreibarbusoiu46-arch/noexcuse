@@ -127,11 +127,17 @@ async function codeOf(body: unknown): Promise<string> {
 
 Deno.test("schema validator: types, enums, ranges, required and unknown keys", () => {
   assertEquals(validateSchema(ANALYSIS_SCHEMA, {}), "$.status is missing");
-  const ok = { status: "VERIFIED", confidence: 0.9, summary: "s", evidence: [], requirements: [], consistency: "c", explanation: "e", next_action: "" };
+  const ok = { status: "VERIFIED", confidence: 0.9, summary: "s", evidence: [], requirements: [], consistency: "c",
+    consistency_check: { verdict: "single_photo", differences: [] }, reject_reason: "none", explanation: "e", next_action: "" };
   assertEquals(validateSchema(ANALYSIS_SCHEMA, ok), null);
   assert(validateSchema(ANALYSIS_SCHEMA, { ...ok, status: "MAYBE" })?.includes("not one of"));
   assert(validateSchema(ANALYSIS_SCHEMA, { ...ok, confidence: 1.4 })?.includes("above"));
-  assert(validateSchema(ANALYSIS_SCHEMA, { ...ok, evidence: [{ image: 1.5, shows: "", relevant: true, concerns: "" }] })?.includes("integer"));
+  assert(validateSchema(ANALYSIS_SCHEMA, { ...ok, evidence: [{ image: 1.5, shows: "", relation: "shows_activity", concerns: "" }] })?.includes("integer"));
+  // Fix 1/2 contract: per-image relation, structured consistency and a rejection reason are required and closed.
+  assert(validateSchema(ANALYSIS_SCHEMA, { ...ok, evidence: [{ image: 1, shows: "", relation: "maybe", concerns: "" }] })?.includes("not one of"));
+  assert(validateSchema(ANALYSIS_SCHEMA, { ...ok, consistency_check: { verdict: "consistent", differences: ["face"] } })?.includes("not one of"));
+  const { reject_reason: _r, ...noReason } = ok;
+  assertEquals(validateSchema(ANALYSIS_SCHEMA, noReason), "$.reject_reason is missing");
 });
 
 // ---------- activities and requirements ----------
@@ -171,8 +177,9 @@ const baseInput = (over: Partial<EngineInput> = {}): EngineInput => ({
 });
 const answer = (over: Record<string, unknown> = {}) => ({
   status: "VERIFIED", confidence: 0.92, summary: "Gym session.", consistency: "Same gym.", explanation: "You are training at a gym.", next_action: "",
-  evidence: [{ image: 1, shows: "person squatting", relevant: true, concerns: "" }, { image: 2, shows: "racks", relevant: true, concerns: "" }],
+  evidence: [{ image: 1, shows: "person squatting", relation: "shows_activity", concerns: "" }, { image: 2, shows: "racks", relation: "related_incomplete", concerns: "" }],
   requirements: [{ id: "training", satisfied: true, image: 1, note: "" }, { id: "environment", satisfied: true, image: 2, note: "" }, { id: "tracker", satisfied: false, image: 0, note: "" }],
+  consistency_check: { verdict: "consistent", differences: [] }, reject_reason: "none",
   ...over,
 });
 
@@ -211,7 +218,7 @@ Deno.test("engine: a requirement can't be met by a missing image or an image of 
 
 Deno.test("engine: one photo can't satisfy two requirements (seen live with Gemini on a strict 1-photo submission)", () => {
   const a = finalizeAnalysis(answer({
-    evidence: [{ image: 1, shows: "overhead press in a gym", relevant: true, concerns: "" }],
+    evidence: [{ image: 1, shows: "overhead press in a gym", relation: "shows_activity", concerns: "" }],
     requirements: [{ id: "training", satisfied: true, image: 1, note: "" }, { id: "environment", satisfied: true, image: 1, note: "gym visible" }, { id: "tracker", satisfied: false, image: 0, note: "" }],
   }), baseInput({ images: [{ kind: "live", base64: "AAAA" }] }), requirementsFor("gym", "strict"));
   assertEquals(a.status, "NEEDS_MORE_EVIDENCE");
@@ -221,7 +228,11 @@ Deno.test("engine: one photo can't satisfy two requirements (seen live with Gemi
 
 Deno.test("engine: uncertainty never penalizes — low-confidence REJECTED or VERIFIED become NEEDS_MORE_EVIDENCE", () => {
   assertEquals(finalizeAnalysis(answer({ status: "REJECTED", confidence: 0.6 }), baseInput(), requirementsFor("gym", "strict")).status, "NEEDS_MORE_EVIDENCE");
-  assertEquals(finalizeAnalysis(answer({ status: "REJECTED", confidence: 0.95 }), baseInput(), requirementsFor("gym", "strict")).status, "REJECTED");
+  // A confident rejection stands only when every image is unrelated and a reason is given (fix 2).
+  const unrelated = { evidence: [{ image: 1, shows: "a parked car", relation: "unrelated", concerns: "" }, { image: 2, shows: "a street", relation: "unrelated", concerns: "" }],
+    requirements: [], reject_reason: "unrelated" };
+  assertEquals(finalizeAnalysis(answer({ status: "REJECTED", confidence: 0.95, ...unrelated }), baseInput(), requirementsFor("gym", "strict")).status, "REJECTED");
+  assertEquals(finalizeAnalysis(answer({ status: "REJECTED", confidence: 0.95 }), baseInput(), requirementsFor("gym", "strict")).status, "NEEDS_MORE_EVIDENCE");
   assertEquals(finalizeAnalysis(answer({ confidence: 0.7 }), baseInput(), requirementsFor("gym", "strict")).status, "NEEDS_MORE_EVIDENCE");
   assertEquals(finalizeAnalysis(answer({ confidence: 0.78 }), baseInput({ level: "elite" }), requirementsFor("gym", "elite")).status, "NEEDS_MORE_EVIDENCE");
 });
