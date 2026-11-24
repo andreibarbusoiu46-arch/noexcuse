@@ -305,7 +305,7 @@ export interface ProofAnalysis {
   status: 'VERIFIED' | 'NEEDS_MORE_EVIDENCE' | 'REJECTED';
   confidence: number;
   summary: string;
-  evidence: { image: number; kind: EvidenceKind; shows: string; relevant: boolean; concerns: string }[];
+  evidence: { image: number; kind: EvidenceKind; shows: string; relevant: boolean; relation?: 'shows_activity' | 'related_incomplete' | 'unrelated' | 'unreadable'; concerns: string }[];
   requirements: { id: string; label: string; kind: EvidenceKind; required: boolean; satisfied: boolean; image: number | null; note: string }[];
   missing: string[];
   consistency: string;
