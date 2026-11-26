@@ -1,3 +1,4 @@
+import type { Activity } from '@/shared/activity';
 export type TargetStatus = 'pending' | 'verified' | 'rejected' | 'missed' | 'excused';
 export type ProofOutcome = 'processing' | 'verified' | 'rejected' | 'insufficient' | 'expired' | 'error';
 
@@ -56,7 +57,6 @@ export interface WeeklyReports { locked: boolean; count?: number; reports: Weekl
 export type Level = 'standard' | 'strict' | 'elite';
 export type EvidenceKind = 'live' | 'screenshot';
 
-import type { Activity } from '@/shared/activity';
 export type { Activity } from '@/shared/activity';
 
 export type Category = 'fitness' | 'health' | 'education' | 'productivity' | 'business' | 'personal' | 'lifestyle' | 'custom';
@@ -281,7 +281,7 @@ export interface Entitlement {
   expires_at: string | null;
   will_renew: boolean | null;
   /** stripe (web) or the App Store via RevenueCat. */
-  source?: 'stripe' | 'app_store' | 'play_store' | string;
+  source?: 'stripe' | 'app_store' | 'play_store' | 'manual' | string;
   /** Stripe status: trialing | active | past_due | unpaid | canceled | incomplete | … */
   status?: string;
   trial_end?: string | null;
@@ -305,7 +305,7 @@ export interface ProofAnalysis {
   status: 'VERIFIED' | 'NEEDS_MORE_EVIDENCE' | 'REJECTED';
   confidence: number;
   summary: string;
-  evidence: { image: number; kind: EvidenceKind; shows: string; relevant: boolean; concerns: string }[];
+  evidence: { image: number; kind: EvidenceKind; shows: string; relevant: boolean; relation?: 'shows_activity' | 'related_incomplete' | 'unrelated' | 'unreadable'; concerns: string }[];
   requirements: { id: string; label: string; kind: EvidenceKind; required: boolean; satisfied: boolean; image: number | null; note: string }[];
   missing: string[];
   consistency: string;

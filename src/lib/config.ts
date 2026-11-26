@@ -12,7 +12,12 @@ export const config = {
   }) ?? '',
   entitlementId: 'premium',
   offeringId: process.env.EXPO_PUBLIC_REVENUECAT_OFFERING ?? 'default',
-  termsUrl: process.env.EXPO_PUBLIC_TERMS_URL ?? 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+  /**
+   * Terms of Service. Until NoExcuse's own Terms are published (EXPO_PUBLIC_TERMS_URL), the iPhone app falls back to
+   * Apple's standard EULA, which governs App Store purchases. The web has no fallback: payments there go through
+   * Stripe, so Apple's EULA would be the wrong document — the link is hidden instead.
+   */
+  termsUrl: process.env.EXPO_PUBLIC_TERMS_URL ?? (Platform.OS === 'ios' ? 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/' : ''),
   privacyUrl: process.env.EXPO_PUBLIC_PRIVACY_URL ?? '',
   siteUrl: process.env.EXPO_PUBLIC_SITE_URL ?? 'https://noexcuse.vercel.app',
   /** Demo mode: fixture data, no backend, no purchases. For design review and Expo Go only. */

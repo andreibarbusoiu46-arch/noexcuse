@@ -41,7 +41,7 @@ function LevelBar({ points }: { points: number }) {
 function MemberRow({ m, period }: { m: ArenaMember; period: ArenaPeriod }) {
   const sub = [m.username ? `@${m.username}` : null, t.community.level(m.level), m.challenge].filter(Boolean).join(' · ');
   return (
-    <View accessible accessibilityLabel={t.community.rowA11y(m.rank, m.display_name, m.points, m.level)}
+    <View accessible role="listitem" accessibilityLabel={t.community.rowA11y(m.rank, m.display_name, m.points, m.level)}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderRadius: radius.lg,
         backgroundColor: m.is_me ? color.surface.glassStrong : color.surface.card, borderWidth: 1, borderColor: m.is_me ? color.border.accent : color.border.hairline }}>
       <T variant="bodyStrong" tone={m.rank <= 3 ? 'primary' : 'tertiary'} style={{ width: 30, textAlign: 'center' }}>{m.rank}</T>
@@ -155,8 +155,10 @@ export default function Arena() {
         <MessagePanel kind="empty" icon="Arena" title={query ? t.community.noMatch : t.community.emptyTitle}
           body={query ? t.community.noMatchBody : scope === 'partners' ? t.community.noPartners : t.community.emptyBody} />
       ) : (
-        <View style={{ gap: 8 }} accessibilityRole="list">
-          {rows.map((m) => <MemberRow key={m.user_id} m={m} period={period} />)}
+        <View style={{ gap: 8 }}>
+          <View style={{ gap: 8 }} accessibilityRole="list">
+            {rows.map((m) => <MemberRow key={m.user_id} m={m} period={period} />)}
+          </View>
           {board && rows.length < board.total ? (
             <Button kind="glass" label={t.community.more(board.total - rows.length)} onPress={() => load(rows.length)} loading={state === 'more'} disabled={state === 'more'} />
           ) : null}

@@ -192,9 +192,10 @@ export function ChallengeCalendar({ days }: { days: { day: string; state: Challe
           <View key={i} style={{ width: `${100 / 7}%`, padding: 3 }}>
             {c && (
               <View accessibilityLabel={t.ch.dayA11y(c.day, t.ch.dayState[c.targets ? c.state : 'rest'])}
-                style={{ aspectRatio: 1, borderRadius: 8, alignItems: 'center', justifyContent: 'center', opacity: c.targets ? 1 : 0.35,
-                  backgroundColor: CELL[c.state].bg(), borderWidth: c.state === 'today' ? 1.5 : c.state === 'lost' ? 1 : 0, borderColor: c.state === 'today' ? color.border.accent : color.border.hairline }}>
-                <T variant="tab" tone={CELL[c.state].fg} style={c.state === 'lost' ? { textDecorationLine: 'line-through' } : undefined}>{Number(c.day.slice(8))}</T>
+                style={{ aspectRatio: 1, borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+                  // Rest days (nothing scheduled) stay quiet without fading the number below readable contrast.
+                  backgroundColor: c.targets ? CELL[c.state].bg() : 'transparent', borderWidth: c.state === 'today' ? 1.5 : c.state === 'lost' ? 1 : 0, borderColor: c.state === 'today' ? color.border.accent : color.border.hairline }}>
+                <T variant="tab" tone={c.targets ? CELL[c.state].fg : 'tertiary'} style={c.state === 'lost' ? { textDecorationLine: 'line-through' } : undefined}>{Number(c.day.slice(8))}</T>
               </View>
             )}
           </View>

@@ -78,7 +78,8 @@ Deno.serve(async (req) => {
       await recordUsage(db, { userId: null, feature: "selftest", result });
       results.push({ name: c.name, sources, model: result.model, activity, level, status: analysis.status, model_status: analysis.model_status,
         confidence: analysis.confidence, summary: analysis.summary, missing: analysis.missing, requirements: analysis.requirements.map((r) => `${r.id}:${r.satisfied ? "ok" : "missing"}`),
-        evidence: analysis.evidence.map((e) => e.shows), explanation: analysis.explanation, next_action: analysis.next_action,
+        evidence: analysis.evidence.map((e) => `${e.relation}: ${e.shows}`), explanation: analysis.explanation, next_action: analysis.next_action,
+        consistency_check: analysis.consistency_check, reject_reason: analysis.reject_reason, guards: analysis.guards,
         usage: result.usage, latency_ms: result.latencyMs, attempts: result.attempts });
     } catch (e) {
       await recordUsage(db, { userId: null, feature: "selftest", error: e });

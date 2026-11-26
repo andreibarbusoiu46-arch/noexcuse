@@ -51,7 +51,9 @@
   "devDependencies": {
     "@types/react": "~19.3.0",
     "@types/three": "^0.186.0",
+    "axe-core": "4.10.2",
     "eslint": "^9.39.5",
+    "playwright": "1.63.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -61,7 +63,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test:db": "bash supabase/tests/run.sh",
-    "test:functions": "deno test --allow-env supabase/functions/tests",
+    "test:functions": "deno test --allow-env --allow-read=supabase/functions/tests/fixtures supabase/functions/tests",
     "build:vercel": "EXPO_PUBLIC_DEMO=0 EXPO_PUBLIC_SUPABASE_URL=https://ibsrtuyrflvprmjuuoqb.supabase.co EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlic3J0dXlyZmx2cHJtanV1b3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNzc3OTYsImV4cCI6MjEwODc1Mzc5Nn0.W-qQ0pGJXTsaM0DZhYkaU_tT6nBEzI894lqW8XYZwdo expo export -p web && node scripts/web-landing.mjs",
     "build": "npm run build:vercel"
   },

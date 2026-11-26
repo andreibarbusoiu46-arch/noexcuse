@@ -13,6 +13,7 @@ import { useLoad, useNow } from '@/lib/hooks';
 import { countdown, dayLabel, formatTime, windowOf } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color } from '@/theme/tokens';
+import { goBack } from '@/lib/nav';
 
 const rejected0 = (s: string) => s === 'rejected';
 
@@ -31,7 +32,7 @@ export default function Missed() {
   if (!q.data) {
     return (
       <Screen glow="grey" scroll={false} contentStyle={{ justifyContent: 'center' }}>
-        <MessagePanel kind="error" icon="Alert" title={t.missed.failTitle} body={t.common.connection} action={t.common.close} onAction={() => router.back()} />
+        <MessagePanel kind="error" icon="Alert" title={t.missed.failTitle} body={t.common.connection} action={t.common.close} onAction={() => goBack()} />
       </Screen>
     );
   }
@@ -49,11 +50,11 @@ export default function Missed() {
   return (
     <Screen glow="red" footer={<>
       <Button label={t.missed.comeback} onPress={() => router.replace({ pathname: '/comeback/[habitId]', params: { habitId: target.habit_id } })} />
-      <Button kind="ghost" label={t.common.done} onPress={() => router.back()} />
+      <Button kind="ghost" label={t.common.done} onPress={() => goBack()} />
     </>}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Badge tone="danger" label={t.missed.badge(rejected, when)} />
-        <IconButton icon="Close" label={t.common.close} onPress={() => router.back()} />
+        <IconButton icon="Close" label={t.common.close} onPress={() => goBack()} />
       </View>
       <View style={{ gap: 8 }}>
         <T variant="h1" accessibilityRole="header">{rejected ? t.missed.titleRejected : t.missed.titleMissed}</T>

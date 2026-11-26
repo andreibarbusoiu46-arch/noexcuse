@@ -1,7 +1,8 @@
 import { ApiError, callFunction, supabase } from '@/lib/supabase';
 
-const randomName = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, '0')).join('');
 import type { AiUsageOverview, Achievement, ArenaBoard, Api, Appeal, AppealResult, ArenaRow, CoachMessage, Partners, Plan, WeeklyReports, CaptureSession, ChallengeDetail, ChallengePlan, Challenges, Discipline, Entitlement, Habit, HabitInput, MissedDetail, Profile, ScoreEvent, Stats, Target, TargetReview, VerdictResult, WarRoom } from './types';
+
+const randomName = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, '0')).join('');
 
 const TARGET_SELECT = 'id, habit_id, local_date, due_at, status, settled_at, habit:habits!inner(id, title, category, activity, proof_hint, current_streak, is_active, verification_level)';
 const HABIT_SELECT = 'id, title, category, custom_category, description, notes, archived_at, verification_level, activity, proof_hint, target_time, weekdays, is_active, reminder_minutes, current_streak, longest_streak';

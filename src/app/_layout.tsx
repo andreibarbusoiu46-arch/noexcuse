@@ -1,3 +1,4 @@
+import { CrashScreen } from '@/components/CrashScreen';
 import { DialogHost } from '@/components/DialogHost';
 import { BodoniModa_500Medium } from '@expo-google-fonts/bodoni-moda/500Medium';
 import { BodoniModa_600SemiBold } from '@expo-google-fonts/bodoni-moda/600SemiBold';
@@ -7,7 +8,7 @@ import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, type ErrorBoundaryProps, router, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -21,6 +22,11 @@ import { color } from '@/theme/tokens';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const WEB_FONT_GRACE_MS = 1200;
+
+/** A screen that throws while rendering shows a recovery screen instead of a blank app. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <CrashScreen error={error} retry={retry} />;
+}
 
 
 export default function RootLayout() {

@@ -178,13 +178,14 @@ export default function SignIn() {
   }
 
   const open = (u: string) => { haptics.light(); void WebBrowser.openBrowserAsync(u); };
-  const legal = (
+  // Shown only when there is something to agree to (see config.termsUrl).
+  const legal = config.termsUrl ? (
     <T variant="caption" tone="tertiary" align="center">
       {t.signin.agree}{' '}
       <T variant="caption" tone="secondary" onPress={() => open(config.termsUrl)} accessibilityRole="link">{t.signin.terms}</T>
       {config.privacyUrl ? <>{' '}{t.signin.and}{' '}<T variant="caption" tone="secondary" onPress={() => open(config.privacyUrl)} accessibilityRole="link">{t.signin.privacy}</T></> : null}.
     </T>
-  );
+  ) : null;
   const rememberRow = Platform.OS === 'web' ? <ToggleRow title={t.auth.remember} value={remember} onChange={setRem} /> : null;
 
   let footer: React.ReactNode;
@@ -256,6 +257,7 @@ export default function SignIn() {
             <PasswordField label={t.signin.password} value={password} onChangeText={setPassword} mode="new" email={email} returnKeyType="next" />
             <PasswordField label={t.auth.confirm} value={confirm} onChangeText={setConfirm} mode="confirm" returnKeyType="go" onSubmitEditing={signUp} />
             {confirm.length > 0 && confirm !== password ? <T variant="caption" tone="warning">{t.auth.mismatch}</T> : null}
+            <T variant="caption" tone="tertiary">{t.auth.arenaNotice}</T>
           </View>
         )}
         {step === 'sent' && (

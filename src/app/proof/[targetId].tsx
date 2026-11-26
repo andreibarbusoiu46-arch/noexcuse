@@ -1,5 +1,5 @@
 import { CameraView, useCameraPermissions, type CameraType, type FlashMode } from 'expo-camera';
-import { fmtNumber, t } from '@/i18n';
+import { fmtNumber, lang, t } from '@/i18n';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -16,7 +16,6 @@ import { T } from '@/components/Text';
 import { VerdictCard, type VerdictState } from '@/components/Verdict';
 import { AnalysisPanel, EvidenceChecklist } from '@/components/Evidence';
 import { activityOf, requirementsFor } from '@/shared/activity';
-import { lang } from '@/i18n';
 import { api, type CaptureSession, type EvidenceKind, type Level, type Target, type VerdictResult } from '@/data';
 import { level as levelInfo } from '@/lib/levels';
 import { errorText } from '@/lib/errors';
@@ -26,6 +25,7 @@ import { ApiError } from '@/lib/supabase';
 import { countdown, formatTime, windowOf } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color, layout } from '@/theme/tokens';
+import { goBack } from '@/lib/nav';
 
 interface Shot { kind: EvidenceKind; uri: string; base64: string; at: number }
 
@@ -146,7 +146,7 @@ export default function Proof() {
   }
   if (phase.k === 'blocked') {
     return (
-      <Screen glow="grey" scroll={false} contentStyle={{ justifyContent: 'center' }} footer={<Button label={t.proof.backHome} onPress={() => router.back()} />}>
+      <Screen glow="grey" scroll={false} contentStyle={{ justifyContent: 'center' }} footer={<Button label={t.proof.backHome} onPress={() => goBack()} />}>
         <View style={{ gap: 12, alignItems: 'center' }}>
           <Icon name="Lock" size={36} tint={color.icon.secondary} />
           <T variant="h2" align="center">{phase.title}</T>
@@ -209,7 +209,7 @@ function Capture({ target, tz, onShot, step }: { target: Target | null; tz?: str
           {permission.canAskAgain
             ? <Button label={t.proof.allowCamera} icon="Camera" onPress={requestPermission} />
             : <Button label={t.proof.openSettings} icon="Settings" onPress={() => Linking.openSettings()} />}
-          <Button kind="ghost" label={t.common.notNow} onPress={() => router.back()} />
+          <Button kind="ghost" label={t.common.notNow} onPress={() => goBack()} />
         </>}>
         <View style={{ gap: 12, alignItems: 'center' }}>
           <Icon name="Camera" size={40} tint={color.accent.glow} />
@@ -228,7 +228,7 @@ function Capture({ target, tz, onShot, step }: { target: Target | null; tz?: str
         <View style={{ width: '76%', aspectRatio: 300 / 380, borderRadius: 18, borderWidth: 2, borderColor: 'rgba(255,255,255,0.55)', borderStyle: 'dashed' }} />
       </View>
       <View style={[styles.topBar, { top: insets.top + 8 }]}>
-        <IconButton icon="Close" label={t.proof.closeCamera} tint={ON_CAMERA} onPress={() => router.back()} />
+        <IconButton icon="Close" label={t.proof.closeCamera} tint={ON_CAMERA} onPress={() => goBack()} />
         <Glass variant="clear" fallback="rgba(10,10,11,0.72)" style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 22, alignItems: 'center', maxWidth: '62%', overflow: 'hidden' }}>
           <T variant="caption" numberOfLines={1} style={{ color: ON_CAMERA }}>{target?.habit.title ?? t.proof.proof}</T>
           {closes && <T variant="caption" style={{ color: ON_CAMERA }}>{t.proof.leftInWindow(countdown(closes - now))}</T>}
@@ -385,7 +385,7 @@ function Processing({ uri, title }: { uri: string; title: string }) {
     return () => loop.stop();
   }, [reduce, y]);
   return (
-    <Screen glow="ice" contentStyle={{ alignItems: 'center' }} footer={<Button kind="ghost" label={t.proof.backHomeNotify} onPress={() => router.back()} />}>
+    <Screen glow="ice" contentStyle={{ alignItems: 'center' }} footer={<Button kind="ghost" label={t.proof.backHomeNotify} onPress={() => goBack()} />}>
       <View style={{ height: 24 }} />
       <View style={{ width: 220, height: 280, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: color.ai.accent }}>
         <Image source={{ uri }} style={{ width: '100%', height: '100%' }} accessibilityIgnoresInvertColors />
@@ -420,28 +420,28 @@ function Result({ r, target, premium, onRetake }: { r: VerdictResult; target: Ta
 
   const actions = r.outcome === 'verified' ? (
     <>
-      <Button label={t.proof.backHome} onPress={() => router.back()} />
-      <Button kind="ghost" label={t.proof.seeArena} onPress={() => { router.back(); router.navigate('/arena'); }} />
+      <Button label={t.proof.backHome} onPress={() => goBack()} />
+      <Button kind="ghost" label={t.proof.seeArena} onPress={() => { goBack(); router.navigate('/arena'); }} />
     </>
   ) : r.outcome === 'insufficient' ? (
     <>
       {stillOpen && <Button label={t.proof.captureMore} icon="Camera" onPress={onRetake} />}
-      <Button kind={stillOpen ? 'ghost' : 'primary'} label={t.proof.backHome} onPress={() => router.back()} />
+      <Button kind={stillOpen ? 'ghost' : 'primary'} label={t.proof.backHome} onPress={() => goBack()} />
       <T variant="caption" tone="tertiary" align="center">{t.proof.missedIfClosed}</T>
     </>
   ) : r.outcome === 'error' ? (
     <>
-      <Button label={t.proof.backHome} onPress={() => router.back()} />
+      <Button label={t.proof.backHome} onPress={() => goBack()} />
       <T variant="caption" tone="tertiary" align="center">{t.proof.savedRecheck}</T>
     </>
   ) : (
     <>
       {r.outcome === 'rejected' && target && !r.already_settled && (
         <Button kind="glass" label={premium ? t.proof.appeal : t.proof.appealPremium} icon="Shield"
-          onPress={() => { router.back(); router.push(premium ? { pathname: '/appeal/[targetId]', params: { targetId: target.id } } : '/paywall'); }} />
+          onPress={() => { goBack(); router.push(premium ? { pathname: '/appeal/[targetId]', params: { targetId: target.id } } : '/paywall'); }} />
       )}
-      <Button label={t.proof.comeback} onPress={() => { router.back(); if (target) router.push({ pathname: '/comeback/[habitId]', params: { habitId: target.habit_id } }); }} />
-      <Button kind="ghost" label={t.common.done} onPress={() => router.back()} />
+      <Button label={t.proof.comeback} onPress={() => { goBack(); if (target) router.push({ pathname: '/comeback/[habitId]', params: { habitId: target.habit_id } }); }} />
+      <Button kind="ghost" label={t.common.done} onPress={() => goBack()} />
       {r.outcome === 'expired' && <T variant="caption" tone="tertiary" align="center">{t.proof.serverClock}</T>}
     </>
   );

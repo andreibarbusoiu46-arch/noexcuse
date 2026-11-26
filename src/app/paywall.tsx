@@ -87,7 +87,7 @@ export default function Paywall() {
         <Tap onPress={onRestore} disabled={busy !== null || !paywallAvailable()} accessibilityLabel={web ? t.paywall.refresh : t.paywall.restore} style={{ paddingVertical: 13 }}>
           <T variant="caption" tone="secondary">{busy === 'restore' ? t.paywall.restoring : web ? t.paywall.refresh : t.paywall.restore}</T>
         </Tap>
-        <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel={t.settings.terms} style={{ paddingVertical: 13 }}><T variant="caption" tone="secondary">{t.settings.terms}</T></Tap>
+        {config.termsUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} accessibilityRole="link" accessibilityLabel={t.settings.terms} style={{ paddingVertical: 13 }}><T variant="caption" tone="secondary">{t.settings.terms}</T></Tap> : null}
         {config.privacyUrl ? <Tap onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} accessibilityRole="link" accessibilityLabel={t.settings.privacyPolicy} style={{ paddingVertical: 13 }}><T variant="caption" tone="secondary">{t.settings.privacyPolicy}</T></Tap> : null}
       </View>
     </>

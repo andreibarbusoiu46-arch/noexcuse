@@ -4,7 +4,7 @@ import { fmtNumber, t } from '@/i18n';
 import { Platform, View } from 'react-native';
 import { Badge } from '@/components/Badge';
 import { IconTile, SectionHeader } from '@/components/Blocks';
-import { Button, IconButton } from '@/components/Button';
+import { Button } from '@/components/Button';
 import { Card, Divider } from '@/components/Card';
 import { Delta } from '@/components/Arena';
 import { Glass } from '@/components/Glass';
@@ -286,7 +286,8 @@ function DayProgress({ done, total, failed }: { done: number; total: number; fai
       </View>
       <T variant="h3">{total === 0 ? '—' : t.home.doneOf(done, total)}</T>
       <View style={{ flexDirection: 'row', height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: color.surface.control, gap: 2 }}
-        accessible accessibilityLabel={total ? t.home.doneOf(done, total) : t.home.nothingYet}>
+        accessible role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done}
+        accessibilityLabel={total ? t.home.doneOf(done, total) : t.home.nothingYet}>
         {total > 0 ? (
           <>
             <View style={{ flex: done, backgroundColor: color.text.primary }} />

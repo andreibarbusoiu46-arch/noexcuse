@@ -16,6 +16,7 @@ import { errorText } from '@/lib/errors';
 import { useLoad } from '@/lib/hooks';
 import { haptics } from '@/lib/haptics';
 import { useApp } from '@/providers/AppProvider';
+import { goBack } from '@/lib/nav';
 
 function toPlan(tpl: ChallengeTemplate): ChallengePlan {
   const x = templateText(tpl);
@@ -61,7 +62,7 @@ export default function ChallengePreview() {
     )}>
       <BackHeader overline={t.ch.preview} title={plan?.title ?? t.ch.tabTitle} />
       {q.loading && !q.data ? <LoadingPanel label={t.ch.loading} /> : !tpl || !plan ? (
-        <MessagePanel kind="error" icon="Alert" title={t.ch.notFound} body={q.error ? t.common.connection : t.ch.notFoundBody} action={t.common.back} onAction={() => router.back()} />
+        <MessagePanel kind="error" icon="Alert" title={t.ch.notFound} body={q.error ? t.common.connection : t.ch.notFoundBody} action={t.common.back} onAction={() => goBack('/challenges')} />
       ) : (
         <>
           <T variant="h3" tone="secondary">{templateText(tpl).tagline}</T>

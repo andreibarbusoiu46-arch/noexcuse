@@ -15,4 +15,10 @@ if (!shell.includes('<head>')) throw new Error('app.html has no <head>');
 writeFileSync('dist/app.html', shell.replace('<head>', `<head>${noFlash}`));
 copyFileSync('web/landing.html', 'dist/index.html');
 cpSync('web/l', 'dist/l', { recursive: true });
-console.log('Landing page → dist/index.html (+ /l), app shell → dist/app.html (with no-flash theme script)');
+copyFileSync('web/robots.txt', 'dist/robots.txt');
+copyFileSync('web/sitemap.xml', 'dist/sitemap.xml');
+// vercel.json rewrites only the app's real routes to /app.html; any other path gets Vercel's 404.html with a
+// real 404 status. It is the app shell too, so the app still renders its branded "page doesn't exist" screen
+// (and a route missing from vercel.json would still render correctly, just with a 404 status).
+copyFileSync('dist/app.html', 'dist/404.html');
+console.log('Landing page → dist/index.html (+ /l, robots.txt, sitemap.xml), app shell → dist/app.html and dist/404.html (with no-flash theme script)');

@@ -86,7 +86,7 @@ export default function DisciplineScreen() {
             ) : (
               <Card style={{ padding: 16 }}>
                 <View style={{ height: 120, flexDirection: 'row', alignItems: 'flex-end', gap: 2 }} accessible
-                  accessibilityLabel={t.discipline.historyA11y(hist.length, hist[0].score, hist[hist.length - 1].score)}>
+                  accessibilityRole="image" accessibilityLabel={t.discipline.historyA11y(hist.length, hist[0].score, hist[hist.length - 1].score)}>
                   {hist.map((h) => (
                     <View key={h.day} style={{ flex: 1, height: `${Math.max(2, h.score)}%`, borderRadius: 2, backgroundColor: h.provisional ? color.text.tertiary : color.text.primary }} />
                   ))}

@@ -3,7 +3,11 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/:screen(achievements|ai|ai-usage|arena|billing|challenges|coach|discipline|habits|onboarding|partners|paywall|profile|reports|reset-password|settings|share|sign-in)",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/:section(appeal|auth|challenge|comeback|habit|missed|proof)/:rest+",
       "destination": "/app.html"
     }
   ]

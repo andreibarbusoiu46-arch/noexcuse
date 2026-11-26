@@ -1,14 +1,16 @@
 // One verification pipeline, used by verify-proof (live) and cron-tick (retries).
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.118.0";
 import { activityOf } from "../../../src/shared/activity.ts";
-import { type Analysis, analyzeEvidence, type EngineImage, OUTCOME } from "./engine.ts";
-import { LlmError, llmConfig, recordUsage } from "./llm.ts";
+import { type Analysis, analyzeEvidence, type EngineImage, OUTCOME, type Verdict } from "./engine.ts";
+import { type CallOptions, LlmError, llmConfig, recordUsage } from "./llm.ts";
 import { formatLocalTime, isLevel, isMilestone, type Level } from "./rules.ts";
 import { copy, notifyOnce } from "./push.ts";
 
 export interface VerdictResult {
   proof_id: string;
   outcome: "verified" | "rejected" | "insufficient" | "expired" | "error";
+  /** VERIFIED | NEEDS_MORE_EVIDENCE | REJECTED | PROVIDER_ERROR (only REJECTED costs points). */
+  verdict: Verdict;
   verified: boolean;
   critique: string;
   points_delta: number;
@@ -35,7 +37,8 @@ function unavailableText(code: string, ro: boolean): string {
       : "Verification is delayed. Your proof is saved with its capture time and nothing is deducted. We’ll retry shortly; if it still can’t be checked, this target is excused.");
 }
 
-export async function judgeAndApply(db: SupabaseClient, proofId: string, images: EngineImage[], notes: string[] = []): Promise<VerdictResult> {
+/** `llm` lets tests substitute the provider (fake fetch, no sleeping); production passes nothing. */
+export async function judgeAndApply(db: SupabaseClient, proofId: string, images: EngineImage[], notes: string[] = [], llm: CallOptions = {}): Promise<VerdictResult> {
   const { data: proof, error } = await db
     .from("proofs")
     .select("id, user_id, received_at, level, target:targets!inner(id, due_at, habit:habits!inner(id, title, proof_hint, description, category, activity, longest_streak, challenge:challenges!habits_challenge_id_fkey(title, rules))), profile:profiles!inner(timezone, language)")
@@ -50,6 +53,7 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
   const habit = p.target.habit;
 
   let outcome: VerdictResult["outcome"];
+  let verdict: Verdict;
   let critique: string;
   let confidence: number | null = null;
   let raw: unknown = null;
@@ -58,7 +62,7 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
   let errorCode: string | undefined;
   let model: string | null = null;
   try {
-    model = llmConfig("verify").model;
+    model = llm.config?.model ?? llmConfig("verify").model;
   } catch { /* reported below */ }
   try {
     const { analysis: a, result } = await analyzeEvidence({
@@ -71,18 +75,21 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
       localReceivedTime: formatLocalTime(new Date(p.received_at), tz),
       notes,
       language: ro ? "ro" : "en",
-    });
+    }, llm);
     await recordUsage(db, { userId: p.user_id, feature: "verify", result, refId: proofId });
     analysis = { ...a, provider: result.provider, model: result.model } as Analysis;
     model = result.model;
-    outcome = OUTCOME[a.status];
+    verdict = a.status;
+    outcome = OUTCOME[verdict];
     confidence = a.confidence;
     critique = a.explanation;
     if (outcome === "insufficient") requested = a.next_action.slice(0, 300) || null;
-    raw = { provider: result.provider, model: result.model, usage: result.usage, attempts: result.attempts, model_status: a.model_status, notes };
+    raw = { provider: result.provider, model: result.model, usage: result.usage, attempts: result.attempts, model_status: a.model_status, guards: a.guards, notes };
   } catch (e) {
     await recordUsage(db, { userId: p.user_id, feature: "verify", error: e, refId: proofId });
-    outcome = "error";
+    // Any failure to get a valid answer is the provider's, never the user's: no points either way.
+    verdict = "PROVIDER_ERROR";
+    outcome = OUTCOME[verdict];
     errorCode = e instanceof LlmError ? e.code : "error";
     critique = unavailableText(errorCode, ro);
     // Only codes and status — never the evidence or the model's text.
@@ -112,6 +119,7 @@ export async function judgeAndApply(db: SupabaseClient, proofId: string, images:
   return {
     proof_id: proofId,
     outcome,
+    verdict,
     verified: outcome === "verified" && !a.already_settled,
     critique,
     points_delta: a.points_delta,
