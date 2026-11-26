@@ -78,6 +78,7 @@ export default function ChallengesTab() {
 
           <View style={{ gap: 12 }}>
             <SectionHeader title={t.ch.library} />
+            <View accessibilityRole="tablist">
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 8 }}>
               {(['all', ...CHALLENGE_KINDS] as const).map((k) => {
                 const on = k === kind;
@@ -89,6 +90,7 @@ export default function ChallengesTab() {
                 );
               })}
             </ScrollView>
+            </View>
             {templates.length === 0 ? (
               <T variant="caption" tone="tertiary">{t.ch.noneInKind}</T>
             ) : (

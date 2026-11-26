@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { HabitInput } from '@/data/types';
 import { haptics } from '@/lib/haptics';
 import { formatTime, windowOf } from '@/lib/time';
-import { color, radius, scheme } from '@/theme/tokens';
+import { color, radius } from '@/theme/tokens';
 import { DayChips, ToggleRow } from './Blocks';
 import { ACTIVITIES, detectActivity } from '@/shared/activity';
 import { EvidenceChecklist } from './Evidence';

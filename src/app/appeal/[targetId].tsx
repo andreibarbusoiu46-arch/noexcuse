@@ -17,6 +17,7 @@ import { errorText } from '@/lib/errors';
 import { countdown, dayLabel, formatTime } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color, radius } from '@/theme/tokens';
+import { goBack } from '@/lib/nav';
 
 const TONE: Record<AppealStatus, Tone> = { pending: 'ai', upheld: 'danger', overturned: 'success', unavailable: 'neutral' };
 const statusInfo = (s: AppealStatus) => ({ tone: TONE[s], ...t.appeal.status[s] });
@@ -67,7 +68,7 @@ export default function AppealScreen() {
       {q.loading && !d ? <LoadingPanel label={t.common.loading} /> : q.error && !d ? (
         <MessagePanel kind="error" icon="Alert" title={t.appeal.failTitle} body={t.common.connection} action={t.common.tryAgain} onAction={() => q.reload()} />
       ) : !proof || (proof.outcome !== 'rejected' && !appeal) ? (
-        <MessagePanel kind="empty" icon="Shield" title={t.appeal.nothing} body={t.appeal.nothingBody} action={t.common.close} onAction={() => router.back()} />
+        <MessagePanel kind="empty" icon="Shield" title={t.appeal.nothing} body={t.appeal.nothingBody} action={t.common.close} onAction={() => goBack()} />
       ) : (
         <>
           <Card style={{ padding: 18, gap: 8 }}>

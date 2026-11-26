@@ -113,7 +113,11 @@ export const demoApi: Api = {
   },
   startProof: async (tid) => {
     const t = targets.find((x) => x.id === tid);
-    const due = t ? new Date(t.due_at).getTime() : Date.now();
+    // Same refusals as the start-proof function, so the demo behaves like the real app.
+    if (!t) throw new ApiError('not_found', 'Target not found.', 404);
+    if (t.status !== 'pending') throw new ApiError('already_settled', 'This target is already settled.', 409);
+    const due = new Date(t.due_at).getTime();
+    if (Date.now() > due + 15 * MIN) throw new ApiError('window_closed', 'The window has closed.', 410);
     return { session_id: id(), expires_at: at(3), window_opens_at: new Date(due - 15 * MIN).toISOString(), window_closes_at: new Date(due + 15 * MIN).toISOString(), server_time: new Date().toISOString() };
   },
   verifyProof: async (): Promise<VerdictResult> => {

@@ -4,5 +4,6 @@ const expoConfig = require('eslint-config-expo/flat');
 
 module.exports = defineConfig([
   expoConfig,
-  { ignores: ['dist/*', 'supabase/functions/*', '.expo/*'] },
+  // web/ holds the static landing page (hand-written browser script, deliberately ES5), not app source.
+  { ignores: ['dist/*', 'supabase/functions/*', '.expo/*', 'web/*'] },
 ]);

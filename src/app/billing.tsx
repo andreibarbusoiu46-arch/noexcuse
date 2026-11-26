@@ -67,6 +67,8 @@ export default function Billing() {
   const e = q.data ?? null;
   const st = statusOf(e);
   const stripe = e?.source === 'stripe';
+  /** Bought in a store app (not Stripe, not a free grant): managed in that store. */
+  const store = e?.source === 'app_store' || e?.source === 'play_store';
   const trialing = e?.status === 'trialing';
 
   async function portal() {
@@ -106,7 +108,7 @@ export default function Billing() {
                   label={e.will_renew === false ? t.billing.accessUntil : trialing ? t.billing.firstCharge : t.billing.renews}
                   value={day(trialing ? e.trial_end : e.current_period_end ?? e.expires_at)} /></>) : null}
                 <Divider />
-                <Row label={t.billing.billedBy} value={stripe ? t.billing.stripe : t.billing.appStore} />
+                <Row label={t.billing.billedBy} value={stripe ? t.billing.stripe : e.source === 'play_store' ? t.billing.playStore : store ? t.billing.appStore : t.billing.manual} />
               </>
             ) : (
               <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}><T variant="bodySmall" tone="secondary">{t.billing.freeBody}</T></View>
@@ -129,8 +131,8 @@ export default function Billing() {
               <T variant="caption" tone="tertiary">{t.billing.manageBody}</T>
             </View>
           ) : null}
-          {!stripe && e && Platform.OS === 'web' ? <T variant="caption" tone="tertiary">{t.billing.manageOnIphone}</T> : null}
-          {!stripe && e && purchasesAvailable() ? <Button kind="glass" label={t.billing.manage} onPress={portal} disabled={!!busy} /> : null}
+          {e?.source === 'app_store' && Platform.OS === 'web' ? <T variant="caption" tone="tertiary">{t.billing.manageOnIphone}</T> : null}
+          {store && purchasesAvailable() ? <Button kind="glass" label={t.billing.manage} onPress={portal} disabled={!!busy} /> : null}
           {stripe && Platform.OS !== 'web' ? <T variant="caption" tone="tertiary">{t.billing.iosWeb}</T> : null}
 
           <Button kind="ghost" label={t.billing.refresh} icon="Retry" onPress={refresh} loading={busy === 'sync'} disabled={!!busy} />

@@ -9,6 +9,7 @@ import { HabitForm } from '@/components/HabitForm';
 import { MessagePanel } from '@/components/StatePanel';
 import { T } from '@/components/Text';
 import { api, type Target } from '@/data';
+import { calendarAvailable, downloadCommitmentIcs } from '@/lib/calendar';
 import { confirmDestructive, notify } from '@/lib/dialog';
 import { errorText } from '@/lib/errors';
 import { haptics } from '@/lib/haptics';
@@ -17,6 +18,7 @@ import { useLoad } from '@/lib/hooks';
 import { dayLabel, formatTime } from '@/lib/time';
 import { useApp } from '@/providers/AppProvider';
 import { color } from '@/theme/tokens';
+import { goBack } from '@/lib/nav';
 
 const TONE: Record<Target['status'], Tone> = { pending: 'neutral', verified: 'success', rejected: 'danger', missed: 'danger', excused: 'neutral' };
 
@@ -35,7 +37,7 @@ export default function EditHabit() {
   if (!h) {
     return (
       <View style={{ flex: 1, backgroundColor: color.surface.card, padding: 20, justifyContent: 'center' }}>
-        <MessagePanel kind="error" icon="Alert" title={t.form.notFound} body={t.form.notFoundBody} action={t.common.close} onAction={() => router.back()} />
+        <MessagePanel kind="error" icon="Alert" title={t.form.notFound} body={t.form.notFoundBody} action={t.common.close} onAction={() => goBack('/habits')} />
       </View>
     );
   }
@@ -75,7 +77,7 @@ export default function EditHabit() {
       initial={{ title: h.title, proof_hint: h.proof_hint, target_time: h.target_time, weekdays: h.weekdays, is_active: h.is_active, reminder_minutes: h.reminder_minutes,
         category: h.category, custom_category: h.custom_category, description: h.description, notes: h.notes, verification_level: h.verification_level, activity: h.activity ?? null }}
       onSubmit={async (v) => { await api.updateHabit(h.id, v); if (router.canGoBack()) router.back(); else router.replace('/habits'); }}
-      onClose={() => router.back()}
+      onClose={() => goBack('/habits')}
       note={t.form.editNote}
       footer={
         <View style={{ gap: 12, marginTop: 8 }}>
@@ -95,6 +97,15 @@ export default function EditHabit() {
               ))}
             </Card>
           )}
+          {calendarAvailable() && !archived && h.is_active ? (
+            <View style={{ gap: 6 }}>
+              <Button kind="glass" label={t.form.calendar} icon="Bell" disabled={!!busy} onPress={() => {
+                const ok = downloadCommitmentIcs(h, tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+                setMsg(ok ? { tone: 'success', text: t.form.calendarDone } : { tone: 'danger', text: t.form.calendarNoDays });
+              }} />
+              <T variant="caption" tone="tertiary">{t.form.calendarNote}</T>
+            </View>
+          ) : null}
           {msg ? <T variant="bodySmall" tone={msg.tone} accessibilityLiveRegion="polite">{msg.text}</T> : null}
           {archived ? (
             <Button kind="glass" label={busy === 'restore' ? t.form.working : t.form.restore} icon="Retry" onPress={() => run('restore')} loading={busy === 'restore'} disabled={!!busy} />

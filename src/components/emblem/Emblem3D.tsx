@@ -1,26 +1,20 @@
-// Web renderer for the emblem (used for the browser preview). Native uses Emblem3D.native.tsx.
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Component, type ReactNode } from 'react';
+// Web emblem: shows the flat mark at once and swaps in the 3D canvas when its chunk (three.js, ~1 MB) has
+// loaded, so sign-in renders without waiting for it. Native uses Emblem3D.native.tsx.
+import { lazy, Suspense } from 'react';
 import { View } from 'react-native';
-import { useReduceMotion } from '@/lib/hooks';
 import { Mark } from '../Brand';
-import { EmblemScene } from './Scene';
 
-class Fallback extends Component<{ size: number; children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() { return { failed: true }; }
-  render() { return this.state.failed ? <Mark size={this.props.size * 0.55} /> : this.props.children; }
-}
+const EmblemCanvas = lazy(() => import('./EmblemCanvas'));
 
 export function Emblem3D({ size = 168 }: { size?: number }) {
-  const still = useReduceMotion();
-  return (
-    <View style={{ width: size, height: size }} accessibilityRole="image" accessibilityLabel="NoExcuse emblem">
-      <Fallback size={size}>
-        <Canvas style={{ width: size, height: size }} camera={{ position: [0, 0, 5.2], fov: 35 }} frameloop={still ? 'demand' : 'always'} gl={{ antialias: true, alpha: true }} dpr={[1, 2]}>
-          <EmblemScene useFrame={useFrame} still={still} />
-        </Canvas>
-      </Fallback>
+  const placeholder = (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }} accessibilityRole="image" accessibilityLabel="NoExcuse emblem">
+      <Mark size={size * 0.55} />
     </View>
+  );
+  return (
+    <Suspense fallback={placeholder}>
+      <EmblemCanvas size={size} />
+    </Suspense>
   );
 }

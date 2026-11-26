@@ -110,9 +110,34 @@ const startsWord = (text: string, stem: string) => {
   return false;
 };
 
+/** A stem as a whole word, optionally followed by a plural/verb ending. Proof hints describe the photo in free
+ * text ("timer readable", "the running shower", "ready"), which would otherwise mislead the prefix match. */
+const wholeWord = (text: string, stem: string) => {
+  const esc = stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^\\p{L}\\p{N}])${esc}(s|es|ing|ning|ner|ners|ed|er|ers|en|ten)?(?![\\p{L}\\p{N}])`, 'u').test(text);
+};
+/** Short English stems that start many unrelated words (ready, readable, runway, eaten…): whole words only in hints. */
+const AMBIGUOUS = new Set(['run', 'read', 'eat', 'lift', 'book', 'cook', 'meal', 'learn', 'notes', 'course', 'training', 'sala']);
+const hintTest = (text: string, stem: string) => (AMBIGUOUS.has(stem) ? wholeWord(text, stem) : startsWord(text, stem));
+/** "running" that describes something else: running water, a running shower, a timer that is running. */
+const RUNNING_OBJECT = /\brunning (water|shower|tap|timer|clock|stopwatch|bath|sink|faucet|app)\b|\b(water|shower|tap|timer|clock|stopwatch|app) (is )?running\b/g;
+
+function match(text: string, test: (text: string, stem: string) => boolean): Activity | null {
+  for (const [a, stems] of KEYWORDS) if (stems.some((st) => test(text, st))) return a;
+  return null;
+}
+
+/**
+ * The activity a commitment is about. The title decides first; the proof hint only when the title says
+ * nothing. Short, ambiguous stems must be whole words in both. Without either, the category is the fallback.
+ * (A "Cold shower" whose hint mentions "the running shower" is not a run.)
+ */
 export function detectActivity(title: string, category?: string | null, proofHint?: string | null): Activity {
-  const text = `${title} ${proofHint ?? ''}`.toLowerCase();
-  for (const [a, stems] of KEYWORDS) if (stems.some((st) => startsWord(text, st))) return a;
+  const fromTitle = match(title.toLowerCase().replace(RUNNING_OBJECT, ' '), hintTest);
+  if (fromTitle) return fromTitle;
+  const hint = (proofHint ?? '').toLowerCase().replace(RUNNING_OBJECT, ' ');
+  const fromHint = hint.trim() ? match(hint, hintTest) : null;
+  if (fromHint) return fromHint;
   if (category === 'fitness') return 'gym';
   if (category === 'education') return 'studying';
   return 'general';

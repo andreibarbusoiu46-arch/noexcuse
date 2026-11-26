@@ -11,6 +11,7 @@ import { api } from '@/data';
 import { haptics } from '@/lib/haptics';
 import { useLoad } from '@/lib/hooks';
 import { color } from '@/theme/tokens';
+import { goBack } from '@/lib/nav';
 
 /** Figma I2 — concrete changes that make the next window easier to win. Every toggle really changes the habit. */
 export default function Comeback() {
@@ -30,7 +31,7 @@ export default function Comeback() {
     try {
       await api.updateHabit(h!.id, { reminder_minutes: earlier ? 30 : 10 });
       haptics.success();
-      router.back();
+      goBack();
     } catch {
       haptics.error();
       setBusy(false);
@@ -42,7 +43,7 @@ export default function Comeback() {
       <Button label={t.comeback.commit} onPress={commit} loading={busy} />
       <T variant="caption" tone="tertiary" align="center">{t.comeback.note}</T>
     </>}>
-      <View style={{ flexDirection: 'row' }}><IconButton icon="ChevronLeft" label={t.common.back} onPress={() => router.back()} /></View>
+      <View style={{ flexDirection: 'row' }}><IconButton icon="ChevronLeft" label={t.common.back} onPress={() => goBack()} /></View>
       <View style={{ gap: 6 }}>
         <T variant="overline" tone="accent">{t.comeback.over}</T>
         <T variant="h1" accessibilityRole="header">{t.comeback.title}</T>
@@ -53,7 +54,7 @@ export default function Comeback() {
           <T variant="bodyStrong">{t.comeback.backTo(goal)}</T>
           <T variant="caption" tone="tertiary">{h.current_streak} / {goal}</T>
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }} accessible accessibilityLabel={t.comeback.rebuilt(h.current_streak, goal)}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }} accessible role="progressbar" aria-valuemin={0} aria-valuemax={goal} aria-valuenow={Math.min(h.current_streak, goal)} accessibilityLabel={t.comeback.rebuilt(h.current_streak, goal)}>
           {Array.from({ length: dots }).map((_, i) => (
             <View key={i} style={{ width: 20, height: 20, borderRadius: 7, borderWidth: 1, backgroundColor: i < h.current_streak ? color.accent.primary : i === h.current_streak ? color.accent.soft : color.surface.glass, borderColor: i === h.current_streak ? color.border.accent : color.border.hairline }} />
           ))}

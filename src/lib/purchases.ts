@@ -1,7 +1,8 @@
 // RevenueCat on the device. The client uses it to decide which screen to show;
 // the server re-checks the entitlement itself before anything that matters (proofs, scoring).
 import { Platform } from 'react-native';
-import Purchases, { type CustomerInfo, type PurchasesPackage } from 'react-native-purchases';
+import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
+import Purchases from './revenuecat';
 import { config } from './config';
 import { ApiError, callFunction, supabase } from './supabase';
 

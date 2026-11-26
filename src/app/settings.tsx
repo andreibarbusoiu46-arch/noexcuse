@@ -23,7 +23,7 @@ import { confirmDestructive, notify } from '@/lib/dialog';
 import { errorText } from '@/lib/errors';
 import { haptics } from '@/lib/haptics';
 import { useLoad } from '@/lib/hooks';
-import { manageSubscription, purchasesAvailable, restore } from '@/lib/purchases';
+import { purchasesAvailable, restore } from '@/lib/purchases';
 import { disablePush, enablePush, pushPermissionGranted } from '@/lib/push';
 import { supabase } from '@/lib/supabase';
 import { deviceTimeZone } from '@/lib/time';
@@ -326,8 +326,7 @@ export default function Settings() {
           <SettingsRow icon="Doc" label={busy === 'export' ? t.settings.preparing : t.settings.export} chevron={false} onPress={exportData} />
           <Divider />
           <SettingsRow icon="Shield" label={busy === 'all' ? t.settings.signingOut : t.settings.signOutAll} chevron={false} onPress={signOutAll} />
-          <Divider />
-          <SettingsRow icon="Doc" label={t.settings.terms} onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} />
+          {config.termsUrl ? (<><Divider /><SettingsRow icon="Doc" label={t.settings.terms} onPress={() => WebBrowser.openBrowserAsync(config.termsUrl)} /></>) : null}
           {config.privacyUrl ? (<><Divider /><SettingsRow icon="Lock" label={t.settings.privacyPolicy} onPress={() => WebBrowser.openBrowserAsync(config.privacyUrl)} /></>) : null}
         </Card>
         <T variant="caption" tone="tertiary">{t.settings.privacyNote}</T>

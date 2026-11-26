@@ -49,6 +49,7 @@ export function IconTile({ icon, bg, tint, size = 44 }: { icon: IconName; bg: st
 /** Segmented control on native clear glass. */
 export function Segmented<K extends string>({ value, options, onChange }: { value: K; options: { key: K; label: string }[]; onChange: (k: K) => void }) {
   return (
+    <View accessibilityRole="tablist">
     <GlassGroup spacing={4}>
       <Glass variant="clear" fallback={color.surface.glass} border={color.border.hairline} style={{ flexDirection: 'row', padding: 4, borderRadius: 22, gap: 4 }}>
         {options.map((o) => {
@@ -62,6 +63,7 @@ export function Segmented<K extends string>({ value, options, onChange }: { valu
         })}
       </Glass>
     </GlassGroup>
+    </View>
   );
 }
 

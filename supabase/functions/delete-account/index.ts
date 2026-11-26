@@ -1,6 +1,7 @@
 // POST (no body) → permanently deletes the caller's account (App Store guideline 5.1.1(v)).
-// Removes proof photos from storage, then the auth user; every table cascades from profiles.
+// Cancels web subscriptions, removes every stored photo, then the auth user; every table cascades from profiles.
 import { adminClient, fail, json, requireUser, withCors } from "../_shared/http.ts";
+import { type PathRow, purgeAccountStorage } from "../_shared/accountPurge.ts";
 import { stripe, stripeKey } from "../_shared/stripe.ts";
 
 Deno.serve(withCors(async (req) => {
@@ -18,28 +19,44 @@ Deno.serve(withCors(async (req) => {
     if (count && !key) return fail(503, "billing_unavailable", "Your subscription couldn’t be cancelled right now, so the account wasn’t deleted. Try again later.");
     if (key) {
       try {
-        const subs = await stripe<{ data: { id: string; status: string }[] }>(key, "GET", "/subscriptions", { customer: billing.stripe_customer_id, status: "all", limit: 20 });
-        for (const s of subs.data) if (!["canceled", "incomplete_expired"].includes(s.status)) await stripe(key, "DELETE", `/subscriptions/${s.id}`);
+        // Every page of the customer's subscriptions, not just the first 20.
+        let startingAfter: string | undefined;
+        for (let page = 0; page < 50; page++) {
+          const subs: { data: { id: string; status: string }[]; has_more: boolean } = await stripe(key, "GET", "/subscriptions",
+            { customer: billing.stripe_customer_id, status: "all", limit: 100, ...(startingAfter ? { starting_after: startingAfter } : {}) });
+          for (const s of subs.data) if (!["canceled", "incomplete_expired"].includes(s.status)) await stripe(key, "DELETE", `/subscriptions/${s.id}`);
+          if (!subs.has_more || subs.data.length === 0) break;
+          startingAfter = subs.data[subs.data.length - 1].id;
+          if (page === 49) throw new Error("too many subscriptions");
+        }
       } catch {
         return fail(502, "billing_unavailable", "Your subscription couldn’t be cancelled right now, so the account wasn’t deleted. Try again in a moment.");
       }
     }
   }
 
-  // Profile photo (avatars/<user>/…).
-  const { data: avatars } = await db.storage.from("avatars").list(user.id);
-  if (avatars?.length) await db.storage.from("avatars").remove(avatars.map((f) => `${user.id}/${f.name}`));
-
-  // Delete stored photos page by page (paths are "<user>/<target>/<proof>.jpg").
-  // Multi-photo proofs keep their extra photos in proof_items.
-  const [{ data: proofs }, { data: items }] = await Promise.all([
-    db.from("proofs").select("storage_path").eq("user_id", user.id),
-    db.from("proof_items").select("storage_path").eq("user_id", user.id),
-  ]);
-  const paths = [...new Set([...(proofs ?? []), ...(items ?? [])].map((p) => p.storage_path as string))];
-  for (let i = 0; i < paths.length; i += 100) {
-    const { error } = await db.storage.from("proofs").remove(paths.slice(i, i + 100));
-    if (error) return fail(500, "storage_error", "Couldn’t delete stored photos. Try again.");
+  // Every stored file goes before the account: proof photos (proofs + proof_items, cursor-paged by id) and the
+  // profile photo folder. If any listing or removal fails, the account is NOT deleted (see _shared/accountPurge.ts);
+  // asking again is safe and finishes the job.
+  const purge = await purgeAccountStorage({
+    paths: async (table, after, limit) => {
+      let q = db.from(table).select("id, storage_path").eq("user_id", user.id).order("id").limit(limit);
+      if (after) q = q.gt("id", after);
+      const { data, error } = await q;
+      return error ? { error: error.message } : { rows: (data ?? []) as PathRow[] };
+    },
+    avatars: async (offset, limit) => {
+      const { data, error } = await db.storage.from("avatars").list(user.id, { limit, offset, sortBy: { column: "name", order: "asc" } });
+      return error ? { error: error.message } : { names: (data ?? []).map((f) => f.name) };
+    },
+    remove: async (bucket, paths) => (await db.storage.from(bucket).remove(paths)).error?.message ?? null,
+  }, { userId: user.id });
+  if (purge.status === "failed") {
+    console.error("delete-account storage", purge.step, purge.detail, "removed", purge.removed);
+    const listing = purge.step.startsWith("list") || purge.step === "limit" || purge.step === "cursor";
+    return fail(500, listing ? "server_error" : "storage_error", listing
+      ? "Couldn’t list your photos, so the account wasn’t deleted. Try again."
+      : "Couldn’t delete every stored photo, so the account wasn’t deleted. Try again — photos already removed stay removed.");
   }
 
   const { error } = await db.auth.admin.deleteUser(user.id);

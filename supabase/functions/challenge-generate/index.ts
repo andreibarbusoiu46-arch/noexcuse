@@ -26,7 +26,11 @@ Deno.serve(withCors(async (req) => {
   const since = new Date(Date.now() - 86_400_000).toISOString();
   const { count } = await db.from("audit_log").select("id", { count: "exact", head: true })
     .eq("user_id", user.id).eq("action", "challenge_generated").gte("at", since);
-  if ((count ?? 0) >= DAILY_LIMIT) return fail(429, "daily_limit", `You can generate ${DAILY_LIMIT} challenges per day.`);
+  if ((count ?? 0) >= DAILY_LIMIT) return fail(429, "daily_limit", `You can generate ${DAILY_LIMIT} challenges a day (failed attempts count too).`);
+
+  // Count the attempt before calling the model, so failed or invalid generations also use the daily
+  // allowance (each one is a paid AI call).
+  await db.from("audit_log").insert({ user_id: user.id, action: "challenge_generated", data: { goal: goal.slice(0, 200) } });
 
   const { data: prof } = await db.from("profiles").select("language").eq("id", user.id).single();
   const language = prof?.language === "ro" ? "ro" : "en";
@@ -40,7 +44,6 @@ Deno.serve(withCors(async (req) => {
     if (e instanceof LlmError && e.code === "invalid_output") return fail(422, "ai_invalid", "The generated plan didn’t pass our rules. Try again or rephrase your goal.");
     return fail(503, "ai_unavailable", "The generator is unavailable right now. Try again in a moment.");
   }
-  await db.from("audit_log").insert({ user_id: user.id, action: "challenge_generated", data: { goal: goal.slice(0, 200) } });
   const v = validatePlan(plan, premium);
   if (!v.ok) return fail(422, "ai_invalid", "The generated plan didn’t pass our rules. Try again or rephrase your goal.");
   return json(200, { plan: v.plan });

@@ -1,8 +1,10 @@
 // POST { action: "delete_commitment", habit_id } → permanently deletes one of the caller's commitments:
 // its photos leave storage first, then the database erases it (see public.delete_commitment).
-// POST { action: "delete_evidence" } → deletes the caller's evidence photos from storage.
+// POST { action: "delete_evidence" } → deletes the caller's evidence photos from storage. 200 only when every
+// deletable photo is gone; otherwise 409 (safety limit, call again) or 500 (a step failed), with counts so far.
 // Results, points and verdicts stay. Photos the system still needs are kept and counted:
 // a verification still running, a pending appeal, or a rejection inside its appeal window.
+import { type EvidenceRow, purgeEvidence } from "../_shared/evidencePurge.ts";
 import { adminClient, fail, json, requireUser, withCors } from "../_shared/http.ts";
 
 Deno.serve(withCors(async (req) => {
@@ -14,21 +16,32 @@ Deno.serve(withCors(async (req) => {
   if (body.action === "delete_commitment") return deleteCommitment(db, user.id, body.habit_id);
   if (body.action !== "delete_evidence") return fail(400, "bad_request", "Unknown action.");
 
-  const { data, error } = await db.rpc("evidence_for_user_deletion", { p_user: user.id });
-  if (error) return fail(500, "server_error", "Couldn’t read your evidence. Try again.");
-  const rows = (data ?? []) as Array<{ proof_id: string; paths: string[]; kept: boolean }>;
-  const go = rows.filter((r) => !r.kept);
-  let deleted = 0;
-  for (let i = 0; i < go.length; i += 100) {
-    const batch = go.slice(i, i + 100);
-    const { error: e } = await db.storage.from("proofs").remove(batch.flatMap((r) => r.paths));
-    if (e) return fail(500, "storage_error", "Couldn’t delete every photo. Try again.");
-    const { data: n } = await db.rpc("mark_evidence_deleted", { p_proofs: batch.map((r) => r.proof_id) });
-    deleted += (n as number) ?? 0;
-  }
-  await db.rpc("audit", { p_user: user.id, p_action: "evidence_deleted", p_ref: null, p_data: { deleted, kept: rows.length - go.length } })
+  // Every undeleted proof of the caller is read page by page (cursor on proof id), so photos that must be
+  // kept never stop the run; see _shared/evidencePurge.ts. Success is reported only when nothing is left.
+  const outcome = await purgeEvidence({
+    page: async (after, limit) => {
+      const { data, error } = await db.rpc("evidence_for_user_deletion_page", { p_user: user.id, p_after: after, p_limit: limit });
+      return error ? { error: error.message } : { rows: (data ?? []) as EvidenceRow[] };
+    },
+    remove: async (paths) => (await db.storage.from("proofs").remove(paths)).error?.message ?? null,
+    mark: async (ids) => {
+      const { data, error } = await db.rpc("mark_evidence_deleted", { p_proofs: ids });
+      return error ? { error: error.message } : { count: (data as number) ?? 0 };
+    },
+  }, { pathPrefix: `${user.id}/` });
+
+  const { deleted, kept } = outcome;
+  await db.rpc("audit", { p_user: user.id, p_action: "evidence_deleted",
+    p_ref: null, p_data: { deleted, kept, status: outcome.status, ...(outcome.status === "incomplete" ? { reason: outcome.reason } : {}) } })
     .then(() => null, () => null);
-  return json(200, { deleted, kept: rows.length - go.length });
+  if (outcome.status === "complete") return json(200, { deleted, kept, complete: true });
+  if (outcome.reason === "limit") {
+    return json(409, { error: "delete_incomplete", complete: false, deleted, kept,
+      message: `${deleted} photos were deleted, but more remain. Tap Delete again to continue.` });
+  }
+  console.error("privacy delete_evidence incomplete", outcome.reason, outcome.detail);
+  return json(500, { error: "delete_incomplete", complete: false, deleted, kept,
+    message: `Not every photo could be deleted (${deleted} were). Try again: photos already deleted stay deleted.` });
 }));
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
